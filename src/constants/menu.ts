@@ -19,15 +19,31 @@ const MENU_ITEMS: MenuItemTypes[] = [
         key: 'dashboards',
         label: 'Dashboards',
         isTitle: false,
-        icon: 'airplay',
+        icon: 'briefcase',
+        url: '/home',
     },
-    { key: 'app', label: 'App', isTitle: true },
+    { key: 'timesheet-management', label: 'Timesheet Management', isTitle: true },
     {
         key: 'projects',
         label: 'Projects',
         isTitle: false,
-        icon: '',
+        icon: 'book',
+        url: '/projects',
     },
+    {
+        key: 'timesheet',
+        label: 'Timesheet',
+        isTitle: false,
+        icon: 'clock',
+        url: '/timesheet',
+    },
+    {
+        key: 'tasks',
+        label: 'Tasks',
+        isTitle: false,
+        icon: 'list',
+        url: '/tasks',
+    }
 ];
 
 const HORIZONTAL_MENU_ITEMS: MenuItemTypes[] = [

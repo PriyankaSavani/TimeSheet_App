@@ -108,7 +108,7 @@ const MenuItemLink = ( { item, className }: SubMenus ) => {
                className={ classNames( 'side-nav-link-ref', 'side-sub-nav-link', className ) }
                data-menu-key={ item.key }
           >
-               {/* { item.icon && <FeatherIcon icon={ item.icon } /> } */ }
+               { item.icon && <FeatherIcon icon={ item.icon } /> }
                { item.badge && <span className={ `badge bg-${ item.badge.variant } float-end` }>{ item.badge.text }</span> }
                <span> { item.label } </span>
           </Link>

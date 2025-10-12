@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux'
 
 // store
@@ -49,13 +49,24 @@ const RoutesComponent = ( props: RoutesProps ) => {
 
      return (
           <Routes>
+               {/* Public routes */ }
                { publicProtectedFlattenRoutes.map( ( route: any, index: number ) => (
                     <Route key={ index } path={ route.path } element={ <DefaultLayout { ...props } layout={ layout }>{ route.element }</DefaultLayout> } />
                ) ) }
-               { authProtectedFlattenRoutes.map( ( route: any, index: number ) => (
-                    <Route key={ index } path={ route.path } element={ <Layout { ...props }>{ route.element }</Layout> } />
-               ) ) }
+
+               {/* Protected routes with persistent layout */ }
+               <Route path="/" element={ <Layout { ...props }><Outlet /></Layout> }>
+                    { authProtectedFlattenRoutes.map( ( route: any, index: number ) => (
+                         <Route
+                              key={ index }
+                              path={ route.path === '/' ? undefined : route.path.replace( '/', '' ) }
+                              index={ route.path === '/' }
+                              element={ route.element }
+                         />
+                    ) ) }
+               </Route>
           </Routes>
+
      )
 }
 

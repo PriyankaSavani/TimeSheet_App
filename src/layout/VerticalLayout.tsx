@@ -22,7 +22,7 @@ const VerticalLayout: React.FC<VerticalLayoutProps> = ( { children } ) => {
                             <Suspense fallback={ loading() }>
                                    <LeftSidebar isCondensed={ false } />
                             </Suspense>
-                            <div className="content_page">
+                            <div className="content-page">
                                    <div className="content">
                                           <Container fluid>
                                                  <Suspense fallback={ loading() }>{ children }</Suspense>

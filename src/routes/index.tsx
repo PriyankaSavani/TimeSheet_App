@@ -9,7 +9,12 @@ import PrivateRoute from "./PrivateRoute";
 const Login = React.lazy( () => import( '../pages/auth/LogIn' ) );
 
 // dashboard
-const Dashboard = React.lazy( () => import( '../pages/dashboard/index' ) );
+const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
+
+// timesheet management
+const Projects = React.lazy( () => import( '../pages/Projects' ) );
+const Timesheet = React.lazy( () => import( '../pages/Timesheet' ) );
+const Tasks = React.lazy( () => import( '../pages/Tasks' ) );
 
 export interface RoutesProps {
      path: string;
@@ -39,7 +44,6 @@ const authRoutes: RoutesProps[] = [
           path: '/auth/login',
           name: 'Login',
           element: <Login />,
-          // element: <React.Suspense fallback={ <div>Loading...</div> }><Login /></React.Suspense>,
           route: Route,
      }
 ]
@@ -49,9 +53,36 @@ const dashboardRoutes: RoutesProps = {
      path: '/home',
      name: 'Dashboard',
      element: <Dashboard />,
-     // element: <PrivateRoute><React.Suspense fallback={ <div>Loading...</div> }><Dashboard /></React.Suspense></PrivateRoute>
      route: PrivateRoute,
 }
+
+// timesheet managemant
+const projectsRoutes: RoutesProps = {
+     path: '/projects',
+     name: 'Projects',
+     element: <Projects />,
+     route: PrivateRoute,
+}
+
+const timesheetRoutes: RoutesProps = {
+     path: '/timesheet',
+     name: 'Timesheet',
+     element: <Timesheet />,
+     route: PrivateRoute,
+}
+
+const tasksRoutes: RoutesProps = {
+     path: '/tasks',
+     name: 'Tasks',
+     element: <Tasks />,
+     route: PrivateRoute,
+}
+
+const timesheetManagementRoutes = [
+     projectsRoutes,
+     timesheetRoutes,
+     tasksRoutes
+]
 
 // flatten the list of all nested routes
 const flattenRoutes = ( routes: RoutesProps[] ) => {
@@ -69,7 +100,7 @@ const flattenRoutes = ( routes: RoutesProps[] ) => {
 };
 
 // all routes
-const authProtectedRoutes = [ rootRoute, dashboardRoutes ];
+const authProtectedRoutes = [ rootRoute, dashboardRoutes, ...timesheetManagementRoutes ];
 const publicRoutes = [ ...authRoutes ];
 
 const authProtectedFlattenRoutes = flattenRoutes( [ ...authProtectedRoutes ] );
