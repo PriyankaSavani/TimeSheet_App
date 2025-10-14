@@ -1,6 +1,6 @@
 [build]
-  command = "cd timesheet-app && npm run build"
-  publish = "timesheet-app/build"
+  command = "npm run build"
+  publish = "build"
 
 [build.environment]
   NODE_VERSION = "20"
