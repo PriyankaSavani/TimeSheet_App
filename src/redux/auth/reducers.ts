@@ -1,20 +1,15 @@
-// apicore
-import { APICore } from '../../helpers/api/apiCore';
-
 // constants
 import { AuthActionTypes } from './constants';
 
-const api = new APICore();
-
 const INIT_STATE = {
-    user: api.getLoggedInUser(),
+    user: null,
     loading: false,
 };
 
 interface UserData {
-    id: number;
+    id: string;
     username: string;
-    password: string;
+    password?: string;
     firstName: string;
     lastName: string;
     role: string;
@@ -23,11 +18,11 @@ interface UserData {
 
 interface AuthActionType {
     type:
-        | AuthActionTypes.API_RESPONSE_SUCCESS
-        | AuthActionTypes.API_RESPONSE_ERROR
-        | AuthActionTypes.LOGIN_USER
-        | AuthActionTypes.LOGOUT_USER
-        | AuthActionTypes.RESET;
+    | AuthActionTypes.API_RESPONSE_SUCCESS
+    | AuthActionTypes.API_RESPONSE_ERROR
+    | AuthActionTypes.SIGNIN_USER
+    | AuthActionTypes.SIGNOUT_USER
+    | AuthActionTypes.RESET;
     payload: {
         actionType?: string;
         data?: UserData | {};
@@ -36,16 +31,16 @@ interface AuthActionType {
 }
 
 interface State {
-    user?: UserData | {};
+    user?: UserData | null;
     loading?: boolean;
     value?: boolean;
 }
 
-const Auth = (state: State = INIT_STATE, action: AuthActionType): any => {
-    switch (action.type) {
+const Auth = ( state: State = INIT_STATE, action: AuthActionType ): any => {
+    switch ( action.type ) {
         case AuthActionTypes.API_RESPONSE_SUCCESS:
-            switch (action.payload.actionType) {
-                case AuthActionTypes.LOGIN_USER: {
+            switch ( action.payload.actionType ) {
+                case AuthActionTypes.SIGNIN_USER: {
                     return {
                         ...state,
                         user: action.payload.data,
@@ -60,12 +55,12 @@ const Auth = (state: State = INIT_STATE, action: AuthActionType): any => {
                         userSignUp: true,
                     };
                 }
-                case AuthActionTypes.LOGOUT_USER: {
+                case AuthActionTypes.SIGNOUT_USER: {
                     return {
                         ...state,
                         user: null,
                         loading: false,
-                        userLogout: true,
+                        userSignout: true,
                     };
                 }
                 case AuthActionTypes.FORGOT_PASSWORD: {
@@ -81,8 +76,8 @@ const Auth = (state: State = INIT_STATE, action: AuthActionType): any => {
             }
 
         case AuthActionTypes.API_RESPONSE_ERROR:
-            switch (action.payload.actionType) {
-                case AuthActionTypes.LOGIN_USER: {
+            switch ( action.payload.actionType ) {
+                case AuthActionTypes.SIGNIN_USER: {
                     return {
                         ...state,
                         error: action.payload.error,
@@ -110,10 +105,10 @@ const Auth = (state: State = INIT_STATE, action: AuthActionType): any => {
                     return { ...state };
             }
 
-        case AuthActionTypes.LOGIN_USER:
+        case AuthActionTypes.SIGNIN_USER:
             return { ...state, loading: true, userLoggedIn: false };
-        case AuthActionTypes.LOGOUT_USER:
-            return { ...state, loading: true, userLogout: false };
+        case AuthActionTypes.SIGNOUT_USER:
+            return { ...state, loading: true, userSignout: false };
         case AuthActionTypes.RESET:
             return {
                 ...state,

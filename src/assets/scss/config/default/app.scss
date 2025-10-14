@@ -3,8 +3,10 @@
 //
 
 // Prefix for :root CSS variables
-
 $variable-prefix: "JK-";
+
+//Fonts
+@import "../../custom/fonts/fonts";
 
 //Core files
 @import "../../../../../node_modules/bootstrap/scss/functions";
@@ -52,3 +54,7 @@ $variable-prefix: "JK-";
 @import "../../custom/components/ribbons";
 @import "../../custom/components/print";
 @import "../../custom/components/preloader";
+
+// pages
+@import "../../custom/pages/authentication";
+@import "../../custom/pages/signout";

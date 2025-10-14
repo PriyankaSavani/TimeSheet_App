@@ -6,7 +6,9 @@ import PrivateRoute from "./PrivateRoute";
 // lazy load all the views
 
 // auth
-const Login = React.lazy( () => import( '../pages/auth/LogIn' ) );
+const SignIn = React.lazy( () => import( '../pages/auth/SignIn' ) );
+const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
+const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
 
 // dashboard
 const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
@@ -36,15 +38,30 @@ const rootRoute: RoutesProps = {
      exact: true,
      element: <Root />,
      route: PrivateRoute,
+     roles: [ 'admin', 'user' ], // Allow both admin and user
 };
 
-// auth
 const authRoutes: RoutesProps[] = [
      {
-          path: '/auth/login',
-          name: 'Login',
-          element: <Login />,
+          path: '/auth/signIn',
+          name: 'SignIn',
+          element: <SignIn />,
           route: Route,
+          roles: [ 'admin', 'user' ], // Allow both admin and user
+     },
+     {
+          path: '/auth/signUp',
+          name: 'SignUp',
+          element: <SignUp />,
+          route: Route,
+          roles: [ 'admin', 'user' ], // Allow both admin and user
+     },
+     {
+          path: '/auth/signOut',
+          name: 'SignOut',
+          element: <SignOut />,
+          route: Route,
+          roles: [ 'admin', 'user' ], // Allow both admin and user
      }
 ]
 
@@ -54,6 +71,7 @@ const dashboardRoutes: RoutesProps = {
      name: 'Dashboard',
      element: <Dashboard />,
      route: PrivateRoute,
+     roles: [ 'admin' ],
 }
 
 // timesheet managemant
@@ -62,6 +80,7 @@ const projectsRoutes: RoutesProps = {
      name: 'Projects',
      element: <Projects />,
      route: PrivateRoute,
+     roles: [ 'admin' ],
 }
 
 const timesheetRoutes: RoutesProps = {
@@ -69,6 +88,7 @@ const timesheetRoutes: RoutesProps = {
      name: 'Timesheet',
      element: <Timesheet />,
      route: PrivateRoute,
+     roles: [ 'admin', 'user' ], // Allow both admin and user
 }
 
 const tasksRoutes: RoutesProps = {
@@ -76,6 +96,7 @@ const tasksRoutes: RoutesProps = {
      name: 'Tasks',
      element: <Tasks />,
      route: PrivateRoute,
+     roles: [ 'admin' ],
 }
 
 const timesheetManagementRoutes = [

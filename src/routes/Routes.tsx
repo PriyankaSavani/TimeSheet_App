@@ -2,28 +2,26 @@ import React from 'react'
 import { Routes, Route, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux'
 
-// store
-import { RootState } from '../redux/store'
+// selectors
+import { selectLayoutState } from '../redux/layout/selectors'
 
 // layout constants
 import { LayoutTypes } from '../constants/layout'
 
 // All layouts containers
-import DefaultLayout from '../layout/DefaultLayout';
 import VerticalLayout from '../layout/VerticalLayout';
 import DetachedLayout from '../layout/DetachedLayout';
 import HorizontalLayout from '../layout/HorizontalLayout';
 import TwoColumnLayout from '../layout/TwoColumnLayout';
 
 import { authProtectedFlattenRoutes, publicProtectedFlattenRoutes } from './index'
+import PrivateRoute from './PrivateRoute';
 
 interface RoutesProps { }
 
 const RoutesComponent = ( props: RoutesProps ) => {
 
-     const { layout } = useSelector( ( state: RootState ) => ( {
-          layout: state.Layout,
-     } ) );
+     const { layout } = useSelector( selectLayoutState );
 
      const getLayout = () => {
           let layoutCls: any = TwoColumnLayout;
@@ -51,7 +49,7 @@ const RoutesComponent = ( props: RoutesProps ) => {
           <Routes>
                {/* Public routes */ }
                { publicProtectedFlattenRoutes.map( ( route: any, index: number ) => (
-                    <Route key={ index } path={ route.path } element={ <DefaultLayout { ...props } layout={ layout }>{ route.element }</DefaultLayout> } />
+                    <Route key={ index } path={ route.path } element={ route.element } />
                ) ) }
 
                {/* Protected routes with persistent layout */ }
@@ -61,7 +59,15 @@ const RoutesComponent = ( props: RoutesProps ) => {
                               key={ index }
                               path={ route.path === '/' ? undefined : route.path.replace( '/', '' ) }
                               index={ route.path === '/' }
-                              element={ route.element }
+                              element={
+                                   route.route === PrivateRoute ? (
+                                        <PrivateRoute roles={ route.roles }>
+                                             { route.element }
+                                        </PrivateRoute>
+                                   ) : (
+                                        route.element
+                                   )
+                              }
                          />
                     ) ) }
                </Route>

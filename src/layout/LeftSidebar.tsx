@@ -29,9 +29,9 @@ const UserBox = () => {
                redirectTo: '/auth/lock-screen',
           },
           {
-               label: 'Logout',
+               label: 'Sign Out',
                icon: 'fe-log-out',
-               redirectTo: '/auth/logout',
+               redirectTo: '/auth/signOut',
           },
      ];
 

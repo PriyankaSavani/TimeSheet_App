@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 
 const loading = () => <div className=""></div>;
 
@@ -14,6 +14,14 @@ interface DefaultLayoutProps {
 }
 
 const DefaultLayout: React.FC<DefaultLayoutProps> = ( props: DefaultLayoutProps ) => {
+
+     useEffect( () => {
+          if ( document.body ) document.body.classList.add( 'authentication-bg', 'authentication-bg-pattern' );
+
+          return () => {
+               if ( document.body ) document.body.classList.remove( 'authentication-bg', 'authentication-bg-pattern' );
+          };
+     }, [] );
 
      // get the child view which we would like to render
      const children = props[ 'children' ] || null;

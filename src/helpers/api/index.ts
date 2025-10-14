@@ -1,3 +1,3 @@
-import { login, logout, signup, forgotPassword } from './auth';
+import { signin, signout, signup, forgotPassword } from './auth';
 
-export { login, logout, signup, forgotPassword };
+export { signin, signout, signup, forgotPassword };
