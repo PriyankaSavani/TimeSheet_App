@@ -11,7 +11,7 @@ const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
 const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
 
 // dashboard
-const Dashboard = React.lazy( () => import( '../pages/Dashboard/index' ) );
+const Dashboard = React.lazy( () => import( 'pages/Dashboard/index' ) );
 
 // timesheet management
 const Projects = React.lazy( () => import( '../pages/Projects/index' ) );
