@@ -11,12 +11,12 @@ const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
 const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
 
 // dashboard
-const Dashboard = React.lazy( () => import( '../pages/Dashboard/index' ) );
+const Dashboard = React.lazy( () => import( '../pages/Dashboard/index.tsx' ) );
 
 // timesheet management
-const Projects = React.lazy( () => import( '../pages/Projects/index' ) );
-const Timesheet = React.lazy( () => import( '../pages/Timesheet/index' ) );
-const Tasks = React.lazy( () => import( '../pages/Tasks/index' ) );
+const Projects = React.lazy( () => import( '../pages/Projects/index.tsx' ) );
+const Timesheet = React.lazy( () => import( '../pages/Timesheet/index.tsx' ) );
+const Tasks = React.lazy( () => import( '../pages/Tasks/index.tsx' ) );
 
 export interface RoutesProps {
      path: string;
