@@ -1,49 +1,49 @@
 export interface MenuItemTypes {
-    key: string;
-    label: string;
-    isTitle?: boolean;
-    icon?: string;
-    url?: string;
-    badge?: {
-        variant: string;
-        text: string;
-    };
-    parentKey?: string;
-    target?: string;
-    children?: MenuItemTypes[];
+     key: string;
+     label: string;
+     isTitle?: boolean;
+     icon?: string;
+     url?: string;
+     badge?: {
+          variant: string;
+          text: string;
+     };
+     parentKey?: string;
+     target?: string;
+     children?: MenuItemTypes[];
 }
 
 const MENU_ITEMS: MenuItemTypes[] = [
-    { key: 'navigation', label: 'Navigation', isTitle: true },
-    {
-        key: 'dashboards',
-        label: 'Dashboards',
-        isTitle: false,
-        icon: 'briefcase',
-        url: '/home',
-    },
-    { key: 'timesheet-management', label: 'Timesheet Management', isTitle: true },
-    {
-        key: 'projects',
-        label: 'Projects',
-        isTitle: false,
-        icon: 'book',
-        url: '/projects',
-    },
-    {
-        key: 'timesheet',
-        label: 'Timesheet',
-        isTitle: false,
-        icon: 'clock',
-        url: '/timesheet',
-    },
-    {
-        key: 'tasks',
-        label: 'Tasks',
-        isTitle: false,
-        icon: 'list',
-        url: '/tasks',
-    }
+     { key: 'navigation', label: 'Navigation', isTitle: true },
+     {
+          key: 'dashboards',
+          label: 'Dashboards',
+          isTitle: false,
+          icon: 'briefcase',
+          url: '/home',
+     },
+     { key: 'timesheet-management', label: 'Timesheet Management', isTitle: true },
+     {
+          key: 'projects',
+          label: 'Projects',
+          isTitle: false,
+          icon: 'book',
+          url: '/projects',
+     },
+     {
+          key: 'timesheet',
+          label: 'Timesheet',
+          isTitle: false,
+          icon: 'clock',
+          url: '/timesheet',
+     },
+     {
+          key: 'tasks',
+          label: 'Tasks',
+          isTitle: false,
+          icon: 'list',
+          url: '/tasks',
+     }
 ];
 
 const HORIZONTAL_MENU_ITEMS: MenuItemTypes[] = [

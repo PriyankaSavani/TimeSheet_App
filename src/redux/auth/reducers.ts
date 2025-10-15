@@ -2,127 +2,138 @@
 import { AuthActionTypes } from './constants';
 
 const INIT_STATE = {
-    user: null,
-    loading: false,
+     user: null,
+     loading: false,
+     userLoggedIn: false,
 };
 
 interface UserData {
-    id: string;
-    username: string;
-    password?: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    token: string;
+     id: string;
+     username: string;
+     password?: string;
+     firstName: string;
+     lastName: string;
+     role: string;
+     token: string;
 }
 
 interface AuthActionType {
-    type:
-    | AuthActionTypes.API_RESPONSE_SUCCESS
-    | AuthActionTypes.API_RESPONSE_ERROR
-    | AuthActionTypes.SIGNIN_USER
-    | AuthActionTypes.SIGNOUT_USER
-    | AuthActionTypes.RESET;
-    payload: {
-        actionType?: string;
-        data?: UserData | {};
-        error?: string;
-    };
+     type:
+     | AuthActionTypes.API_RESPONSE_SUCCESS
+     | AuthActionTypes.API_RESPONSE_ERROR
+     | AuthActionTypes.SIGNIN_USER
+     | AuthActionTypes.SIGNOUT_USER
+     | AuthActionTypes.RESET
+     | AuthActionTypes.INITIALIZE_AUTH;
+     payload: {
+          actionType?: string;
+          data?: UserData | {};
+          error?: string;
+     };
 }
 
 interface State {
-    user?: UserData | null;
-    loading?: boolean;
-    value?: boolean;
+     user?: UserData | null;
+     loading?: boolean;
+     value?: boolean;
 }
 
 const Auth = ( state: State = INIT_STATE, action: AuthActionType ): any => {
-    switch ( action.type ) {
-        case AuthActionTypes.API_RESPONSE_SUCCESS:
-            switch ( action.payload.actionType ) {
-                case AuthActionTypes.SIGNIN_USER: {
-                    return {
-                        ...state,
-                        user: action.payload.data,
-                        userLoggedIn: true,
-                        loading: false,
-                    };
-                }
-                case AuthActionTypes.SIGNUP_USER: {
-                    return {
-                        ...state,
-                        loading: false,
-                        userSignUp: true,
-                    };
-                }
-                case AuthActionTypes.SIGNOUT_USER: {
-                    return {
-                        ...state,
-                        user: null,
-                        loading: false,
-                        userSignout: true,
-                    };
-                }
-                case AuthActionTypes.FORGOT_PASSWORD: {
-                    return {
-                        ...state,
-                        resetPasswordSuccess: action.payload.data,
-                        loading: false,
-                        passwordReset: true,
-                    };
-                }
-                default:
-                    return { ...state };
-            }
+     switch ( action.type ) {
+          case AuthActionTypes.API_RESPONSE_SUCCESS:
+               switch ( action.payload.actionType ) {
+                    case AuthActionTypes.SIGNIN_USER: {
+                         return {
+                              ...state,
+                              user: action.payload.data,
+                              userLoggedIn: true,
+                              loading: false,
+                         };
+                    }
+                    case AuthActionTypes.SIGNUP_USER: {
+                         return {
+                              ...state,
+                              user: action.payload.data,
+                              userLoggedIn: true,
+                              loading: false,
+                              userSignUp: true,
+                         };
+                    }
+                    case AuthActionTypes.SIGNOUT_USER: {
+                         return {
+                              ...state,
+                              user: null,
+                              loading: false,
+                              userSignout: true,
+                              userLoggedIn: false,
+                         };
+                    }
+                    case AuthActionTypes.FORGOT_PASSWORD: {
+                         return {
+                              ...state,
+                              resetPasswordSuccess: action.payload.data,
+                              loading: false,
+                              passwordReset: true,
+                         };
+                    }
+                    default:
+                         return { ...state };
+               }
 
-        case AuthActionTypes.API_RESPONSE_ERROR:
-            switch ( action.payload.actionType ) {
-                case AuthActionTypes.SIGNIN_USER: {
-                    return {
-                        ...state,
-                        error: action.payload.error,
-                        userLoggedIn: false,
-                        loading: false,
-                    };
-                }
-                case AuthActionTypes.SIGNUP_USER: {
-                    return {
-                        ...state,
-                        registerError: action.payload.error,
-                        userSignUp: false,
-                        loading: false,
-                    };
-                }
-                case AuthActionTypes.FORGOT_PASSWORD: {
-                    return {
-                        ...state,
-                        error: action.payload.error,
-                        loading: false,
-                        passwordReset: false,
-                    };
-                }
-                default:
-                    return { ...state };
-            }
+          case AuthActionTypes.API_RESPONSE_ERROR:
+               switch ( action.payload.actionType ) {
+                    case AuthActionTypes.SIGNIN_USER: {
+                         return {
+                              ...state,
+                              error: action.payload.error,
+                              userLoggedIn: false,
+                              loading: false,
+                         };
+                    }
+                    case AuthActionTypes.SIGNUP_USER: {
+                         return {
+                              ...state,
+                              registerError: action.payload.error,
+                              userSignUp: false,
+                              loading: false,
+                         };
+                    }
+                    case AuthActionTypes.FORGOT_PASSWORD: {
+                         return {
+                              ...state,
+                              error: action.payload.error,
+                              loading: false,
+                              passwordReset: false,
+                         };
+                    }
+                    default:
+                         return { ...state };
+               }
 
-        case AuthActionTypes.SIGNIN_USER:
-            return { ...state, loading: true, userLoggedIn: false };
-        case AuthActionTypes.SIGNOUT_USER:
-            return { ...state, loading: true, userSignout: false };
-        case AuthActionTypes.RESET:
-            return {
-                ...state,
-                loading: false,
-                error: false,
-                userSignUp: false,
-                userLoggedIn: false,
-                passwordReset: false,
-                passwordChange: false,
-                resetPasswordSuccess: null,
-            };
-        default:
-            return { ...state };
-    }
+          case AuthActionTypes.SIGNIN_USER:
+               return { ...state, loading: true, userLoggedIn: false };
+          case AuthActionTypes.SIGNOUT_USER:
+               return { ...state, loading: true, userSignout: false };
+          case AuthActionTypes.RESET:
+               return {
+                    ...state,
+                    loading: false,
+                    error: false,
+                    userSignUp: false,
+                    userLoggedIn: false,
+                    passwordReset: false,
+                    passwordChange: false,
+                    resetPasswordSuccess: null,
+               };
+          case AuthActionTypes.INITIALIZE_AUTH:
+               return {
+                    ...state,
+                    user: action.payload.data,
+                    userLoggedIn: true,
+               };
+          default:
+               return { ...state };
+     }
 };
 
 export default Auth;

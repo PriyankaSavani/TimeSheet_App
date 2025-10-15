@@ -11,7 +11,7 @@ declare global {
 
 const sagaMiddleware = createSagaMiddleware();
 const middlewares = [ sagaMiddleware ];
-let store: any;
+export let store: any;
 
 export function configureStore ( initialState: {} ) {
      const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
@@ -24,5 +24,4 @@ export function configureStore ( initialState: {} ) {
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
-
 export type AppDispatch = typeof store.dispatch;

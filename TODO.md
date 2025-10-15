@@ -1,0 +1,3 @@
+- [x] Modify SignIn.tsx to redirect to role-based page after signin if no redirect state is present
+- [x] Implement role-based menu visibility in LeftSidebar: show all menus for admin, specific menus (e.g., timesheet) for user
+- [x] Update profile dropdown to show signed-in user's name and role

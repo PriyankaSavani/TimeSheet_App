@@ -3,11 +3,12 @@ import { SagaIterator } from '@redux-saga/core';
 
 // helpers
 import {
-    signin as signinApi,
-    signout as signoutApi,
-    signup as signupApi,
-    forgotPassword as forgotPasswordApi,
+     signin as signinApi,
+     signout as signoutApi,
+     signup as signupApi,
+     forgotPassword as forgotPasswordApi,
 } from '../../helpers/';
+import { APICore } from '../../helpers/api/apiCore';
 
 // actions
 import { authApiResponseSuccess, authApiResponseError } from './actions';
@@ -15,14 +16,16 @@ import { authApiResponseSuccess, authApiResponseError } from './actions';
 // constants
 import { AuthActionTypes } from './constants';
 
+const api = new APICore();
+
 interface UserData {
-    payload: {
-        username: string;
-        password: string;
-        fullname: string;
-        email: string;
-    };
-    type: string;
+     payload: {
+          username: string;
+          password: string;
+          fullname: string;
+          email: string;
+     };
+     type: string;
 }
 
 /**
@@ -30,61 +33,64 @@ interface UserData {
  * @param {*} payload - username and password
  */
 function* signin ( { payload: { username, password }, type }: UserData ): SagaIterator {
-    try {
-        const user = yield call( signinApi, { username, password } );
-        yield put( authApiResponseSuccess( AuthActionTypes.SIGNIN_USER, user ) );
-    } catch ( error: any ) {
-        yield put( authApiResponseError( AuthActionTypes.SIGNIN_USER, error.message || error ) );
-    }
+     try {
+          const user = yield call( signinApi, { username, password } );
+          api.setLoggedInUser( user );
+          yield put( authApiResponseSuccess( AuthActionTypes.SIGNIN_USER, user ) );
+     } catch ( error: any ) {
+          yield put( authApiResponseError( AuthActionTypes.SIGNIN_USER, error.message || error ) );
+     }
 }
 
 /**
  * Signout the user
  */
 function* signout (): SagaIterator {
-    try {
-        yield call( signoutApi );
-        yield put( authApiResponseSuccess( AuthActionTypes.SIGNOUT_USER, {} ) );
-    } catch ( error: any ) {
-        yield put( authApiResponseError( AuthActionTypes.SIGNOUT_USER, error.message || error ) );
-    }
+     try {
+          yield call( signoutApi );
+          api.setLoggedInUser( null );
+          yield put( authApiResponseSuccess( AuthActionTypes.SIGNOUT_USER, {} ) );
+     } catch ( error: any ) {
+          yield put( authApiResponseError( AuthActionTypes.SIGNOUT_USER, error.message || error ) );
+     }
 }
 
 function* signup ( { payload: { fullname, email, password } }: UserData ): SagaIterator {
-    try {
-        const user = yield call( signupApi, { fullname, email, password } );
-        yield put( authApiResponseSuccess( AuthActionTypes.SIGNUP_USER, user ) );
-    } catch ( error: any ) {
-        yield put( authApiResponseError( AuthActionTypes.SIGNUP_USER, error.message || error ) );
-    }
+     try {
+          const user = yield call( signupApi, { fullname, email, password } );
+          api.setLoggedInUser( user );
+          yield put( authApiResponseSuccess( AuthActionTypes.SIGNUP_USER, user ) );
+     } catch ( error: any ) {
+          yield put( authApiResponseError( AuthActionTypes.SIGNUP_USER, error.message || error ) );
+     }
 }
 
 function* forgotPassword ( { payload: { username } }: UserData ): SagaIterator {
-    try {
-        const response = yield call( forgotPasswordApi, { username } );
-        yield put( authApiResponseSuccess( AuthActionTypes.FORGOT_PASSWORD, response ) );
-    } catch ( error: any ) {
-        yield put( authApiResponseError( AuthActionTypes.FORGOT_PASSWORD, error.message || error ) );
-    }
+     try {
+          const response = yield call( forgotPasswordApi, { username } );
+          yield put( authApiResponseSuccess( AuthActionTypes.FORGOT_PASSWORD, response ) );
+     } catch ( error: any ) {
+          yield put( authApiResponseError( AuthActionTypes.FORGOT_PASSWORD, error.message || error ) );
+     }
 }
 export function* watchSigninUser () {
-    yield takeEvery( AuthActionTypes.SIGNIN_USER, signin );
+     yield takeEvery( AuthActionTypes.SIGNIN_USER, signin );
 }
 
 export function* watchSignout () {
-    yield takeEvery( AuthActionTypes.SIGNOUT_USER, signout );
+     yield takeEvery( AuthActionTypes.SIGNOUT_USER, signout );
 }
 
 export function* watchSignup (): any {
-    yield takeEvery( AuthActionTypes.SIGNUP_USER, signup );
+     yield takeEvery( AuthActionTypes.SIGNUP_USER, signup );
 }
 
 export function* watchForgotPassword (): any {
-    yield takeEvery( AuthActionTypes.FORGOT_PASSWORD, forgotPassword );
+     yield takeEvery( AuthActionTypes.FORGOT_PASSWORD, forgotPassword );
 }
 
 function* authSaga () {
-    yield all( [ fork( watchSigninUser ), fork( watchSignout ), fork( watchSignup ), fork( watchForgotPassword ) ] );
+     yield all( [ fork( watchSigninUser ), fork( watchSignout ), fork( watchSignup ), fork( watchForgotPassword ) ] );
 }
 
 export default authSaga;

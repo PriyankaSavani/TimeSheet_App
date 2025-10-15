@@ -1,9 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import ProfileDropdown from '../components/ProfileDropdown';
 
 // images
 import profilePic from '../assets/images/users/user-5.jpg';
+
+// selectors
+import { selectAuthState } from '../redux/auth/selectors';
 
 interface TopbarProps {
      hideLogo?: boolean;
@@ -38,8 +42,13 @@ const ProfileMenus = [
 
 const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: TopbarProps ) => {
 
+     const { user } = useSelector( selectAuthState );
+
      const navbarCssClasses: string = navCssClasses || '';
      const containerCssClasses: string = !hideLogo ? 'container-fluid' : '';
+
+     const username = user ? user.firstName + ' ' + user.lastName : 'JAYDEEP';
+     const userTitle = user ? ( user.role === 'admin' ? 'Admin' : 'User' ) : 'Founder';
 
      return (
           <React.Fragment>
@@ -82,8 +91,8 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                    <ProfileDropdown
                                         profilePic={ profilePic }
                                         menuItems={ ProfileMenus }
-                                        username={ 'JAYDEEP' }
-                                        userTitle={ 'Founder' }
+                                        username={ username }
+                                        userTitle={ userTitle }
                                    />
                               </li>
                          </ul>

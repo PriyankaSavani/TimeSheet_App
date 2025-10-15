@@ -82,7 +82,7 @@ const SignIn = () => {
 
      const location = useLocation();
      const state = location.state as LocationState;
-     const redirectUrl = state && state.from ? state.from.pathname : '/';
+     const redirectUrl = state && state.from ? state.from.pathname : ( user && user.role === 'admin' ? '/home' : '/timesheet' );
 
      return (
           <>

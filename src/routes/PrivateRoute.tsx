@@ -1,28 +1,25 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
-import { RootState } from '../redux/store';
+import { selectAuthState } from '../redux/auth/selectors';
 
 interface PrivateRouteProps {
-       children: React.ReactNode;
-       roles?: string[];
+     children: React.ReactNode;
+     roles?: string[];
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ( { children, roles } ) => {
-       const { user, userLoggedIn } = useSelector( ( state: RootState ) => ( {
-              user: state.Auth.user,
-              userLoggedIn: state.Auth.userLoggedIn,
-       } ) );
+     const { user, userLoggedIn } = useSelector( selectAuthState );
 
-       if ( !userLoggedIn || !user ) {
-              return <Navigate to="/auth/signIn" />;
-       }
+     if ( !userLoggedIn || !user ) {
+          return <Navigate to="/auth/signIn" />;
+     }
 
-       if ( roles && !roles.includes( user.role ) ) {
-              return <Navigate to="/access-denied" />;
-       }
+     if ( roles && !roles.includes( user.role ) ) {
+          return <Navigate to="/access-denied" />;
+     }
 
-       return <>{ children }</>;
+     return <>{ children }</>;
 };
 
 export default PrivateRoute;

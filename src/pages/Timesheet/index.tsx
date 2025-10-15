@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Table, Button } from 'react-bootstrap';
+import classNames from 'classnames';
+import { APICore } from '../../helpers/api/apiCore';
 
 // component
 import TimesheetTask from './TimesheetTask';
 import TimesheetProject from './TimesheetProject';
 import TimesheetDay from './TimesheetDay';
-// import TimesheetDeleteAction from './TimesheetDeleteAction';
+import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import FeatherIcon from 'feather-icons-react';
 
@@ -18,17 +20,21 @@ export interface Row {
 }
 
 const Timesheet = () => {
+     const api = new APICore();
+     const user = api.getLoggedInUser();
+     const userId = user ? user.id : 'anonymous';
+
      const [ rows, setRows ] = useState<Row[]>( () => {
-          const savedRows = localStorage.getItem( 'timesheet-rows' );
+          const savedRows = localStorage.getItem( `timesheet-rows-${ userId }` );
           return savedRows ? JSON.parse( savedRows ) : [ { id: 1, project: 'Select Project', task: '', times: {}, total: '00:00' } ];
      } );
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
-     // Save rows to localStorage whenever rows change
+     // Save rows to localStorage whenever rows change, keyed by user ID
      useEffect( () => {
-          localStorage.setItem( 'timesheet-rows', JSON.stringify( rows ) );
-     }, [ rows ] );
+          localStorage.setItem( `timesheet-rows-${ userId }`, JSON.stringify( rows ) );
+     }, [ rows, userId ] );
 
      const { days, weekDisplay } = useMemo( () => {
           const today = new Date();
@@ -152,34 +158,44 @@ const Timesheet = () => {
                                    </th>
                               ) ) }
                               <th>TOTAL HOURS</th>
-                              {/* <th>ACTION</th> */ }
+                              <th>ACTION</th>
                          </tr>
                     </thead>
                     <tbody>
                          { rows.map( row => (
                               <tr key={ row.id }>
                                    <td>
-                                        <TimesheetProject value={ row.project } onChange={ ( project ) => updateProject( row.id, project ) } />
+                                        <TimesheetProject
+                                             value={ row.project }
+                                             onChange={ ( project ) => updateProject( row.id, project ) }
+                                        />
                                    </td>
                                    <td>
-                                        <TimesheetTask value={ row.task } onChange={ ( task ) => updateTask( row.id, task ) } />
+                                        <TimesheetTask
+                                             value={ row.task }
+                                             onChange={ ( task ) => updateTask( row.id, task ) }
+                                        />
                                    </td>
                                    { days.map( day => (
                                         <td key={ day }>
-                                             <TimesheetDay row={ row } setRows={ setRows } day={ day } />
+                                             <TimesheetDay
+                                                  row={ row }
+                                                  setRows={ setRows }
+                                                  day={ day }
+                                             />
                                         </td>
                                    ) ) }
                                    <td>
                                         { row.total }
                                    </td>
-                                   {/* <td className={ classNames( 'd-flex' ) }>
+                                   <td className={ classNames( 'd-flex' ) }>
                                         <TimesheetDeleteAction
                                              rowId={ row.id }
                                              onDelete={ () => { } }
                                              rows={ rows }
                                              setRows={ setRows }
                                         />
-                                   </td> */}
+                                   </td>
                               </tr>
                          ) ) }
                          <tr>
@@ -196,7 +212,7 @@ const Timesheet = () => {
                               <td>
                                    <strong>{ grandTotal }</strong>
                               </td>
-                              {/* <td></td> */ }
+                              <td></td>
                          </tr>
                     </tbody>
                </Table >
