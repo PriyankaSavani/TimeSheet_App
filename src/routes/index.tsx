@@ -2,20 +2,26 @@ import React from "react";
 import { Route } from "react-router-dom";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
+import SignIn from "pages/auth/SignIn";
+import SignOut from "pages/auth/SignOut";
+import Dashboard from "pages/Dashboard";
+import Projects from "pages/Projects";
+import Timesheet from "pages/Timesheet";
+import SignUp from "pages/auth/SignUp";
 
 // lazy load all the views
 
 // auth
-const SignIn = React.lazy( () => import( '../pages/auth/SignIn' ) );
-const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
-const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
+// const SignIn = React.lazy( () => import( '../pages/auth/SignIn' ) );
+// const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
+// const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
 
 // dashboard
-const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
+// const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
 
 // timesheet management
-const Projects = React.lazy( () => import( '../pages/Projects' ) );
-const Timesheet = React.lazy( () => import( '../pages/Timesheet' ) );
+// const Projects = React.lazy( () => import( '../pages/Projects' ) );
+// const Timesheet = React.lazy( () => import( '../pages/Timesheet' ) );
 
 export interface RoutesProps {
      path: string;
