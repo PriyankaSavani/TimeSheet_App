@@ -1,3 +1,8 @@
-- [x] Modify SignIn.tsx to redirect to role-based page after signin if no redirect state is present
-- [x] Implement role-based menu visibility in LeftSidebar: show all menus for admin, specific menus (e.g., timesheet) for user
-- [x] Update profile dropdown to show signed-in user's name and role
+# TODO for Adding Budget Fields to Project Table
+
+- [x] Add input fields for budgetPerHour and budgetForEmployee in the table rows
+- [x] Handle onChange to update project budgets
+- [x] Handle Enter and Tab key presses
+- [x] Create ProjectDeleteAction component with delete confirmation modal
+- [x] Integrate delete button in the ACTION column
+- [x] Add Edit button to edit all fields in the row

@@ -1,31 +1,24 @@
 import React, { useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
-import { Row } from './index'
 
-interface TimesheetDeleteActionProps {
-     rowId: number;
-     onDelete: ( id: number, rows: Row[], setRows: React.Dispatch<React.SetStateAction<Row[]>> ) => void;
-     rows: Row[];
-     setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+interface ProjectDeleteActionProps {
+     deleteProject: ( id: number ) => void;
+     projectId: number;
 }
 
-const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, onDelete, rows, setRows } ) => {
+const ProjectDeleteAction: React.FC<ProjectDeleteActionProps> = ( { deleteProject, projectId } ) => {
      const [ showModal, setShowModal ] = useState( false );
 
      const handleDelete = () => {
-          const newRows = rows.filter( r => r.id !== rowId );
-          if ( newRows.length === 0 ) {
-               newRows.push( { id: Date.now(), project: 'Select Project', task: '', times: {}, total: '00:00' } );
-          }
-          setRows( newRows );
+          deleteProject( projectId );
           setShowModal( false );
      };
 
      return (
           <>
                <Button
-                    variant='danger'
-                    size='sm'
+                    variant="danger"
+                    size="sm"
                     onClick={ () => setShowModal( true ) }
                >
                     Delete
@@ -35,7 +28,7 @@ const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, o
                          <Modal.Title>Confirm Delete</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                         Are you sure you want to delete this timesheet entry?
+                         Are you sure you want to delete this project?
                     </Modal.Body>
                     <Modal.Footer>
                          <Button variant="secondary" onClick={ () => setShowModal( false ) }>
@@ -50,4 +43,4 @@ const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, o
      )
 }
 
-export default TimesheetDeleteAction
+export default ProjectDeleteAction

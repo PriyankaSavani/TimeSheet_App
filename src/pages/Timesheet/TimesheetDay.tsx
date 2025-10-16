@@ -1,77 +1,50 @@
-import React, { useState } from 'react'
-import { Form } from 'react-bootstrap'
+import React from 'react'
 import { Row } from './index'
+import FormInput from '../../components/FormInput'
 
 interface TimesheetDayProps {
      row: Row;
      setRows: React.Dispatch<React.SetStateAction<Row[]>>;
      day: string;
+     isEditing: boolean;
+     editingInputs: Record<number, Record<string, string>>;
+     setEditingInputs: React.Dispatch<React.SetStateAction<Record<number, Record<string, string>>>>;
+     formatTimeInput: ( input: string ) => string;
+     calculateRowTotal: ( times: Record<string, string> ) => string;
 }
 
-const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day } ) => {
+const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal } ) => {
      const time = row.times[ day ] || '';
-     const [ isEditing, setIsEditing ] = useState( !time )
 
      // Helper function to normalize time format
      const normalizeTime = ( time: string ) => {
-          if ( !time ) return '';
-          let hours = 0, minutes = 0;
-          if ( time.includes( ':' ) ) {
-               [ hours, minutes ] = time.split( ':' ).map( Number );
-          } else if ( time.length === 4 ) {
-               hours = Number( time.slice( 0, 2 ) );
-               minutes = Number( time.slice( 2 ) );
-          } else if ( time.length === 3 ) {
-               hours = Number( time[ 0 ] );
-               minutes = Number( time.slice( 1 ) );
-          }
-          return `${ hours.toString().padStart( 2, '0' ) }:${ minutes.toString().padStart( 2, '0' ) }`;
-     };
-
-     // Calculate total for a row
-     const calculateTotal = ( times: Record<string, string> ) => {
-          let totalMinutes = 0;
-          Object.values( times ).forEach( time => {
-               const normalized = normalizeTime( time );
-               if ( normalized && normalized.includes( ':' ) ) {
-                    const [ hours, minutes ] = normalized.split( ':' ).map( Number );
-                    if ( !isNaN( hours ) && !isNaN( minutes ) ) {
-                         totalMinutes += hours * 60 + minutes;
-                    }
-               }
-          } );
-          const totalHours = Math.floor( totalMinutes / 60 );
-          const totalMins = totalMinutes % 60;
-          return `${ totalHours.toString().padStart( 2, '0' ) }:${ totalMins.toString().padStart( 2, '0' ) }`;
-     };
-
-     const handleChange = ( e: React.ChangeEvent<HTMLInputElement> ) => {
-          const newTime = e.target.value;
-          const newTimes = { ...row.times, [ day ]: newTime };
-          const newTotal = calculateTotal( newTimes );
-          const updatedRow = { ...row, times: newTimes, total: newTotal };
-          setRows( prev => prev.map( r => r.id === row.id ? updatedRow : r ) );
-     };
-
-     const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement> ) => {
-          if ( e.key === 'Enter' || e.key === 'Tab' ) {
-               setIsEditing( false );
-          }
+          time = time.replace( /[^0-9]/g, '' ); // remove non-digits
+          if ( time.length === 1 ) return `0${ time }:00`;
+          if ( time.length === 2 ) return `${ time }:00`;
+          if ( time.length === 3 ) return `0${ time[ 0 ] }:${ time.slice( 1 ) }`;
+          if ( time.length === 4 ) return `${ time.slice( 0, 2 ) }:${ time.slice( 2 ) }`;
+          return '00:00'; // default for empty or invalid
      };
 
      return (
           <React.Fragment>
                { isEditing ? (
-                    <Form.Control
+                    <FormInput
                          type="text"
-                         placeholder="HH:MM"
-                         value={ time }
-                         onChange={ handleChange }
-                         onKeyDown={ handleKeyDown }
-                         autoFocus
+                         name={ day }
+                         value={ editingInputs[ row.id ]?.[ day ] || row.times[ day ] || '' }
+                         onChange={ ( e ) => {
+                              const formatted = formatTimeInput( e.target.value );
+                              setEditingInputs( prev => ( { ...prev, [ row.id ]: { ...prev[ row.id ], [ day ]: formatted } } ) );
+                              const newTimes = { ...row.times, [ day ]: formatted };
+                              const newTotal = calculateRowTotal( newTimes );
+                              setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
+                         } }
+                         placeholder="00:00"
+                         className="mb-0"
                     />
                ) : (
-                    <span onClick={ () => setIsEditing( true ) } style={ { cursor: 'pointer' } }>
+                    <span>
                          { normalizeTime( time ) || '00:00' }
                     </span>
                ) }

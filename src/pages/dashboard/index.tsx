@@ -1,8 +1,11 @@
+import PageTitle from 'components/PageTitle'
 import React from 'react'
 
 const Dashboard = () => {
      return (
-          <div>Dashboard</div>
+          <React.Fragment>
+               <PageTitle title={ 'Dashboard' } />
+          </React.Fragment>
      )
 }
 

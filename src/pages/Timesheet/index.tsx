@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button } from 'react-bootstrap';
 import classNames from 'classnames';
 import { APICore } from '../../helpers/api/apiCore';
+import FeatherIcon from 'feather-icons-react';
+import { useTimesheetCalculations } from '../../hooks/useTimesheetCalculations';
 
 // component
 import TimesheetTask from './TimesheetTask';
@@ -9,7 +11,9 @@ import TimesheetProject from './TimesheetProject';
 import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
-import FeatherIcon from 'feather-icons-react';
+import TimesheetEditAction from './TimesheetEditAction';
+import ExportToExcel from '../../components/ExportToExcel';
+import PageTitle from 'components/PageTitle';
 
 export interface Row {
      id: number;
@@ -31,95 +35,72 @@ const Timesheet = () => {
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
+     const [ editing, setEditing ] = useState<Record<number, 'all' | null>>( {} ); // Track editing state for each row
+
+     const [ editingInputs, setEditingInputs ] = useState<Record<number, Record<string, string>>>( {} ); // Track raw input for editing
+
      // Save rows to localStorage whenever rows change, keyed by user ID
      useEffect( () => {
           localStorage.setItem( `timesheet-rows-${ userId }`, JSON.stringify( rows ) );
      }, [ rows, userId ] );
 
-     const { days, weekDisplay } = useMemo( () => {
-          const today = new Date();
-          const startOfWeek = new Date( today.setDate( today.getDate() - today.getDay() + 1 + weekOffset * 7 ) ); // Adjust for week offset
-          const endOfWeek = new Date( startOfWeek );
-          endOfWeek.setDate( startOfWeek.getDate() + 6 );
-          const weekDays = [];
-          for ( let i = 0; i < 7; i++ ) {
-               const date = new Date( startOfWeek );
-               date.setDate( startOfWeek.getDate() + i );
-               const dayName = date.toLocaleDateString( 'en-US', { weekday: 'short' } );
-               const monthName = date.toLocaleDateString( 'en-US', { month: 'short' } );
-               const dayNum = date.getDate();
-               weekDays.push( `${ dayName }, ${ dayNum } ${ monthName }` );
-          }
-          const startStr = startOfWeek.toLocaleDateString( 'en-US', { day: 'numeric', month: 'short' } );
-          const endStr = endOfWeek.toLocaleDateString( 'en-US', { day: 'numeric', month: 'short' } );
-          const year = startOfWeek.getFullYear();
-          const prefix = weekOffset === 0 ? 'This week' : 'Week of';
-          const weekDisplay = `${ prefix } : ${ startStr } -> ${ endStr } ${ year }`;
-          return { days: weekDays, weekDisplay };
-     }, [ weekOffset ] ); // Depend on weekOffset
-
-     // Helper function to normalize time format
-     const normalizeTime = useCallback( ( time: string ) => {
-          if ( time.includes( ':' ) ) return time;
-          if ( time.length === 4 ) return `${ time.slice( 0, 2 ) }:${ time.slice( 2 ) }`;
-          if ( time.length === 3 ) return `${ time[ 0 ] }:${ time.slice( 1 ) }`;
-          return time;
-     }, [] );
+     const { days, weekDisplay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
      const updateProject = ( id: number, project: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, project } : r ) );
+          setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times ) } : r ) );
      };
 
      const updateTask = ( id: number, task: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, task } : r ) );
+          setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times ) } : r ) );
      };
 
-     // Calculate daily totals across all rows
-     const calculateDailyTotals = useCallback( () => {
-          const dailyTotals: Record<string, number> = {};
-          days.forEach( day => dailyTotals[ day ] = 0 );
-          rows.forEach( row => {
-               days.forEach( day => {
-                    const time = row.times[ day ] || '';
-                    const normalized = normalizeTime( time );
-                    if ( normalized && normalized.includes( ':' ) ) {
-                         const [ hours, minutes ] = normalized.split( ':' ).map( Number );
-                         if ( !isNaN( hours ) && !isNaN( minutes ) ) {
-                              dailyTotals[ day ] += hours * 60 + minutes;
-                         }
-                    }
-               } );
-          } );
-          const formattedTotals: Record<string, string> = {};
-          days.forEach( day => {
-               const totalMinutes = dailyTotals[ day ];
-               const totalHours = Math.floor( totalMinutes / 60 );
-               const totalMins = totalMinutes % 60;
-               formattedTotals[ day ] = `${ totalHours.toString().padStart( 2, '0' ) }:${ totalMins.toString().padStart( 2, '0' ) }`;
-          } );
-          return formattedTotals;
-     }, [ rows, days, normalizeTime ] );
-
-     const dailyTotals = calculateDailyTotals();
-
-     // Calculate grand total
-     const grandTotal = useMemo( () => {
-          let totalMinutes = 0;
-          Object.values( dailyTotals ).forEach( time => {
-               if ( time && time.includes( ':' ) ) {
-                    const [ hours, minutes ] = time.split( ':' ).map( Number );
-                    if ( !isNaN( hours ) && !isNaN( minutes ) ) {
-                         totalMinutes += hours * 60 + minutes;
-                    }
+     const startEditingAll = ( id: number ) => {
+          setEditing( prev => ( { ...prev, [ id ]: 'all' } ) );
+          setEditingInputs( prev => ( {
+               ...prev,
+               [ id ]: {
+                    project: rows.find( r => r.id === id )?.project || '',
+                    task: rows.find( r => r.id === id )?.task || '',
+                    ...rows.find( r => r.id === id )?.times
                }
+          } ) );
+     };
+
+     const stopEditingAll = ( id: number ) => {
+          setEditing( prev => ( { ...prev, [ id ]: null } ) );
+          setEditingInputs( prev => {
+               const newInputs = { ...prev };
+               delete newInputs[ id ];
+               return newInputs;
           } );
-          const totalHours = Math.floor( totalMinutes / 60 );
-          const totalMins = totalMinutes % 60;
-          return `${ totalHours.toString().padStart( 2, '0' ) }:${ totalMins.toString().padStart( 2, '0' ) }`;
-     }, [ dailyTotals ] );
+     };
+
+     // Prepare data for Excel export
+     const prepareExportData = () => {
+          const data = [];
+          // Header row
+          const header = [ 'Project', 'Task', ...days, 'Total Hours' ];
+          data.push( header );
+          // Data rows
+          rows.forEach( row => {
+               const rowData = [ row.project, row.task ];
+               days.forEach( day => {
+                    rowData.push( row.times[ day ] || '00:00' );
+               } );
+               rowData.push( row.total );
+               data.push( rowData );
+          } );
+          // Empty row
+          data.push( [] );
+          // Totals row
+          const totalsRow = [ 'TOTAL', '', ...days.map( day => dailyTotals[ day ] ), grandTotal ];
+          data.push( totalsRow );
+          return data;
+     };
 
      return (
           <React.Fragment>
+               <PageTitle title={ 'Timesheet' } />
                <div className="d-flex justify-content-between mb-3">
                     <div className='d-flex'>
                          <Button
@@ -130,7 +111,9 @@ const Timesheet = () => {
                               <FeatherIcon icon='arrow-left-circle' className='me-2' />
                               Previous
                          </Button>
-                         <div className="border rounded align-self-center mx-3 p-1">{ weekDisplay }</div>
+                         <div className="border rounded align-self-center mx-3 p-1">
+                              { weekDisplay }
+                         </div>
                          <Button
                               variant="primary"
                               size='sm'
@@ -140,10 +123,18 @@ const Timesheet = () => {
                               <FeatherIcon icon='arrow-right-circle' className='ms-2' />
                          </Button>
                     </div>
-                    <TimesheetAddAction
-                         rows={ rows }
-                         setRows={ setRows }
-                    />
+                    <div className="d-flex">
+                         <ExportToExcel
+                              data={ prepareExportData() }
+                              filename={ `Timesheet_${ weekDisplay.replace( /[^a-zA-Z0-9]/g, '_' ) }.xlsx` }
+                              sheetName="Timesheet"
+                              buttonText="Export to Excel"
+                         />
+                         <TimesheetAddAction
+                              rows={ rows }
+                              setRows={ setRows }
+                         />
+                    </div>
                </div>
                <Table
                     bordered responsive
@@ -152,7 +143,7 @@ const Timesheet = () => {
                          <tr>
                               <th>PROJECT</th>
                               <th>TASK</th>
-                              { days.map( day => (
+                              { days.map( ( day: string ) => (
                                    <th key={ day }>
                                         { day }
                                    </th>
@@ -166,29 +157,52 @@ const Timesheet = () => {
                               <tr key={ row.id }>
                                    <td>
                                         <TimesheetProject
+                                             rowId={ row.id }
                                              value={ row.project }
-                                             onChange={ ( project ) => updateProject( row.id, project ) }
+                                             isEditing={ editing[ row.id ] === 'all' }
+                                             editingInputs={ editingInputs }
+                                             setEditingInputs={ setEditingInputs }
+                                             updateProject={ updateProject }
                                         />
                                    </td>
                                    <td>
                                         <TimesheetTask
+                                             rowId={ row.id }
                                              value={ row.task }
-                                             onChange={ ( task ) => updateTask( row.id, task ) }
+                                             isEditing={ editing[ row.id ] === 'all' }
+                                             editingInputs={ editingInputs }
+                                             setEditingInputs={ setEditingInputs }
+                                             updateTask={ updateTask }
                                         />
                                    </td>
-                                   { days.map( day => (
+                                   { days.map( ( day: string ) => (
                                         <td key={ day }>
                                              <TimesheetDay
                                                   row={ row }
                                                   setRows={ setRows }
                                                   day={ day }
+                                                  isEditing={ editing[ row.id ] === 'all' }
+                                                  editingInputs={ editingInputs }
+                                                  setEditingInputs={ setEditingInputs }
+                                                  formatTimeInput={ formatTimeInput }
+                                                  calculateRowTotal={ calculateRowTotal }
                                              />
                                         </td>
                                    ) ) }
                                    <td>
-                                        { row.total }
+                                        { calculateRowTotal( row.times ) }
                                    </td>
                                    <td className={ classNames( 'd-flex' ) }>
+                                        <TimesheetEditAction
+                                             onEdit={ () => {
+                                                  if ( editing[ row.id ] === 'all' ) {
+                                                       stopEditingAll( row.id );
+                                                  } else {
+                                                       startEditingAll( row.id );
+                                                  }
+                                             } }
+                                             isEditing={ editing[ row.id ] === 'all' }
+                                        />
                                         <TimesheetDeleteAction
                                              rowId={ row.id }
                                              onDelete={ () => { } }
@@ -202,7 +216,7 @@ const Timesheet = () => {
                               <td colSpan={ 2 }>
                                    <strong>TOTAL</strong>
                               </td>
-                              { days.map( day => (
+                              { days.map( ( day: string ) => (
                                    <td key={ day }>
                                         <strong>
                                              { dailyTotals[ day ] }

@@ -16,7 +16,6 @@ const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
 // timesheet management
 const Projects = React.lazy( () => import( '../pages/Projects' ) );
 const Timesheet = React.lazy( () => import( '../pages/Timesheet' ) );
-const Tasks = React.lazy( () => import( '../pages/Tasks' ) );
 
 export interface RoutesProps {
      path: string;
@@ -91,18 +90,9 @@ const timesheetRoutes: RoutesProps = {
      roles: [ 'admin', 'user' ], // Allow both admin and user
 }
 
-const tasksRoutes: RoutesProps = {
-     path: '/tasks',
-     name: 'Tasks',
-     element: <Tasks />,
-     route: PrivateRoute,
-     roles: [ 'admin' ],
-}
-
 const timesheetManagementRoutes = [
      projectsRoutes,
      timesheetRoutes,
-     tasksRoutes
 ]
 
 // flatten the list of all nested routes

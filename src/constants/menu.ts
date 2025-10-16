@@ -37,13 +37,6 @@ const MENU_ITEMS: MenuItemTypes[] = [
           icon: 'clock',
           url: '/timesheet',
      },
-     {
-          key: 'tasks',
-          label: 'Tasks',
-          isTitle: false,
-          icon: 'list',
-          url: '/tasks',
-     }
 ];
 
 const HORIZONTAL_MENU_ITEMS: MenuItemTypes[] = [
