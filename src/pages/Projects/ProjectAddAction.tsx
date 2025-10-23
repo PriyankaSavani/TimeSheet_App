@@ -65,9 +65,9 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                projectName: formData.projectName,
                clientName: formData.clientName,
                assignEmployee: formData.assignEmployee,
-               budgetPerHour: 0,
-               budgetForEmployee: 0,
-               status: 'Active',
+               budgetPerHour: parseFloat( formData.budgetPerHour ) || 0,
+               budgetForEmployee: parseFloat( formData.budgetForEmployee ) || 0,
+               status: 'active',
                action: '',
           } );
           setShowModal( false );

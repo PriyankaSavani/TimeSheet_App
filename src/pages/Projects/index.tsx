@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Table } from 'react-bootstrap'
 import FormInput from '../../components/FormInput'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
+
 import classNames from 'classnames'
 
 // component
@@ -19,7 +20,7 @@ interface User {
 }
 
 interface Project {
-     id: number;
+     id: string;
      createdDate: string;
      projectName: string;
      clientName: string;
@@ -31,21 +32,27 @@ interface Project {
 }
 
 const Projects = () => {
+     const [ projects, setProjects ] = useState<Project[]>( [] );
 
-     const [ projects, setProjects ] = useState<Project[]>( () => {
-          const savedProjects = localStorage.getItem( 'projects' );
-          return savedProjects ? JSON.parse( savedProjects ) : [];
-     } );
-
-     const [ editing, setEditing ] = useState<{ [ key: number ]: 'all' | null }>( {} );
+     const [ editing, setEditing ] = useState<{ [ key: string ]: 'all' | null }>( {} );
 
      const [ users, setUsers ] = useState<User[]>( [] );
 
      useEffect( () => {
-          localStorage.setItem( 'projects', JSON.stringify( projects ) );
-     }, [ projects ] );
+          const fetchProjects = async () => {
+               try {
+                    const projectsCollection = collection( db, 'projects' );
+                    const projectsSnapshot = await getDocs( projectsCollection );
+                    const projectsList = projectsSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         ...doc.data()
+                    } ) as Project );
+                    setProjects( projectsList );
+               } catch ( error ) {
+                    console.error( 'Error fetching projects:', error );
+               }
+          };
 
-     useEffect( () => {
           const fetchUsers = async () => {
                try {
                     const usersCollection = collection( db, 'users' );
@@ -59,28 +66,52 @@ const Projects = () => {
                     console.error( 'Error fetching users:', error );
                }
           };
+
+          fetchProjects();
           fetchUsers();
      }, [] );
 
-     const addProject = ( project: Omit<Project, 'id' | 'createdDate'> ) => {
-          const newProject: Project = {
-               id: Date.now(),
-               createdDate: new Date().toLocaleDateString(),
-               ...project,
-          };
-          setProjects( prev => [ ...prev, newProject ] );
+     const addProject = async ( project: Omit<Project, 'id' | 'createdDate'> ) => {
+          try {
+               const newProject = {
+                    createdDate: new Date().toLocaleDateString(),
+                    ...project,
+               };
+               const docRef = await addDoc( collection( db, 'projects' ), newProject );
+               const projectWithId: Project = {
+                    id: docRef.id,
+                    ...newProject,
+               };
+               setProjects( prev => [ ...prev, projectWithId ] );
+          } catch ( error ) {
+               console.error( 'Error adding project:', error );
+          }
      };
 
-     const startEditingAll = ( id: number ) => {
+     const startEditingAll = ( id: string ) => {
           setEditing( prev => ( { ...prev, [ id ]: 'all' } ) );
      };
 
-     const stopEditing = ( id: number ) => {
+     const stopEditing = ( id: string ) => {
           setEditing( prev => ( { ...prev, [ id ]: null } ) );
      };
 
-     const deleteProject = ( id: number ) => {
-          setProjects( prev => prev.filter( p => p.id !== id ) );
+     const deleteProject = async ( id: string ) => {
+          try {
+               await deleteDoc( doc( db, 'projects', id ) );
+               setProjects( prev => prev.filter( p => p.id !== id ) );
+          } catch ( error ) {
+               console.error( 'Error deleting project:', error );
+          }
+     };
+
+     const updateProject = async ( id: string, updatedProject: Partial<Project> ) => {
+          try {
+               await updateDoc( doc( db, 'projects', id ), updatedProject );
+               setProjects( prev => prev.map( p => p.id === id ? { ...p, ...updatedProject } : p ) );
+          } catch ( error ) {
+               console.error( 'Error updating project:', error );
+          }
      };
 
      // Prepare data for Excel export
@@ -153,14 +184,7 @@ const Projects = () => {
                                                        name={ `createdDate-${ project.id }` }
                                                        value={ project.createdDate }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           createdDate: e.target.value
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { createdDate: e.target.value } );
                                                        } }
                                                   />
                                              ) : (
@@ -174,14 +198,7 @@ const Projects = () => {
                                                        name={ `projectName-${ project.id }` }
                                                        value={ project.projectName }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           projectName: e.target.value
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { projectName: e.target.value } );
                                                        } }
                                                   />
                                              ) : (
@@ -195,14 +212,7 @@ const Projects = () => {
                                                        name={ `clientName-${ project.id }` }
                                                        value={ project.clientName }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           clientName: e.target.value
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { clientName: e.target.value } );
                                                        } }
                                                   />
                                              ) : (
@@ -216,14 +226,7 @@ const Projects = () => {
                                                        name={ `assignEmployee-${ project.id }` }
                                                        value={ project.assignEmployee }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           assignEmployee: e.target.value
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { assignEmployee: e.target.value } );
                                                        } }
                                                   >
                                                        <option value="">Select Employee</option>
@@ -244,14 +247,7 @@ const Projects = () => {
                                                        name={ `budgetPerHour-${ project.id }` }
                                                        value={ project.budgetPerHour.toString() }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           budgetPerHour: parseFloat( e.target.value ) || 0
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { budgetPerHour: parseFloat( e.target.value ) || 0 } );
                                                        } }
                                                   />
                                              ) : (
@@ -265,14 +261,7 @@ const Projects = () => {
                                                        name={ `budgetForEmployee-${ project.id }` }
                                                        value={ project.budgetForEmployee.toString() }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           budgetForEmployee: parseFloat( e.target.value ) || 0
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { budgetForEmployee: parseFloat( e.target.value ) || 0 } );
                                                        } }
                                                   />
                                              ) : (
@@ -286,14 +275,7 @@ const Projects = () => {
                                                        name={ `status-${ project.id }` }
                                                        value={ project.status }
                                                        onChange={ ( e ) => {
-                                                            const updatedProjects = projects.map( p =>
-                                                                 p.id === project.id ?
-                                                                      {
-                                                                           ...p,
-                                                                           status: e.target.value
-                                                                      } : p
-                                                            );
-                                                            setProjects( updatedProjects );
+                                                            updateProject( project.id, { status: e.target.value } );
                                                        } }
                                                   >
                                                        <option value="active">Active</option>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button } from 'react-bootstrap';
 import classNames from 'classnames';
-import { APICore } from '../../helpers/api/apiCore';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../../hooks/useTimesheetCalculations';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db, auth } from '../../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
 
 // component
 import TimesheetTask from './TimesheetTask';
@@ -16,7 +19,7 @@ import ExportToExcel from '../../components/ExportToExcel';
 import PageTitle from 'components/PageTitle';
 
 export interface Row {
-     id: number;
+     id: string;
      project: string;
      task: string;
      times: Record<string, string>;
@@ -24,37 +27,76 @@ export interface Row {
 }
 
 const Timesheet = () => {
-     const api = new APICore();
-     const user = api.getLoggedInUser();
-     const userId = user ? user.id : 'anonymous';
+     const [ userId, setUserId ] = useState<string>( 'anonymous' );
 
-     const [ rows, setRows ] = useState<Row[]>( () => {
-          const savedRows = localStorage.getItem( `timesheet-rows-${ userId }` );
-          return savedRows ? JSON.parse( savedRows ) : [ { id: 1, project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-     } );
+     const [ rows, setRows ] = useState<Row[]>( [] );
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
-     const [ editing, setEditing ] = useState<Record<number, 'all' | null>>( {} ); // Track editing state for each row
+     const [ editing, setEditing ] = useState<Record<string, 'all' | null>>( {} ); // Track editing state for each row
 
-     const [ editingInputs, setEditingInputs ] = useState<Record<number, Record<string, string>>>( {} ); // Track raw input for editing
+     const [ editingInputs, setEditingInputs ] = useState<Record<string, Record<string, string>>>( {} ); // Track raw input for editing
 
-     // Save rows to localStorage whenever rows change, keyed by user ID
+     // Listen to auth state changes
      useEffect( () => {
-          localStorage.setItem( `timesheet-rows-${ userId }`, JSON.stringify( rows ) );
+          const unsubscribe = onAuthStateChanged( auth, ( user ) => {
+               if ( user ) {
+                    setUserId( user.uid );
+               } else {
+                    setUserId( 'anonymous' );
+               }
+          } );
+
+          return () => unsubscribe();
+     }, [] );
+
+     // Fetch rows from Firestore (per-user timesheet)
+     useEffect( () => {
+          const fetchRows = async () => {
+               if ( userId !== 'anonymous' ) {
+                    try {
+                         const timesheetDocRef = doc( db, 'timesheets', userId );
+                         const docSnap = await getDoc( timesheetDocRef );
+                         if ( docSnap.exists() ) {
+                              const data = docSnap.data();
+                              setRows( data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
+                         } else {
+                              setRows( [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
+                         }
+                    } catch ( error ) {
+                         console.error( 'Error fetching timesheet data:', error );
+                    }
+               }
+          };
+          fetchRows();
+     }, [ userId ] );
+
+     // Save rows to Firestore whenever rows change (per-user timesheet)
+     useEffect( () => {
+          const saveRows = async () => {
+               if ( userId !== 'anonymous' && rows.length > 0 ) {
+                    try {
+                         const timesheetDocRef = doc( db, 'timesheets', userId );
+                         await setDoc( timesheetDocRef, { rows }, { merge: true } );
+                    } catch ( error ) {
+                         console.error( 'Error saving timesheet data:', error );
+                    }
+               }
+          };
+          saveRows();
      }, [ rows, userId ] );
 
      const { days, weekDisplay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
-     const updateProject = ( id: number, project: string ) => {
+     const updateProject = ( id: string, project: string ) => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times ) } : r ) );
      };
 
-     const updateTask = ( id: number, task: string ) => {
+     const updateTask = ( id: string, task: string ) => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times ) } : r ) );
      };
 
-     const startEditingAll = ( id: number ) => {
+     const startEditingAll = ( id: string ) => {
           setEditing( prev => ( { ...prev, [ id ]: 'all' } ) );
           setEditingInputs( prev => ( {
                ...prev,
@@ -66,7 +108,7 @@ const Timesheet = () => {
           } ) );
      };
 
-     const stopEditingAll = ( id: number ) => {
+     const stopEditingAll = ( id: string ) => {
           setEditing( prev => ( { ...prev, [ id ]: null } ) );
           setEditingInputs( prev => {
                const newInputs = { ...prev };

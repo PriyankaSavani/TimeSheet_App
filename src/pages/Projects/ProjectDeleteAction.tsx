@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 
 interface ProjectDeleteActionProps {
-     deleteProject: ( id: number ) => void;
-     projectId: number;
+     deleteProject: ( id: string ) => void;
+     projectId: string;
 }
 
 const ProjectDeleteAction: React.FC<ProjectDeleteActionProps> = ( { deleteProject, projectId } ) => {

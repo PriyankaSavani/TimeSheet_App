@@ -53,7 +53,7 @@ const setAuthorization = ( token: string | null ) => {
 };
 
 const getUserFromCookie = () => {
-     const user = sessionStorage.getItem( AUTH_SESSION_KEY );
+     const user = localStorage.getItem( AUTH_SESSION_KEY );
      return user ? ( typeof user == 'object' ? user : JSON.parse( user ) ) : null;
 };
 class APICore {
@@ -188,9 +188,9 @@ class APICore {
      };
 
      setLoggedInUser = ( session: any ) => {
-          if ( session ) sessionStorage.setItem( AUTH_SESSION_KEY, JSON.stringify( session ) );
+          if ( session ) localStorage.setItem( AUTH_SESSION_KEY, JSON.stringify( session ) );
           else {
-               sessionStorage.removeItem( AUTH_SESSION_KEY );
+               localStorage.removeItem( AUTH_SESSION_KEY );
           }
      };
      /**
@@ -201,7 +201,7 @@ class APICore {
      };
 
      setUserInSession = ( modifiedUser: any ) => {
-          let userInfo = sessionStorage.getItem( AUTH_SESSION_KEY );
+          let userInfo = localStorage.getItem( AUTH_SESSION_KEY );
           if ( userInfo ) {
                const { token, user } = JSON.parse( userInfo );
                this.setLoggedInUser( { token, ...user, ...modifiedUser } );
@@ -210,7 +210,7 @@ class APICore {
 }
 
 /*
-Check if token available in session
+Check if token available in localStorage
 */
 let user = getUserFromCookie();
 if ( user ) {

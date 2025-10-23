@@ -1,8 +1,7 @@
-# TODO for Adding Budget Fields to Project Table
+# TODO: Fix Timesheet Data Persistence on Refresh
 
-- [x] Add input fields for budgetPerHour and budgetForEmployee in the table rows
-- [x] Handle onChange to update project budgets
-- [x] Handle Enter and Tab key presses
-- [x] Create ProjectDeleteAction component with delete confirmation modal
-- [x] Integrate delete button in the ACTION column
-- [x] Add Edit button to edit all fields in the row
+## Tasks
+- [x] Update fetchRows to use per-user document (userId) instead of 'shared'
+- [x] Update saveRows to use per-user document (userId) instead of 'shared'
+- [x] Prevent saving empty rows array to avoid overwriting data
+- [ ] Test data persistence across page refreshes for logged-in users

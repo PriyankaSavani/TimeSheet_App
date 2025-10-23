@@ -10,7 +10,7 @@ interface TimesheetAddActionProps {
 
 const TimesheetAddAction: React.FC<TimesheetAddActionProps> = ( { rows, setRows } ) => {
      const handleAdd = () => {
-          const newRow: Row = { id: Date.now(), project: 'Select Project', task: '', times: {}, total: '00:00' };
+          const newRow: Row = { id: Date.now().toString(), project: 'Select Project', task: '', times: {}, total: '00:00' };
           setRows( prev => [ ...prev, newRow ] );
      };
 

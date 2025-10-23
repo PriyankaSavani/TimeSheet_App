@@ -2,12 +2,12 @@ import React from 'react'
 import { Form } from 'react-bootstrap'
 
 interface TimesheetTaskProps {
-     rowId: number;
+     rowId: string;
      value: string;
      isEditing: boolean;
-     editingInputs: Record<number, Record<string, string>>;
-     setEditingInputs: React.Dispatch<React.SetStateAction<Record<number, Record<string, string>>>>;
-     updateTask: ( id: number, task: string ) => void;
+     editingInputs: Record<string, Record<string, string>>;
+     setEditingInputs: React.Dispatch<React.SetStateAction<Record<string, Record<string, string>>>>;
+     updateTask: ( id: string, task: string ) => void;
 }
 
 const TimesheetTask: React.FC<TimesheetTaskProps> = ( { rowId, value, isEditing, editingInputs, setEditingInputs, updateTask } ) => {

@@ -7,8 +7,8 @@ interface TimesheetDayProps {
      setRows: React.Dispatch<React.SetStateAction<Row[]>>;
      day: string;
      isEditing: boolean;
-     editingInputs: Record<number, Record<string, string>>;
-     setEditingInputs: React.Dispatch<React.SetStateAction<Record<number, Record<string, string>>>>;
+     editingInputs: Record<string, Record<string, string>>;
+     setEditingInputs: React.Dispatch<React.SetStateAction<Record<string, Record<string, string>>>>;
      formatTimeInput: ( input: string ) => string;
      calculateRowTotal: ( times: Record<string, string> ) => string;
 }

@@ -1,48 +1,59 @@
 import React, { useState, useEffect } from 'react'
 import { Form } from 'react-bootstrap';
 import { APICore } from '../../helpers/api/apiCore';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 
 interface TimesheetProjectProps {
-     rowId: number;
+     rowId: string;
      value: string;
      isEditing: boolean;
-     editingInputs: Record<number, Record<string, string>>;
-     setEditingInputs: React.Dispatch<React.SetStateAction<Record<number, Record<string, string>>>>;
-     updateProject: ( id: number, project: string ) => void;
+     editingInputs: Record<string, Record<string, string>>;
+     setEditingInputs: React.Dispatch<React.SetStateAction<Record<string, Record<string, string>>>>;
+     updateProject: ( id: string, project: string ) => void;
 }
 
 const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEditing, editingInputs, setEditingInputs, updateProject } ) => {
-     const api = new APICore();
      const [ user, setUser ] = useState<any>( null );
      const [ projects, setProjects ] = useState<any[]>( [] );
 
      useEffect( () => {
+          const api = new APICore();
           const loggedUser = api.getLoggedInUser();
           setUser( loggedUser );
      }, [] );
 
      useEffect( () => {
-          if ( user ) {
-               const savedProjects = localStorage.getItem( 'projects' );
-               if ( savedProjects ) {
-                    const allProjects = JSON.parse( savedProjects );
-                    if ( user.role === 'admin' ) {
-                         setProjects( allProjects );
-                    } else if ( user.role === 'user' ) {
-                         const userProjects = allProjects.filter( ( p: any ) => {
-                              const fullname = ( user.firstName + ' ' + user.lastName ).trim();
-                              const match = p.assignEmployee && (
-                                   ( fullname && p.assignEmployee.toLowerCase() === fullname.toLowerCase() ) ||
-                                   ( user.username && p.assignEmployee.toLowerCase() === user.username.toLowerCase() )
-                              );
-                              return match;
-                         } );
-                         setProjects( userProjects );
-                    } else {
-                         setProjects( [] );
+          const fetchProjects = async () => {
+               if ( user ) {
+                    try {
+                         const projectsCollection = collection( db, 'projects' );
+                         const projectsSnapshot = await getDocs( projectsCollection );
+                         const allProjects = projectsSnapshot.docs.map( doc => ( {
+                              id: doc.id,
+                              ...doc.data()
+                         } ) );
+                         if ( user.role === 'admin' ) {
+                              setProjects( allProjects );
+                         } else if ( user.role === 'user' ) {
+                              const userProjects = allProjects.filter( ( p: any ) => {
+                                   const fullname = ( user.firstName + ' ' + user.lastName ).trim();
+                                   const match = p.assignEmployee && (
+                                        ( fullname && p.assignEmployee.toLowerCase() === fullname.toLowerCase() ) ||
+                                        ( user.username && p.assignEmployee.toLowerCase() === user.username.toLowerCase() )
+                                   );
+                                   return match;
+                              } );
+                              setProjects( userProjects );
+                         } else {
+                              setProjects( [] );
+                         }
+                    } catch ( error ) {
+                         console.error( 'Error fetching projects:', error );
                     }
                }
-          }
+          };
+          fetchProjects();
      }, [ user ] );
 
      const availableProjects = projects.map( p => p.projectName );
