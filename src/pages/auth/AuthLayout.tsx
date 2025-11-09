@@ -23,7 +23,7 @@ const AuthLayout = ( { helpText, bottomLinks, children, isCombineForm }: Account
 
      return (
           <>
-               <div className="account-pages">
+               <div className="account-pages mt-5 mb-4">
                     <Container>
                          <Row className="justify-content-center">
                               <Col md={ 8 } lg={ 6 } xl={ isCombineForm ? 9 : 4 }>

@@ -3,7 +3,10 @@ import { useMemo, useCallback } from 'react';
 export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      const { days, weekDisplay } = useMemo( () => {
           const today = new Date();
-          const startOfWeek = new Date( today.setDate( today.getDate() - today.getDay() + 1 + weekOffset * 7 ) ); // Adjust for week offset
+          const startOfWeek = new Date( today );
+          const day = today.getDay();
+          const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7;
+          startOfWeek.setDate( diff );
           const endOfWeek = new Date( startOfWeek );
           endOfWeek.setDate( startOfWeek.getDate() + 6 );
           const weekDays = [];

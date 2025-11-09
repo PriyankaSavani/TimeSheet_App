@@ -1,6 +1,6 @@
 import React from 'react'
 import { Row } from './index'
-import FormInput from '../../components/FormInput'
+import FormInput from '../../../components/FormInput'
 
 interface TimesheetDayProps {
      row: Row;

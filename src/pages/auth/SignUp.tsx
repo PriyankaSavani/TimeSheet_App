@@ -30,9 +30,9 @@ const BottomLink = () => {
      return (
           <Row className="mt-3">
                <Col className="text-center">
-                    <p className="text-white-50">
+                    <p className="">
                          { t( 'Already have account?' ) }{ ' ' }
-                         <Link to={ '/auth/signIn' } className="text-white ms-1">
+                         <Link to={ '/auth/signIn' } className="ms-1">
                               <b>{ t( 'Sign In' ) }</b>
                          </Link>
                     </p>

@@ -1,4 +1,4 @@
-// 
+//
 // tables.scss
 //
 
@@ -8,16 +8,20 @@ th {
 
 //Table centered (Custom)
 .table-centered {
-    td,th {
+
+    td,
+    th {
         vertical-align: middle !important;
     }
 }
 
 
-// Table 
+// Table
 
 .table-nowrap {
-    th,td {
+
+    th,
+    td {
         white-space: nowrap;
     }
 }
@@ -30,6 +34,7 @@ th {
             width: 30px;
         }
     }
+
     &.table-bordered {
         tbody {
             border-top: $border-width solid;
@@ -50,6 +55,7 @@ th {
 }
 
 table {
+
     // Table Hover
     &.table-hover {
         tbody {
@@ -61,25 +67,30 @@ table {
                 }
             }
         }
-    }       
-    // Table Active 
+    }
+
+    // Table Active
     tr {
         &.table-active {
             --ct-table-accent-bg: #f3f7f9;
         }
     }
+
     //  Table Striped
     &.table-striped {
         tbody {
             tr {
                 &:nth-of-type(odd) {
-                    >* {
+                    > * {
                         --ct-table-accent-bg: #f3f7f9;
                     }
                 }
+
                 table {
                     &:not(.table-striped) {
-                        th, td {
+
+                        th,
+                        td {
                             --ct-table-accent-bg: transparent;
                         }
                     }
@@ -97,24 +108,30 @@ body[data-layout-color="dark"] {
         font-size: 1.2rem;
         display: inline-block;
         padding: 0 3px;
-    
+
         &:hover {
             color: #{map-get($dark-grays, "700")};
         }
     }
+
     // Table Light - Dark
     .table-light {
         --ct-table-bg: #3e4954;
         color: $white;
         border-color: $table-group-separator-color;
     }
+
     .table-dark {
         --ct-table-bg: #424e5a;
-        tbody, tr {
+
+        tbody,
+        tr {
             border-color: #{lighten(map-get($dark-grays, "300"), 5%)};
         }
     }
+
     table {
+
         // Table Hover
         &.table-hover {
             tbody {
@@ -126,25 +143,31 @@ body[data-layout-color="dark"] {
                     }
                 }
             }
-        }       
-        // Table Active 
-        tr, td {
+        }
+
+        // Table Active
+        tr,
+        td {
             &.table-active {
                 --ct-table-accent-bg: #{rgba($black, 0.075)};
             }
         }
+
         //  Table Striped
         &.table-striped {
             tbody {
                 tr {
                     &:nth-of-type(odd) {
-                        >* {
+                        > * {
                             --ct-table-accent-bg: #3b4651;
                         }
                     }
+
                     table {
                         &:not(.table-striped) {
-                            th, td {
+
+                            th,
+                            td {
                                 --ct-table-accent-bg: transparent;
                             }
                         }

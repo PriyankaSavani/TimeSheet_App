@@ -2,6 +2,7 @@ import React from "react";
 import { Route } from "react-router-dom";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
+import TimesheetWrapper from "./TimesheetWrapper";
 
 // lazy load all the views
 
@@ -11,11 +12,14 @@ const SignUp = React.lazy( () => import( '../pages/auth/SignUp' ) );
 const SignOut = React.lazy( () => import( '../pages/auth/SignOut' ) );
 
 // dashboard
-const Dashboard = React.lazy( () => import( '../pages/Dashboard' ) );
+const Dashboard = React.lazy( () => import( '../pages/Admin/Dashboard' ) );
+
+// access denied
+const AccessDenied = React.lazy( () => import( '../pages/AccessDenied' ) );
 
 // timesheet management
-const Projects = React.lazy( () => import( '../pages/Projects' ) );
-const Timesheet = React.lazy( () => import( '../pages/Timesheet' ) );
+const Projects = React.lazy( () => import( '../pages/Admin/Projects' ) );
+const Users = React.lazy( () => import( '../pages/Admin/Users' ) );
 
 export interface RoutesProps {
      path: string;
@@ -82,16 +86,25 @@ const projectsRoutes: RoutesProps = {
      roles: [ 'admin' ],
 }
 
+const usersRoutes: RoutesProps = {
+     path: '/users',
+     name: 'Users',
+     element: <Users />,
+     route: PrivateRoute,
+     roles: [ 'admin' ],
+}
+
 const timesheetRoutes: RoutesProps = {
      path: '/timesheet',
      name: 'Timesheet',
-     element: <Timesheet />,
+     element: <TimesheetWrapper />, // Use a wrapper component to handle role-based rendering
      route: PrivateRoute,
-     roles: [ 'admin', 'user' ], // Allow both admin and user
+     roles: [ 'admin', 'user' ],
 }
 
 const timesheetManagementRoutes = [
      projectsRoutes,
+     usersRoutes,
      timesheetRoutes,
 ]
 
@@ -110,9 +123,18 @@ const flattenRoutes = ( routes: RoutesProps[] ) => {
      return flatRoutes;
 };
 
+// access denied route
+const accessDeniedRoute: RoutesProps = {
+     path: '/access-denied',
+     name: 'Access Denied',
+     element: <AccessDenied />,
+     route: Route,
+     roles: [ 'admin', 'user' ], // Allow both admin and user
+}
+
 // all routes
 const authProtectedRoutes = [ rootRoute, dashboardRoutes, ...timesheetManagementRoutes ];
-const publicRoutes = [ ...authRoutes ];
+const publicRoutes = [ ...authRoutes, accessDeniedRoute ];
 
 const authProtectedFlattenRoutes = flattenRoutes( [ ...authProtectedRoutes ] );
 const publicProtectedFlattenRoutes = flattenRoutes( [ ...publicRoutes ] );

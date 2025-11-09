@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button } from 'react-bootstrap';
-import classNames from 'classnames';
 import FeatherIcon from 'feather-icons-react';
-import { useTimesheetCalculations } from '../../hooks/useTimesheetCalculations';
+import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, auth } from '../../config/firebase';
+import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 
@@ -15,7 +14,7 @@ import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import TimesheetEditAction from './TimesheetEditAction';
-import ExportToExcel from '../../components/ExportToExcel';
+import ExportToExcel from '../../../components/ExportToExcel';
 import PageTitle from 'components/PageTitle';
 
 export interface Row {
@@ -50,41 +49,109 @@ const Timesheet = () => {
           return () => unsubscribe();
      }, [] );
 
-     // Fetch rows from Firestore (per-user timesheet)
+     // Generate week key based on weekOffset
+     const getWeekKey = ( offset: number ) => {
+          const today = new Date();
+          const startOfWeek = new Date( today );
+          const day = today.getDay();
+          const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
+          startOfWeek.setDate( diff );
+          const year = startOfWeek.getFullYear();
+          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 );
+          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
+     };
+
+     // Fetch rows from localStorage and Firestore (per-user per-week timesheet)
      useEffect( () => {
           const fetchRows = async () => {
                if ( userId !== 'anonymous' ) {
+                    const weekKey = getWeekKey( weekOffset );
+                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
+
+                    // First, load from localStorage
+                    const localData = localStorage.getItem( localStorageKey );
+                    if ( localData ) {
+                         try {
+                              const parsed = JSON.parse( localData );
+                              setRows( parsed );
+                         } catch ( error ) {
+                              console.error( 'Error parsing localStorage data:', error );
+                         }
+                    }
+
+                    // Then, fetch from Firestore and update if available
                     try {
-                         const timesheetDocRef = doc( db, 'timesheets', userId );
+                         const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
                          const docSnap = await getDoc( timesheetDocRef );
                          if ( docSnap.exists() ) {
                               const data = docSnap.data();
-                              setRows( data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
+                              const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                              setRows( firestoreRows );
+                              // Update localStorage with Firestore data
+                              localStorage.setItem( localStorageKey, JSON.stringify( firestoreRows ) );
                          } else {
-                              setRows( [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
+                              // If no Firestore data, use default and save to localStorage
+                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                              setRows( defaultRows );
+                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                          }
                     } catch ( error ) {
                          console.error( 'Error fetching timesheet data:', error );
+                         // If Firestore fails, keep localStorage data or default
+                         if ( !localData ) {
+                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                              setRows( defaultRows );
+                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                         }
                     }
                }
           };
           fetchRows();
-     }, [ userId ] );
+     }, [ userId, weekOffset ] );
 
-     // Save rows to Firestore whenever rows change (per-user timesheet)
+     // Save rows to localStorage and Firestore whenever rows change (per-user per-week timesheet)
      useEffect( () => {
-          const saveRows = async () => {
-               if ( userId !== 'anonymous' && rows.length > 0 ) {
-                    try {
-                         const timesheetDocRef = doc( db, 'timesheets', userId );
-                         await setDoc( timesheetDocRef, { rows }, { merge: true } );
-                    } catch ( error ) {
-                         console.error( 'Error saving timesheet data:', error );
+          if ( userId !== 'anonymous' ) {
+               const weekKey = getWeekKey( weekOffset );
+               const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
+
+               // Save to localStorage immediately
+               localStorage.setItem( localStorageKey, JSON.stringify( rows ) );
+
+               // Save to Firestore asynchronously
+               const saveToFirestore = async () => {
+                    if ( rows.length > 0 ) {
+                         try {
+                              const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+                              await setDoc( timesheetDocRef, { rows }, { merge: true } );
+                         } catch ( error ) {
+                              console.error( 'Error saving timesheet data to Firestore:', error );
+                         }
                     }
+               };
+               saveToFirestore();
+          }
+     }, [ rows, userId, weekOffset ] );
+
+     // Save data on page unload to prevent data loss
+     useEffect( () => {
+          const handleBeforeUnload = ( event: BeforeUnloadEvent ) => {
+               if ( userId !== 'anonymous' && rows.length > 0 ) {
+                    const weekKey = getWeekKey( weekOffset );
+                    const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+                    // Attempt to save synchronously (though setDoc is async, this ensures it's triggered)
+                    setDoc( timesheetDocRef, { rows }, { merge: true } ).catch( ( error ) => {
+                         console.error( 'Error saving on unload:', error );
+                    } );
                }
           };
-          saveRows();
-     }, [ rows, userId ] );
+
+          window.addEventListener( 'beforeunload', handleBeforeUnload );
+
+          return () => {
+               window.removeEventListener( 'beforeunload', handleBeforeUnload );
+          };
+     }, [ rows, userId, weekOffset ] );
 
      const { days, weekDisplay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
@@ -234,23 +301,25 @@ const Timesheet = () => {
                                    <td>
                                         { calculateRowTotal( row.times ) }
                                    </td>
-                                   <td className={ classNames( 'd-flex' ) }>
-                                        <TimesheetEditAction
-                                             onEdit={ () => {
-                                                  if ( editing[ row.id ] === 'all' ) {
-                                                       stopEditingAll( row.id );
-                                                  } else {
-                                                       startEditingAll( row.id );
-                                                  }
-                                             } }
-                                             isEditing={ editing[ row.id ] === 'all' }
-                                        />
-                                        <TimesheetDeleteAction
-                                             rowId={ row.id }
-                                             onDelete={ () => { } }
-                                             rows={ rows }
-                                             setRows={ setRows }
-                                        />
+                                   <td>
+                                        <div className="d-flex">
+                                             <TimesheetEditAction
+                                                  onEdit={ () => {
+                                                       if ( editing[ row.id ] === 'all' ) {
+                                                            stopEditingAll( row.id );
+                                                       } else {
+                                                            startEditingAll( row.id );
+                                                       }
+                                                  } }
+                                                  isEditing={ editing[ row.id ] === 'all' }
+                                             />
+                                             <TimesheetDeleteAction
+                                                  rowId={ row.id }
+                                                  onDelete={ () => { } }
+                                                  rows={ rows }
+                                                  setRows={ setRows }
+                                             />
+                                        </div>
                                    </td>
                               </tr>
                          ) ) }

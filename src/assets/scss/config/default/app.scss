@@ -59,3 +59,7 @@ $variable-prefix: "JK-";
 // pages
 @import "../../custom/pages/authentication";
 @import "../../custom/pages/signout";
+
+// plugins
+@import "../../custom/plugin/icon";
+@import "../../custom/plugin/slimscroll";

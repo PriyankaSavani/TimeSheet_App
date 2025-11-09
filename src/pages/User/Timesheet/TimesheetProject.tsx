@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Form } from 'react-bootstrap';
-import { APICore } from '../../helpers/api/apiCore';
+import { APICore } from '../../../helpers/api/apiCore';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../../config/firebase';
 
 interface TimesheetProjectProps {
      rowId: string;
@@ -25,7 +25,7 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
 
      useEffect( () => {
           const fetchProjects = async () => {
-               if ( user ) {
+               if ( user && user.role === 'user' ) {
                     try {
                          const projectsCollection = collection( db, 'projects' );
                          const projectsSnapshot = await getDocs( projectsCollection );
@@ -33,21 +33,16 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
                               id: doc.id,
                               ...doc.data()
                          } ) );
-                         if ( user.role === 'admin' ) {
-                              setProjects( allProjects );
-                         } else if ( user.role === 'user' ) {
-                              const userProjects = allProjects.filter( ( p: any ) => {
-                                   const fullname = ( user.firstName + ' ' + user.lastName ).trim();
-                                   const match = p.assignEmployee && (
-                                        ( fullname && p.assignEmployee.toLowerCase() === fullname.toLowerCase() ) ||
-                                        ( user.username && p.assignEmployee.toLowerCase() === user.username.toLowerCase() )
-                                   );
-                                   return match;
-                              } );
-                              setProjects( userProjects );
-                         } else {
-                              setProjects( [] );
-                         }
+                         // For user, show only projects assigned to the user
+                         const userProjects = allProjects.filter( ( p: any ) => {
+                              const fullname = ( user.firstName + ' ' + user.lastName ).trim();
+                              const match = p.assignEmployee && (
+                                   ( fullname && p.assignEmployee.toLowerCase() === fullname.toLowerCase() ) ||
+                                   ( user.username && p.assignEmployee.toLowerCase() === user.username.toLowerCase() )
+                              );
+                              return match;
+                         } );
+                         setProjects( userProjects );
                     } catch ( error ) {
                          console.error( 'Error fetching projects:', error );
                     }

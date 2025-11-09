@@ -20,12 +20,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
-    "baseUrl": "./src",
-    "paths": {
-      "*": [
-        "*"
-      ]
-    }
+    "baseUrl": "./src"
   },
   "include": [
     "src"

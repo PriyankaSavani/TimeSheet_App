@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 import classNames from 'classnames';
 import { Row } from './index';
+import FeatherIcon from 'feather-icons-react';
 
 interface TimesheetAddActionProps {
      rows: Row[];
@@ -21,6 +22,10 @@ const TimesheetAddAction: React.FC<TimesheetAddActionProps> = ( { rows, setRows 
                onClick={ handleAdd }
                className={ classNames( 'me-2' ) }
           >
+               <FeatherIcon
+                    icon='plus-circle'
+                    className={ classNames( 'me-2' ) }
+               />
                Add Data
           </Button>
      );

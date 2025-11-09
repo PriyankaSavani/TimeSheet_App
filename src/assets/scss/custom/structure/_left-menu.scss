@@ -164,12 +164,6 @@
     }
 }
 
-[dir="rtl"] .menu-arrow {
-    &:before {
-        content: "\F0141";
-    }
-}
-
 li {
     > a[aria-expanded="true"] {
         > span.menu-arrow {

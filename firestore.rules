@@ -11,6 +11,16 @@ service cloud.firestore {
                allow read, write: if request.auth != null;
           }
 
+          // Allow authenticated users to read timesheets by employee name (for admin dashboard)
+          match /timesheets/{employeeName} {
+               allow read: if request.auth != null;
+          }
+
+          // Allow authenticated users to read timesheet weeks (for admin dashboard)
+          match /timesheets/{userId}/weeks/{weekId} {
+               allow read: if request.auth != null;
+          }
+
           // Allow all authenticated users to read/write projects (authentication handled at app level)
           match /projects/{projectId} {
                allow read, write: if true;

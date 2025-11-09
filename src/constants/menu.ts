@@ -11,6 +11,7 @@ export interface MenuItemTypes {
      parentKey?: string;
      target?: string;
      children?: MenuItemTypes[];
+     roles?: string[];
 }
 
 const MENU_ITEMS: MenuItemTypes[] = [
@@ -19,7 +20,7 @@ const MENU_ITEMS: MenuItemTypes[] = [
           key: 'dashboards',
           label: 'Dashboards',
           isTitle: false,
-          icon: 'briefcase',
+          icon: 'home',
           url: '/home',
      },
      { key: 'timesheet-management', label: 'Timesheet Management', isTitle: true },
@@ -31,11 +32,19 @@ const MENU_ITEMS: MenuItemTypes[] = [
           url: '/projects',
      },
      {
+          key: 'users',
+          label: 'Users',
+          isTitle: false,
+          icon: 'users',
+          url: '/users',
+     },
+     {
           key: 'timesheet',
           label: 'Timesheet',
           isTitle: false,
           icon: 'clock',
           url: '/timesheet',
+          roles: [ 'admin', 'user' ],
      },
 ];
 

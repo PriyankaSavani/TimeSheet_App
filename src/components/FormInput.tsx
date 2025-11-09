@@ -1,6 +1,7 @@
 import React, { useState, InputHTMLAttributes } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
 import classNames from 'classnames';
+import FeatherIcon from 'feather-icons-react';
 
 import { FieldErrors, Control } from 'react-hook-form';
 
@@ -49,12 +50,13 @@ const PasswordInput = ( {
                          } ) }
                          data-password={ showPassword ? 'true' : 'false' }
                     >
-                         <span
+                         <FeatherIcon
+                              icon={ showPassword ? 'eye' : 'eye-off' }
                               className="password-eye"
                               onClick={ () => {
                                    setShowPassword( !showPassword );
                               } }
-                         ></span>
+                         />
                     </div>
                </InputGroup>
           </>

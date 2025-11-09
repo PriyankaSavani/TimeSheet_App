@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Modal } from 'react-bootstrap'
-import VerticalForm from '../../components/VerticalForm'
-import FormInput from '../../components/FormInput'
+import VerticalForm from '../../../components/VerticalForm'
+import FormInput from '../../../components/FormInput'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { collection, getDocs, query, where } from 'firebase/firestore'
-import { db } from '../../config/firebase'
+import { db } from '../../../config/firebase'
 import classNames from 'classnames'
+import FeatherIcon from 'feather-icons-react'
 
 interface User {
      id: string;
@@ -33,7 +34,7 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
      useEffect( () => {
           const fetchUsers = async () => {
                try {
-                    const q = query( collection( db, 'users' ), where( 'role', '==', 'user' ) );
+                    const q = query( collection( db, 'users' ), where( 'role', 'in', [ 'user', 'admin' ] ) );
                     const querySnapshot = await getDocs( q );
                     const userList: User[] = [];
                     querySnapshot.forEach( ( doc ) => {
@@ -79,6 +80,10 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                     variant='primary'
                     onClick={ () => setShowModal( true ) }
                >
+                    <FeatherIcon
+                         icon='plus-circle'
+                         className={ classNames( 'me-2' ) }
+                    />
                     Add Project
                </Button>
                <Modal show={ showModal } onHide={ () => setShowModal( false ) }>
@@ -116,11 +121,19 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                                         <option key={ user.id } value={ user.fullname }>{ user.fullname }</option>
                                    ) ) }
                               </FormInput>
-                              <div className="text-end">
-                                   <Button type="submit" variant="primary">Add Project</Button>
-                              </div>
                          </VerticalForm>
                     </Modal.Body>
+                    <Modal.Footer>
+                         <Button variant="secondary" onClick={ () => setShowModal( false ) }>
+                              Cancel
+                         </Button>
+                         <Button
+                              type="submit"
+                              variant="primary"
+                         >
+                              Add Project
+                         </Button>
+                    </Modal.Footer>
                </Modal>
           </>
      )

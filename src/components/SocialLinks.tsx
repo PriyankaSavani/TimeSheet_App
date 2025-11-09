@@ -14,14 +14,6 @@ const SocialLinks = () => {
                variant: 'danger',
                icon: 'chrome',
           },
-          {
-               variant: 'info',
-               icon: 'twitter',
-          },
-          {
-               variant: 'secondary',
-               icon: 'github',
-          },
      ];
 
      return (

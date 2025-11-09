@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ProfileDropdown from '../components/ProfileDropdown';
 
+// logo
+import logo from '../assets/images/logo/LOGO_LIGHT.png';
+
 // images
 import profilePic from '../assets/images/users/user-5.jpg';
 
@@ -59,7 +62,11 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                    <Link to="/" className="logo logo-dark text-center">
                                         <span className="logo-sm">
                                              {/* <img src={ logoSm } alt="" height="22" /> */ }
-                                             Timesheet
+                                             <img
+                                                  src={ logo }
+                                                  alt='Timesheet App'
+                                                  height='50'
+                                             />
                                         </span>
                                         <span className="logo-lg">
                                              {/* <img
@@ -67,13 +74,21 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                                                       alt=""
                                                                       height="20"
                                                                /> */}
-                                             Timesheet
+                                             <img
+                                                  src={ logo }
+                                                  alt='Timesheet App'
+                                                  height='50'
+                                             />
                                         </span>
                                    </Link>
                                    <Link to="/" className="logo logo-light text-center">
                                         <span className="logo-sm">
                                              {/* <img src={ logoSm } alt="" height="22" /> */ }
-                                             Timesheet
+                                             <img
+                                                  src={ logo }
+                                                  alt='Timesheet App'
+                                                  height='50'
+                                             />
                                         </span>
                                         <span className="logo-lg">
                                              {/* <img
@@ -81,7 +96,11 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                                                       alt=""
                                                                       height="20"
                                                                /> */}
-                                             Timesheet
+                                             <img
+                                                  src={ logo }
+                                                  alt='Timesheet App'
+                                                  height='50'
+                                             />
                                         </span>
                                    </Link>
                               </div>
