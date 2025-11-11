@@ -1,5 +1,5 @@
-import React from 'react';
-import { useForm, Resolver, SubmitHandler, FieldValues } from 'react-hook-form';
+import React, { forwardRef } from 'react';
+import { useForm, Resolver, SubmitHandler, FieldValues, FormProvider } from 'react-hook-form';
 
 interface VerticalFromProps<TFormValues extends FieldValues> {
      defaultValues?: any;
@@ -9,43 +9,28 @@ interface VerticalFromProps<TFormValues extends FieldValues> {
      formClass?: string;
 }
 
-const VerticalForm = <TFormValues extends Record<string, any> = Record<string, any>> ( {
-     defaultValues,
-     resolver,
-     children,
-     onSubmit,
-     formClass,
-}: VerticalFromProps<TFormValues> ) => {
+const VerticalForm = forwardRef<HTMLFormElement, VerticalFromProps<any>>( (
+     {
+          defaultValues,
+          resolver,
+          children,
+          onSubmit,
+          formClass,
+     },
+     ref
+) => {
      /*
       * form methods
       */
-     const methods = useForm<TFormValues>( { defaultValues, resolver } );
-     const {
-          handleSubmit,
-          register,
-          control,
-          formState: { errors },
-     } = methods;
+     const methods = useForm( { defaultValues, resolver } );
 
      return (
-          <form onSubmit={ handleSubmit( onSubmit ) } className={ formClass } noValidate>
-               { Array.isArray( children )
-                    ? children.map( ( child ) => {
-                         return child.props && child.props.name
-                              ? React.createElement( child.type, {
-                                   ...{
-                                        ...child.props,
-                                        register,
-                                        key: child.props.name,
-                                        errors,
-                                        control,
-                                   },
-                              } )
-                              : child;
-                    } )
-                    : children }
-          </form>
+          <FormProvider { ...methods }>
+               <form ref={ ref } onSubmit={ methods.handleSubmit( onSubmit ) } className={ formClass } noValidate>
+                    { children }
+               </form>
+          </FormProvider>
      );
-};
+} );
 
 export default VerticalForm;

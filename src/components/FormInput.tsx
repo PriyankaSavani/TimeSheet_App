@@ -3,7 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import classNames from 'classnames';
 import FeatherIcon from 'feather-icons-react';
 
-import { FieldErrors, Control } from 'react-hook-form';
+import { FieldErrors, Control, useFormContext } from 'react-hook-form';
 
 interface PasswordInputProps {
      name: string;
@@ -95,13 +95,16 @@ const FormInput = ( {
      rows,
      ...otherProps
 }: FormInputProps ) => {
+     const formContext = useFormContext();
+     const formRegister = register || formContext?.register;
+
      // handle input type
      const comp = type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input';
 
      return (
           <>
                { type === 'hidden' ? (
-                    <input type={ type } name={ name } { ...( register ? register( name ) : {} ) } { ...otherProps } />
+                    <input type={ type } name={ name } { ...( formRegister ? formRegister( name ) : {} ) } { ...otherProps } />
                ) : (
                     <>
                          { type === 'password' ? (
@@ -118,7 +121,7 @@ const FormInput = ( {
                                              placeholder={ placeholder }
                                              refCallback={ refCallback }
                                              errors={ errors! }
-                                             register={ register }
+                                             register={ formRegister }
                                              className={ className }
                                         />
 
@@ -144,7 +147,7 @@ const FormInput = ( {
                                                        } }
                                                        className={ className }
                                                        isInvalid={ errors && errors[ name ] ? true : false }
-                                                       { ...( register ? register( name ) : {} ) }
+                                                       { ...( formRegister ? formRegister( name ) : {} ) }
                                                        { ...otherProps }
                                                   />
 
@@ -170,7 +173,7 @@ const FormInput = ( {
                                                   } }
                                                   className={ className }
                                                   isInvalid={ errors && errors[ name ] ? true : false }
-                                                  { ...( register ? register( name ) : {} ) }
+                                                  { ...( formRegister ? formRegister( name ) : {} ) }
                                                   rows={ rows }
                                                   { ...otherProps }
                                                   autoComplete={ name }

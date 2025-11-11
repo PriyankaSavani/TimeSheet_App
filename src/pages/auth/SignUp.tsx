@@ -91,7 +91,7 @@ const SignUp = () => {
                          </Alert>
                     ) }
 
-                    <VerticalForm<UserData> onSubmit={ onSubmit } resolver={ schemaResolver } defaultValues={ {} }>
+                    <VerticalForm onSubmit={ onSubmit } resolver={ schemaResolver } defaultValues={ {} }>
                          <FormInput
                               label={ t( 'Full Name' ) }
                               type="text"

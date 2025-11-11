@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import VerticalForm from '../../../components/VerticalForm'
 import FormInput from '../../../components/FormInput'
@@ -8,6 +8,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 import classNames from 'classnames'
 import FeatherIcon from 'feather-icons-react'
+import { useFormContext } from 'react-hook-form'
 
 interface User {
      id: string;
@@ -19,7 +20,8 @@ interface ProjectAddActionProps {
      addProject: ( project: {
           projectName: string;
           clientName: string;
-          assignEmployee: string;
+          assignEmployee: string[];
+          task: string[];
           budgetPerHour: number;
           budgetForEmployee: number;
           status: string;
@@ -27,9 +29,66 @@ interface ProjectAddActionProps {
      } ) => void;
 }
 
+const AssignEmployeeCheckboxes: React.FC<{ users: User[] }> = ( { users } ) => {
+     const { register } = useFormContext();
+     return (
+          <div className={ classNames( 'mb-3' ) }>
+               <label className="form-label">Assign Employee</label>
+               <div className="row">
+                    { users.map( ( user, index ) => (
+                         <div key={ user.id } className="col-4">
+                              <div className="form-check">
+                                   <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={ `assign-${ user.id }` }
+                                        value={ user.fullname }
+                                        { ...register( 'assignEmployee' ) }
+                                   />
+                                   <label className="form-check-label" htmlFor={ `assign-${ user.id }` }>
+                                        { user.fullname }
+                                   </label>
+                              </div>
+                         </div>
+                    ) ) }
+               </div>
+          </div>
+     );
+};
+
+const TaskCheckboxes: React.FC = () => {
+     const { register } = useFormContext();
+     const tasks = [ 'General', 'Mechanical', 'Electrical', 'Plumbing' ];
+     return (
+          <div className={ classNames( 'mb-3' ) }>
+               <label className="form-label">Task</label>
+               <div className="row">
+                    { tasks.map( ( task, index ) => (
+                         <div key={ task } className="col-3">
+                              <div className="form-check">
+                                   <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={ `task-${ task }` }
+                                        value={ task }
+                                        { ...register( 'task' ) }
+                                   />
+                                   <label className="form-check-label" htmlFor={ `task-${ task }` }>
+                                        { task }
+                                   </label>
+                              </div>
+                         </div>
+                    ) ) }
+               </div>
+          </div>
+     );
+};
+
 const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => {
+
      const [ showModal, setShowModal ] = useState( false );
      const [ users, setUsers ] = useState<User[]>( [] );
+     const formRef = useRef<HTMLFormElement>( null );
 
      useEffect( () => {
           const fetchUsers = async () => {
@@ -57,7 +116,7 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
           yup.object().shape( {
                projectName: yup.string().required( 'Please enter project name' ),
                clientName: yup.string().required( 'Please enter client name' ),
-               assignEmployee: yup.string().required( 'Please select an employee' ),
+               assignEmployee: yup.array().of( yup.string().required() ).required().min( 1, 'Please select at least one employee' ),
           } )
      );
 
@@ -66,6 +125,7 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                projectName: formData.projectName,
                clientName: formData.clientName,
                assignEmployee: formData.assignEmployee,
+               task: formData.task || [],
                budgetPerHour: parseFloat( formData.budgetPerHour ) || 0,
                budgetForEmployee: parseFloat( formData.budgetForEmployee ) || 0,
                status: 'active',
@@ -76,10 +136,7 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
 
      return (
           <>
-               <Button
-                    variant='primary'
-                    onClick={ () => setShowModal( true ) }
-               >
+               <Button variant='primary' onClick={ () => setShowModal( true ) }>
                     <FeatherIcon
                          icon='plus-circle'
                          className={ classNames( 'me-2' ) }
@@ -92,9 +149,10 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                     </Modal.Header>
                     <Modal.Body>
                          <VerticalForm
+                              ref={ formRef }
                               onSubmit={ onSubmit }
                               resolver={ schemaResolver }
-                              defaultValues={ { projectName: '', clientName: '', assignEmployee: '' } }
+                              defaultValues={ { projectName: '', clientName: '', assignEmployee: [], task: [] } }
                          >
                               <FormInput
                                    label="Project Name"
@@ -110,17 +168,8 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                                    placeholder="Enter client name"
                                    className={ classNames( 'mb-3' ) }
                               />
-                              <FormInput
-                                   label="Assign Employee"
-                                   type="select"
-                                   name="assignEmployee"
-                                   className={ classNames( 'mb-3' ) }
-                              >
-                                   <option value="">Select Employee</option>
-                                   { users.map( user => (
-                                        <option key={ user.id } value={ user.fullname }>{ user.fullname }</option>
-                                   ) ) }
-                              </FormInput>
+                              <AssignEmployeeCheckboxes users={ users } />
+                              <TaskCheckboxes />
                          </VerticalForm>
                     </Modal.Body>
                     <Modal.Footer>
@@ -128,15 +177,15 @@ const ProjectAddAction: React.FC<ProjectAddActionProps> = ( { addProject } ) => 
                               Cancel
                          </Button>
                          <Button
-                              type="submit"
                               variant="primary"
+                              onClick={ () => formRef.current?.requestSubmit() }
                          >
                               Add Project
                          </Button>
                     </Modal.Footer>
                </Modal>
           </>
-     )
-}
+     );
+};
 
 export default ProjectAddAction

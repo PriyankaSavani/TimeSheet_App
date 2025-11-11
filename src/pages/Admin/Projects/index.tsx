@@ -8,8 +8,8 @@ import { db } from '../../../config/firebase'
 import ProjectAddAction from './ProjectAddAction'
 import ProjectDeleteAction from './ProjectDeleteAction'
 import ProjectEditAction from './ProjectEditAction'
-import ExportToExcel from '../../../components/ExportToExcel'
 import PageTitle from 'components/PageTitle'
+import classNames from 'classnames'
 
 interface User {
      id: string;
@@ -22,7 +22,8 @@ interface Project {
      createdDate: string;
      projectName: string;
      clientName: string;
-     assignEmployee: string;
+     assignEmployee: string[];
+     task: string[];
      budgetPerHour: number;
      budgetForEmployee: number;
      status: string;
@@ -30,10 +31,9 @@ interface Project {
 }
 
 const Projects = () => {
+
      const [ projects, setProjects ] = useState<Project[]>( [] );
-
      const [ editing, setEditing ] = useState<{ [ key: string ]: 'all' | null }>( {} );
-
      const [ users, setUsers ] = useState<User[]>( [] );
 
      useEffect( () => {
@@ -62,8 +62,8 @@ const Projects = () => {
                } ) as Project );
                // Sort projects by createdDate in descending order (newest first)
                const sortedProjects = projectsList.sort( ( a, b ) => {
-                    const dateA = new Date( a.createdDate.split( '/' ).reverse().join( '-' ) );
-                    const dateB = new Date( b.createdDate.split( '/' ).reverse().join( '-' ) );
+                    const dateA = new Date( a.createdDate );
+                    const dateB = new Date( b.createdDate );
                     return dateB.getTime() - dateA.getTime();
                } );
                setProjects( sortedProjects );
@@ -80,7 +80,7 @@ const Projects = () => {
      const addProject = async ( project: Omit<Project, 'id' | 'createdDate'> ) => {
           try {
                const newProject = {
-                    createdDate: new Date().toLocaleDateString( 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' } ),
+                    createdDate: new Date().toLocaleDateString( 'en-US' ),
                     ...project,
                };
                await addDoc( collection( db, 'projects' ), newProject );
@@ -136,36 +136,6 @@ const Projects = () => {
           }
      };
 
-     // Prepare data for Excel export
-     const prepareExportData = () => {
-          const data = [];
-          // Header row
-          const header = [
-               'Created Date',
-               'Project Name',
-               'Client Name',
-               'Assign Employee',
-               'Budget (Per Hour)',
-               'Budget For Employee (Per Hour)',
-               'Status'
-          ];
-          data.push( header );
-          // Data rows
-          projects.forEach( project => {
-               const rowData = [
-                    project.createdDate,
-                    project.projectName,
-                    project.clientName,
-                    project.assignEmployee,
-                    project.budgetPerHour.toString(),
-                    project.budgetForEmployee.toString(),
-                    project.status
-               ];
-               data.push( rowData );
-          } );
-          return data;
-     };
-
      return (
           <React.Fragment>
                <PageTitle title={ 'Projects' } />
@@ -173,22 +143,23 @@ const Projects = () => {
                     <Col>
                          <Card>
                               <Card.Body>
-                                   <div className="d-flex justify-content-end mb-3">
-                                        <ExportToExcel
-                                             data={ prepareExportData() }
-                                             filename="Projects.xlsx"
-                                             sheetName="Projects"
-                                             buttonText="Export to Excel"
-                                        />
+                                   <div className={ classNames( 'd-flex justify-content-end mb-3' ) }>
                                         <ProjectAddAction addProject={ addProject } />
                                    </div>
-                                   <Table bordered responsive>
+                                   <Table
+                                        bordered
+                                        responsive
+                                        hover
+                                        variant='warning'
+                                        className={ classNames( 'mb-0' ) }
+                                   >
                                         <thead>
                                              <tr>
                                                   <th>CREATED DATE</th>
                                                   <th>PROJECT NAME</th>
                                                   <th>CLIENT NAME</th>
                                                   <th>ASSIGN EMPLOYEE</th>
+                                                  <th>TASK</th>
                                                   <th>BUDGET (PER HOUR)</th>
                                                   <th>BUDGET FOR EMPLOYEE (PER HOUR)</th>
                                                   <th>STATUS</th>
@@ -198,7 +169,9 @@ const Projects = () => {
                                         <tbody>
                                              { projects.length === 0 ? (
                                                   <tr>
-                                                       <td colSpan={ 8 } className="text-center">No projects added yet.</td>
+                                                       <td colSpan={ 9 } className={ classNames( 'text-center' ) }>
+                                                            No projects added yet.
+                                                       </td>
                                                   </tr>
                                              ) : (
                                                   projects.map( project => (
@@ -210,7 +183,10 @@ const Projects = () => {
                                                                            name={ `createdDate-${ project.id }` }
                                                                            value={ project.createdDate }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { createdDate: e.target.value } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { createdDate: e.target.value }
+                                                                                );
                                                                            } }
                                                                       />
                                                                  ) : (
@@ -224,7 +200,10 @@ const Projects = () => {
                                                                            name={ `projectName-${ project.id }` }
                                                                            value={ project.projectName }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { projectName: e.target.value } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { projectName: e.target.value }
+                                                                                );
                                                                            } }
                                                                       />
                                                                  ) : (
@@ -238,7 +217,10 @@ const Projects = () => {
                                                                            name={ `clientName-${ project.id }` }
                                                                            value={ project.clientName }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { clientName: e.target.value } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { clientName: e.target.value }
+                                                                                );
                                                                            } }
                                                                       />
                                                                  ) : (
@@ -247,23 +229,68 @@ const Projects = () => {
                                                             </td>
                                                             <td>
                                                                  { editing[ project.id ] === 'all' ? (
-                                                                      <select
-                                                                           className="form-select"
-                                                                           name={ `assignEmployee-${ project.id }` }
-                                                                           value={ project.assignEmployee }
-                                                                           onChange={ ( e ) => {
-                                                                                updateProject( project.id, { assignEmployee: e.target.value } );
-                                                                           } }
-                                                                      >
-                                                                           <option value="">Select Employee</option>
+                                                                      <div>
                                                                            { users.map( user => (
-                                                                                <option key={ user.id } value={ user.fullname }>
-                                                                                     { user.fullname }
-                                                                                </option>
+                                                                                <div className={ classNames( 'form-check' ) }>
+                                                                                     <input
+                                                                                          className={ classNames( 'form-check-input' ) }
+                                                                                          type="checkbox"
+                                                                                          id={ `edit-assign-${ project.id }-${ user.id }` }
+                                                                                          checked={ project.assignEmployee.includes( user.fullname ) }
+                                                                                          onChange={ ( e ) => {
+                                                                                               const updatedEmployees = e.target.checked
+                                                                                                    ? [ ...project.assignEmployee, user.fullname ]
+                                                                                                    : project.assignEmployee.filter( emp => emp !== user.fullname );
+                                                                                               updateProject(
+                                                                                                    project.id,
+                                                                                                    { assignEmployee: updatedEmployees }
+                                                                                               );
+                                                                                          } }
+                                                                                     />
+                                                                                     <label
+                                                                                          className={ classNames( 'form-check-label' ) }
+                                                                                          htmlFor={ `edit-assign-${ project.id }-${ user.id }` }
+                                                                                     >
+                                                                                          { user.fullname }
+                                                                                     </label>
+                                                                                </div>
                                                                            ) ) }
-                                                                      </select>
+                                                                      </div>
                                                                  ) : (
-                                                                      project.assignEmployee
+                                                                      project.assignEmployee && Array.isArray( project.assignEmployee ) ? project.assignEmployee.join( ', ' ) : ''
+                                                                 ) }
+                                                            </td>
+                                                            <td>
+                                                                 { editing[ project.id ] === 'all' ? (
+                                                                      <div>
+                                                                           { [ 'General', 'Mechanical', 'Electrical', 'Plumbing' ].map( task => (
+                                                                                <div className={ classNames( 'form-check' ) }>
+                                                                                     <input
+                                                                                          className={ classNames( 'form-check-input' ) }
+                                                                                          type="checkbox"
+                                                                                          id={ `edit-task-${ project.id }-${ task }` }
+                                                                                          checked={ project.task.includes( task ) }
+                                                                                          onChange={ ( e ) => {
+                                                                                               const updatedTasks = e.target.checked
+                                                                                                    ? [ ...project.task, task ]
+                                                                                                    : project.task.filter( t => t !== task );
+                                                                                               updateProject(
+                                                                                                    project.id,
+                                                                                                    { task: updatedTasks }
+                                                                                               );
+                                                                                          } }
+                                                                                     />
+                                                                                     <label
+                                                                                          className={ classNames( 'form-check-label' ) }
+                                                                                          htmlFor={ `edit-task-${ project.id }-${ task }` }
+                                                                                     >
+                                                                                          { task }
+                                                                                     </label>
+                                                                                </div>
+                                                                           ) ) }
+                                                                      </div>
+                                                                 ) : (
+                                                                      project.task && Array.isArray( project.task ) ? project.task.join( ', ' ) : ''
                                                                  ) }
                                                             </td>
                                                             <td>
@@ -273,7 +300,10 @@ const Projects = () => {
                                                                            name={ `budgetPerHour-${ project.id }` }
                                                                            value={ project.budgetPerHour.toString() }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { budgetPerHour: parseFloat( e.target.value ) || 0 } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { budgetPerHour: parseFloat( e.target.value ) || 0 }
+                                                                                );
                                                                            } }
                                                                       />
                                                                  ) : (
@@ -287,7 +317,10 @@ const Projects = () => {
                                                                            name={ `budgetForEmployee-${ project.id }` }
                                                                            value={ project.budgetForEmployee.toString() }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { budgetForEmployee: parseFloat( e.target.value ) || 0 } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { budgetForEmployee: parseFloat( e.target.value ) || 0 }
+                                                                                );
                                                                            } }
                                                                       />
                                                                  ) : (
@@ -297,11 +330,14 @@ const Projects = () => {
                                                             <td>
                                                                  { editing[ project.id ] === 'all' ? (
                                                                       <select
-                                                                           className="form-select"
+                                                                           className={ classNames( 'form-select' ) }
                                                                            name={ `status-${ project.id }` }
                                                                            value={ project.status }
                                                                            onChange={ ( e ) => {
-                                                                                updateProject( project.id, { status: e.target.value } );
+                                                                                updateProject(
+                                                                                     project.id,
+                                                                                     { status: e.target.value }
+                                                                                );
                                                                            } }
                                                                       >
                                                                            <option value="Active">Active</option>
@@ -313,7 +349,7 @@ const Projects = () => {
                                                                  ) }
                                                             </td>
                                                             <td>
-                                                                 <div className="d-flex">
+                                                                 <div className={ classNames( 'd-flex' ) }>
                                                                       <ProjectEditAction
                                                                            onEdit={ () => {
                                                                                 if ( editing[ project.id ] === 'all' ) {

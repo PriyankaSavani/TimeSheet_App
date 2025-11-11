@@ -1,9 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
      match /databases/{database}/documents {
-          // Allow authenticated users to read/write their own timesheet documents
+          // Allow authenticated users to read/write all timesheet documents
           match /timesheets/{userId} {
-               allow read, write: if request.auth != null && request.auth.uid == userId;
+               allow read, write: if request.auth != null;
           }
 
           // Allow authenticated users to read/write the shared timesheet document
@@ -21,9 +21,9 @@ service cloud.firestore {
                allow read: if request.auth != null;
           }
 
-          // Allow all authenticated users to read/write projects (authentication handled at app level)
+          // Allow all authenticated users to read/write/delete projects (authentication handled at app level)
           match /projects/{projectId} {
-               allow read, write: if true;
+               allow read, write, delete: if true;
           }
 
           // Allow all authenticated users to read users collection (authentication handled at app level)
