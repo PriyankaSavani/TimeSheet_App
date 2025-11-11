@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button } from 'react-bootstrap';
+import { Table, Button, Card } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -187,160 +187,181 @@ const Timesheet = () => {
      // Prepare data for Excel export
      const prepareExportData = () => {
           const data = [];
-          // Header row
-          const header = [ 'Project', 'Task', ...days, 'Total Hours' ];
+          // Header row (in uppercase)
+          const header = [ 'DATE', 'PROJECT NAME', 'TASK DESCRIPTION', 'TOTAL HOURS' ];
           data.push( header );
-          // Data rows
-          rows.forEach( row => {
-               const rowData = [ row.project, row.task ];
-               days.forEach( day => {
-                    rowData.push( row.times[ day ] || '00:00' );
-               } );
-               rowData.push( row.total );
-               data.push( rowData );
-          } );
-          // Empty row
+          // Leave one blank row after header
           data.push( [] );
-          // Totals row
-          const totalsRow = [ 'TOTAL', '', ...days.map( day => dailyTotals[ day ] ), grandTotal ];
-          data.push( totalsRow );
+
+          // Calculate start of week for year
+          const startOfWeek = new Date();
+          const dayOfWeek = startOfWeek.getDay();
+          const diff = startOfWeek.getDate() - dayOfWeek + ( dayOfWeek === 0 ? -6 : 1 ) + weekOffset * 7;
+          startOfWeek.setDate( diff );
+          const year = startOfWeek.getFullYear();
+
+          // Data rows: for each day, list projects/tasks with hours on that day
+          days.forEach( day => {
+               rows.forEach( row => {
+                    const hours = row.times[ day ] || '00:00';
+                    if ( hours !== '00:00' ) {
+                         // Format date as dd Mmm yyyy (e.g., 03 Nov 2025)
+                         let formattedDate = day; // fallback
+                         const parts = day.split( ', ' );
+                         if ( parts.length > 1 ) {
+                              const datePart = parts[ 1 ]; // e.g., "3 nov"
+                              const dateSubParts = datePart.split( ' ' );
+                              if ( dateSubParts.length >= 2 ) {
+                                   const dd = dateSubParts[ 0 ].padStart( 2, '0' );
+                                   const mmm = dateSubParts[ 1 ].charAt( 0 ).toUpperCase() + dateSubParts[ 1 ].slice( 1 ).toLowerCase();
+                                   formattedDate = `${ dd } ${ mmm } ${ year }`;
+                              }
+                         }
+                         data.push( [ formattedDate, row.project, row.task, hours ] );
+                    }
+               } );
+          } );
           return data;
      };
 
      return (
           <React.Fragment>
                <PageTitle title={ 'Timesheet' } />
-               <div className="d-flex justify-content-between mb-3">
-                    <div className='d-flex'>
-                         <Button
-                              variant="primary"
-                              size='sm'
-                              onClick={ () => setWeekOffset( prev => prev - 1 ) }
-                         >
-                              <FeatherIcon icon='arrow-left-circle' className='me-2' />
-                              Previous
-                         </Button>
-                         <div className="border rounded align-self-center mx-3 p-1">
-                              { weekDisplay }
+               <Card>
+                    <Card.Body>
+                         <div className="d-xl-flex justify-content-between mb-3">
+                              <div className='d-flex mb-3 mb-xl-0'>
+                                   <Button
+                                        variant="primary"
+                                        size='sm'
+                                        onClick={ () => setWeekOffset( prev => prev - 1 ) }
+                                   >
+                                        <FeatherIcon icon='arrow-left-circle' className='me-2' />
+                                        Previous
+                                   </Button>
+                                   <div className="border rounded align-self-center mx-3 p-1">
+                                        { weekDisplay }
+                                   </div>
+                                   <Button
+                                        variant="primary"
+                                        size='sm'
+                                        onClick={ () => setWeekOffset( prev => prev + 1 ) }
+                                   >
+                                        Next
+                                        <FeatherIcon icon='arrow-right-circle' className='ms-2' />
+                                   </Button>
+                              </div>
+                              <div className="d-flex">
+                                   <ExportToExcel
+                                        data={ prepareExportData() }
+                                        filename={ `TimesheetOfAdmin_${ weekDisplay.replace( /[^a-zA-Z0-9]/g, '_' ) }.xlsx` }
+                                        sheetName="Timesheet"
+                                        buttonText="Export to Excel"
+                                   />
+                                   <TimesheetAddAction
+                                        rows={ rows }
+                                        setRows={ setRows }
+                                   />
+                              </div>
                          </div>
-                         <Button
-                              variant="primary"
-                              size='sm'
-                              onClick={ () => setWeekOffset( prev => prev + 1 ) }
+                         <Table
+                              bordered responsive
                          >
-                              Next
-                              <FeatherIcon icon='arrow-right-circle' className='ms-2' />
-                         </Button>
-                    </div>
-                    <div className="d-flex">
-                         <ExportToExcel
-                              data={ prepareExportData() }
-                              filename={ `Timesheet_${ weekDisplay.replace( /[^a-zA-Z0-9]/g, '_' ) }.xlsx` }
-                              sheetName="Timesheet"
-                              buttonText="Export to Excel"
-                         />
-                         <TimesheetAddAction
-                              rows={ rows }
-                              setRows={ setRows }
-                         />
-                    </div>
-               </div>
-               <Table
-                    bordered responsive
-               >
-                    <thead>
-                         <tr>
-                              <th>PROJECT</th>
-                              <th>TASK</th>
-                              { days.map( ( day: string ) => (
-                                   <th key={ day }>
-                                        { day }
-                                   </th>
-                              ) ) }
-                              <th>TOTAL HOURS</th>
-                              <th>ACTION</th>
-                         </tr>
-                    </thead>
-                    <tbody>
-                         { rows.map( row => (
-                              <tr key={ row.id }>
-                                   <td>
-                                        <TimesheetProject
-                                             rowId={ row.id }
-                                             value={ row.project }
-                                             isEditing={ editing[ row.id ] === 'all' }
-                                             editingInputs={ editingInputs }
-                                             setEditingInputs={ setEditingInputs }
-                                             updateProject={ updateProject }
-                                        />
-                                   </td>
-                                   <td>
-                                        <TimesheetTask
-                                             rowId={ row.id }
-                                             value={ row.task }
-                                             isEditing={ editing[ row.id ] === 'all' }
-                                             editingInputs={ editingInputs }
-                                             setEditingInputs={ setEditingInputs }
-                                             updateTask={ updateTask }
-                                        />
-                                   </td>
-                                   { days.map( ( day: string ) => (
-                                        <td key={ day }>
-                                             <TimesheetDay
-                                                  row={ row }
-                                                  setRows={ setRows }
-                                                  day={ day }
-                                                  isEditing={ editing[ row.id ] === 'all' }
-                                                  editingInputs={ editingInputs }
-                                                  setEditingInputs={ setEditingInputs }
-                                                  formatTimeInput={ formatTimeInput }
-                                                  calculateRowTotal={ calculateRowTotal }
-                                             />
-                                        </td>
+                              <thead>
+                                   <tr>
+                                        <th>PROJECT</th>
+                                        <th>TASK</th>
+                                        { days.map( ( day: string ) => (
+                                             <th key={ day }>
+                                                  { day }
+                                             </th>
+                                        ) ) }
+                                        <th>TOTAL HOURS</th>
+                                        <th>ACTION</th>
+                                   </tr>
+                              </thead>
+                              <tbody>
+                                   { rows.map( row => (
+                                        <tr key={ row.id }>
+                                             <td>
+                                                  <TimesheetProject
+                                                       rowId={ row.id }
+                                                       value={ row.project }
+                                                       isEditing={ editing[ row.id ] === 'all' }
+                                                       editingInputs={ editingInputs }
+                                                       setEditingInputs={ setEditingInputs }
+                                                       updateProject={ updateProject }
+                                                  />
+                                             </td>
+                                             <td>
+                                                  <TimesheetTask
+                                                       rowId={ row.id }
+                                                       value={ row.task }
+                                                       isEditing={ editing[ row.id ] === 'all' }
+                                                       editingInputs={ editingInputs }
+                                                       setEditingInputs={ setEditingInputs }
+                                                       updateTask={ updateTask }
+                                                  />
+                                             </td>
+                                             { days.map( ( day: string ) => (
+                                                  <td key={ day }>
+                                                       <TimesheetDay
+                                                            row={ row }
+                                                            setRows={ setRows }
+                                                            day={ day }
+                                                            isEditing={ editing[ row.id ] === 'all' }
+                                                            editingInputs={ editingInputs }
+                                                            setEditingInputs={ setEditingInputs }
+                                                            formatTimeInput={ formatTimeInput }
+                                                            calculateRowTotal={ calculateRowTotal }
+                                                       />
+                                                  </td>
+                                             ) ) }
+                                             <td>
+                                                  { calculateRowTotal( row.times ) }
+                                             </td>
+                                             <td>
+                                                  <div className="d-flex">
+                                                       <TimesheetEditAction
+                                                            onEdit={ () => {
+                                                                 if ( editing[ row.id ] === 'all' ) {
+                                                                      stopEditingAll( row.id );
+                                                                 } else {
+                                                                      startEditingAll( row.id );
+                                                                 }
+                                                            } }
+                                                            isEditing={ editing[ row.id ] === 'all' }
+                                                       />
+                                                       <TimesheetDeleteAction
+                                                            rowId={ row.id }
+                                                            onDelete={ () => { } }
+                                                            rows={ rows }
+                                                            setRows={ setRows }
+                                                       />
+                                                  </div>
+                                             </td>
+                                        </tr>
                                    ) ) }
-                                   <td>
-                                        { calculateRowTotal( row.times ) }
-                                   </td>
-                                   <td>
-                                        <div className="d-flex">
-                                             <TimesheetEditAction
-                                                  onEdit={ () => {
-                                                       if ( editing[ row.id ] === 'all' ) {
-                                                            stopEditingAll( row.id );
-                                                       } else {
-                                                            startEditingAll( row.id );
-                                                       }
-                                                  } }
-                                                  isEditing={ editing[ row.id ] === 'all' }
-                                             />
-                                             <TimesheetDeleteAction
-                                                  rowId={ row.id }
-                                                  onDelete={ () => { } }
-                                                  rows={ rows }
-                                                  setRows={ setRows }
-                                             />
-                                        </div>
-                                   </td>
-                              </tr>
-                         ) ) }
-                         <tr>
-                              <td colSpan={ 2 }>
-                                   <strong>TOTAL</strong>
-                              </td>
-                              { days.map( ( day: string ) => (
-                                   <td key={ day }>
-                                        <strong>
-                                             { dailyTotals[ day ] }
-                                        </strong>
-                                   </td>
-                              ) ) }
-                              <td>
-                                   <strong>{ grandTotal }</strong>
-                              </td>
-                              <td></td>
-                         </tr>
-                    </tbody>
-               </Table >
+                                   <tr>
+                                        <td colSpan={ 2 }>
+                                             <strong>TOTAL</strong>
+                                        </td>
+                                        { days.map( ( day: string ) => (
+                                             <td key={ day }>
+                                                  <strong>
+                                                       { dailyTotals[ day ] }
+                                                  </strong>
+                                             </td>
+                                        ) ) }
+                                        <td>
+                                             <strong>{ grandTotal }</strong>
+                                        </td>
+                                        <td></td>
+                                   </tr>
+                              </tbody>
+                         </Table >
+                    </Card.Body>
+               </Card>
           </React.Fragment >
      )
 }
