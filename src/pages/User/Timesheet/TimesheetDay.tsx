@@ -10,11 +10,12 @@ interface TimesheetDayProps {
      editingInputs: Record<string, Record<string, string>>;
      setEditingInputs: React.Dispatch<React.SetStateAction<Record<string, Record<string, string>>>>;
      formatTimeInput: ( input: string ) => string;
-     calculateRowTotal: ( times: Record<string, string> ) => string;
+     calculateRowTotal: ( times: Record<string, { time: string, description: string }> ) => string;
 }
 
 const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal } ) => {
-     const time = row.times[ day ] || '';
+     const timeData = row.times[ day ];
+     const time = timeData?.time || '';
 
      // Helper function to normalize time format
      const normalizeTime = ( time: string ) => {
@@ -32,11 +33,11 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
                     <FormInput
                          type="text"
                          name={ day }
-                         value={ editingInputs[ row.id ]?.[ day ] || row.times[ day ] || '' }
+                         value={ editingInputs[ row.id ]?.[ day ] || time || '' }
                          onChange={ ( e ) => {
                               const formatted = formatTimeInput( e.target.value );
                               setEditingInputs( prev => ( { ...prev, [ row.id ]: { ...prev[ row.id ], [ day ]: formatted } } ) );
-                              const newTimes = { ...row.times, [ day ]: formatted };
+                              const newTimes = { ...row.times, [ day ]: { time: formatted, description: timeData?.description || '' } };
                               const newTotal = calculateRowTotal( newTimes );
                               setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
                          } }

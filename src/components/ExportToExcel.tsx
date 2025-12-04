@@ -12,6 +12,8 @@ interface ExportToExcelProps {
      buttonVariant?: string;
      buttonSize?: 'sm' | 'lg';
      className?: string;
+     addBlankRowAfterHeader?: boolean;
+     columnAlignments: ( 'center' | 'left' | 'right' )[];
      headerStyle?: {
           size?: number;
           color?: string;
@@ -41,6 +43,7 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
      buttonVariant = 'primary',
      buttonSize = 'sm',
      className = 'me-2',
+     columnAlignments,
      headerStyle = {
           size: 14,
           color: 'FF6658DD',
@@ -120,7 +123,8 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
                                    pattern: 'solid',
                                    fgColor: { argb: dataStyle.bg },
                               };
-                              cell.alignment = { horizontal: colIndex === 5 ? 'left' : 'center', vertical: 'middle' }; // Description column (E) left-aligned, others center
+                              const alignment = columnAlignments && columnAlignments[ colIndex - 3 ] ? columnAlignments[ colIndex - 3 ] : 'center';
+                              cell.alignment = { horizontal: alignment, vertical: 'middle' };
                               cell.border = {
                                    top: { style: dataStyle.borderStyle, color: { argb: dataStyle.borderColor } },
                                    left: { style: dataStyle.borderStyle, color: { argb: dataStyle.borderColor } },
@@ -130,11 +134,17 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
                          }
                     } );
                }
+
+               // Add blank row after header (mandatory)
+               if ( rowIndex === 0 ) {
+                    const blankRow = worksheet.addRow( [ '', '', ...Array( row.length ).fill( '' ) ] );
+                    blankRow.height = dataStyle.rowHeight || 20;
+               }
           } );
 
           // Border around data range
           const startRow = 2; // Data starts at row 3
-          const endRow = startRow + data.length + 1; // Last data row
+          const endRow = startRow + data.length + 2; // Last data row
           const startCol = 2; // Data starts at column C
           const endCol = startCol + data[ 0 ].length + 1; // Last data column
 

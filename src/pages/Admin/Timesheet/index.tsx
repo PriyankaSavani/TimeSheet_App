@@ -13,15 +13,13 @@ import TimesheetProject from './TimesheetProject';
 import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
-import TimesheetEditAction from './TimesheetEditAction';
-import ExportToExcel from '../../../components/ExportToExcel';
 import PageTitle from 'components/PageTitle';
 
 export interface Row {
      id: string;
      project: string;
      task: string;
-     times: Record<string, string>;
+     times: Record<string, { time: string, description: string }>;
      total: string;
 }
 
@@ -32,9 +30,7 @@ const Timesheet = () => {
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
-     const [ editing, setEditing ] = useState<Record<string, 'all' | null>>( {} ); // Track editing state for each row
 
-     const [ editingInputs, setEditingInputs ] = useState<Record<string, Record<string, string>>>( {} ); // Track raw input for editing
 
      // Listen to auth state changes
      useEffect( () => {
@@ -86,9 +82,22 @@ const Timesheet = () => {
                          if ( docSnap.exists() ) {
                               const data = docSnap.data();
                               const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                              setRows( firestoreRows );
+                              // Ensure times structure is correct
+                              const correctedRows = firestoreRows.map( ( row: any ) => ( {
+                                   ...row,
+                                   times: Object.keys( row.times || {} ).reduce( ( acc: Record<string, { time: string, description: string }>, day ) => {
+                                        const timeData = row.times[ day ];
+                                        if ( typeof timeData === 'string' ) {
+                                             acc[ day ] = { time: timeData, description: '' };
+                                        } else {
+                                             acc[ day ] = timeData;
+                                        }
+                                        return acc;
+                                   }, {} )
+                              } ) );
+                              setRows( correctedRows );
                               // Update localStorage with Firestore data
-                              localStorage.setItem( localStorageKey, JSON.stringify( firestoreRows ) );
+                              localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
                          } else {
                               // If no Firestore data, use default and save to localStorage
                               const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
@@ -163,67 +172,6 @@ const Timesheet = () => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times ) } : r ) );
      };
 
-     const startEditingAll = ( id: string ) => {
-          setEditing( prev => ( { ...prev, [ id ]: 'all' } ) );
-          setEditingInputs( prev => ( {
-               ...prev,
-               [ id ]: {
-                    project: rows.find( r => r.id === id )?.project || '',
-                    task: rows.find( r => r.id === id )?.task || '',
-                    ...rows.find( r => r.id === id )?.times
-               }
-          } ) );
-     };
-
-     const stopEditingAll = ( id: string ) => {
-          setEditing( prev => ( { ...prev, [ id ]: null } ) );
-          setEditingInputs( prev => {
-               const newInputs = { ...prev };
-               delete newInputs[ id ];
-               return newInputs;
-          } );
-     };
-
-     // Prepare data for Excel export
-     const prepareExportData = () => {
-          const data = [];
-          // Header row (in uppercase)
-          const header = [ 'DATE', 'PROJECT NAME', 'TASK DESCRIPTION', 'TOTAL HOURS' ];
-          data.push( header );
-          // Leave one blank row after header
-          data.push( [] );
-
-          // Calculate start of week for year
-          const startOfWeek = new Date();
-          const dayOfWeek = startOfWeek.getDay();
-          const diff = startOfWeek.getDate() - dayOfWeek + ( dayOfWeek === 0 ? -6 : 1 ) + weekOffset * 7;
-          startOfWeek.setDate( diff );
-          const year = startOfWeek.getFullYear();
-
-          // Data rows: for each day, list projects/tasks with hours on that day
-          days.forEach( day => {
-               rows.forEach( row => {
-                    const hours = row.times[ day ] || '00:00';
-                    if ( hours !== '00:00' ) {
-                         // Format date as dd Mmm yyyy (e.g., 03 Nov 2025)
-                         let formattedDate = day; // fallback
-                         const parts = day.split( ', ' );
-                         if ( parts.length > 1 ) {
-                              const datePart = parts[ 1 ]; // e.g., "3 nov"
-                              const dateSubParts = datePart.split( ' ' );
-                              if ( dateSubParts.length >= 2 ) {
-                                   const dd = dateSubParts[ 0 ].padStart( 2, '0' );
-                                   const mmm = dateSubParts[ 1 ].charAt( 0 ).toUpperCase() + dateSubParts[ 1 ].slice( 1 ).toLowerCase();
-                                   formattedDate = `${ dd } ${ mmm } ${ year }`;
-                              }
-                         }
-                         data.push( [ formattedDate, row.project, row.task, hours ] );
-                    }
-               } );
-          } );
-          return data;
-     };
-
      return (
           <React.Fragment>
                <PageTitle title={ 'Timesheet' } />
@@ -252,12 +200,6 @@ const Timesheet = () => {
                                    </Button>
                               </div>
                               <div className="d-flex">
-                                   <ExportToExcel
-                                        data={ prepareExportData() }
-                                        filename={ `TimesheetOfAdmin_${ weekDisplay.replace( /[^a-zA-Z0-9]/g, '_' ) }.xlsx` }
-                                        sheetName="Timesheet"
-                                        buttonText="Export to Excel"
-                                   />
                                    <TimesheetAddAction
                                         rows={ rows }
                                         setRows={ setRows }
@@ -287,9 +229,9 @@ const Timesheet = () => {
                                                   <TimesheetProject
                                                        rowId={ row.id }
                                                        value={ row.project }
-                                                       isEditing={ editing[ row.id ] === 'all' }
-                                                       editingInputs={ editingInputs }
-                                                       setEditingInputs={ setEditingInputs }
+                                                       isEditing={ false }
+                                                       editingInputs={ {} }
+                                                       setEditingInputs={ () => { } }
                                                        updateProject={ updateProject }
                                                   />
                                              </td>
@@ -297,10 +239,11 @@ const Timesheet = () => {
                                                   <TimesheetTask
                                                        rowId={ row.id }
                                                        value={ row.task }
-                                                       isEditing={ editing[ row.id ] === 'all' }
-                                                       editingInputs={ editingInputs }
-                                                       setEditingInputs={ setEditingInputs }
+                                                       isEditing={ false }
+                                                       editingInputs={ {} }
+                                                       setEditingInputs={ () => { } }
                                                        updateTask={ updateTask }
+                                                       selectedProject={ row.project }
                                                   />
                                              </td>
                                              { days.map( ( day: string ) => (
@@ -309,9 +252,9 @@ const Timesheet = () => {
                                                             row={ row }
                                                             setRows={ setRows }
                                                             day={ day }
-                                                            isEditing={ editing[ row.id ] === 'all' }
-                                                            editingInputs={ editingInputs }
-                                                            setEditingInputs={ setEditingInputs }
+                                                            isEditing={ false }
+                                                            editingInputs={ {} }
+                                                            setEditingInputs={ () => { } }
                                                             formatTimeInput={ formatTimeInput }
                                                             calculateRowTotal={ calculateRowTotal }
                                                        />
@@ -322,16 +265,6 @@ const Timesheet = () => {
                                              </td>
                                              <td>
                                                   <div className="d-flex">
-                                                       <TimesheetEditAction
-                                                            onEdit={ () => {
-                                                                 if ( editing[ row.id ] === 'all' ) {
-                                                                      stopEditingAll( row.id );
-                                                                 } else {
-                                                                      startEditingAll( row.id );
-                                                                 }
-                                                            } }
-                                                            isEditing={ editing[ row.id ] === 'all' }
-                                                       />
                                                        <TimesheetDeleteAction
                                                             rowId={ row.id }
                                                             onDelete={ () => { } }

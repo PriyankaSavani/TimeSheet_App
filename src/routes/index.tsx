@@ -3,6 +3,7 @@ import { Route } from "react-router-dom";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
 import TimesheetWrapper from "./TimesheetWrapper";
+import ReportsWrapper from "./ReportsWrapper";
 
 // lazy load all the views
 
@@ -77,6 +78,15 @@ const dashboardRoutes: RoutesProps = {
      roles: [ 'admin' ],
 }
 
+// reports
+const reportsRoutes: RoutesProps = {
+     path: '/reports',
+     name: 'Reports',
+     element: <ReportsWrapper />, // Use a wrapper component to handle role-based rendering
+     route: PrivateRoute,
+     roles: [ 'admin', 'user' ],
+}
+
 // timesheet managemant
 const projectsRoutes: RoutesProps = {
      path: '/projects',
@@ -133,7 +143,7 @@ const accessDeniedRoute: RoutesProps = {
 }
 
 // all routes
-const authProtectedRoutes = [ rootRoute, dashboardRoutes, ...timesheetManagementRoutes ];
+const authProtectedRoutes = [ rootRoute, dashboardRoutes, reportsRoutes, ...timesheetManagementRoutes ];
 const publicRoutes = [ ...authRoutes, accessDeniedRoute ];
 
 const authProtectedFlattenRoutes = flattenRoutes( [ ...authProtectedRoutes ] );

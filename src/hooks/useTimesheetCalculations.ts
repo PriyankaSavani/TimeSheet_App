@@ -44,9 +44,10 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      }, [] );
 
      // Function to calculate total hours for a row
-     const calculateRowTotal = useCallback( ( times: Record<string, string> ) => {
+     const calculateRowTotal = useCallback( ( times: Record<string, { time: string, description: string }> ) => {
           let totalMinutes = 0;
-          Object.values( times ).forEach( time => {
+          Object.values( times ).forEach( timeData => {
+               const time = timeData?.time || '';
                if ( time && time.includes( ':' ) ) {
                     const [ hours, minutes ] = time.split( ':' ).map( Number );
                     if ( !isNaN( hours ) && !isNaN( minutes ) ) {
@@ -65,7 +66,8 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
           days.forEach( day => dailyTotals[ day ] = 0 );
           rows.forEach( row => {
                days.forEach( day => {
-                    const time = row.times[ day ] || '';
+                    const timeData = row.times[ day ];
+                    const time = timeData?.time || '';
                     const normalized = normalizeTime( time );
                     if ( normalized && normalized.includes( ':' ) ) {
                          const [ hours, minutes ] = normalized.split( ':' ).map( Number );

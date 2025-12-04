@@ -7,7 +7,7 @@ const getMenuItems = () => {
      const user = state.Auth.user;
      if ( user && user.role === 'user' ) {
           // For 'user' role, show only allowed menus (currently timesheet, but can be extended)
-          const allowedKeys = [ 'timesheet-management', 'timesheet' ]; // Add more keys here for user permissions
+          const allowedKeys = [ 'timesheet-management', 'timesheet', 'reports' ]; // Add more keys here for user permissions
           const filteredItems = MENU_ITEMS.filter( item => item.isTitle || allowedKeys.includes( item.key ) );
           // Remove titles that have no items under them
           return filteredItems.filter( ( item, index, arr ) => {

@@ -23,6 +23,14 @@ const MENU_ITEMS: MenuItemTypes[] = [
           icon: 'home',
           url: '/home',
      },
+     {
+          key: 'reports',
+          label: 'Reports',
+          isTitle: false,
+          icon: 'file-text',
+          url: '/reports',
+          roles: [ 'admin', 'user' ],
+     },
      { key: 'timesheet-management', label: 'Timesheet Management', isTitle: true },
      {
           key: 'projects',

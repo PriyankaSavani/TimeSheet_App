@@ -36,11 +36,7 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
                          // For admin, show only projects assigned to the admin
                          const adminProjects = allProjects.filter( ( p: any ) => {
                               const fullname = ( user.firstName + ' ' + user.lastName ).trim();
-                              const match = p.assignEmployee && (
-                                   ( fullname && p.assignEmployee.toLowerCase() === fullname.toLowerCase() ) ||
-                                   ( user.username && p.assignEmployee.toLowerCase() === user.username.toLowerCase() )
-                              );
-                              return match;
+                              return p.assignEmployee && Array.isArray( p.assignEmployee ) && p.assignEmployee.includes( fullname );
                          } );
                          setProjects( adminProjects );
                     } catch ( error ) {
@@ -59,8 +55,17 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
           }
      }, [ availableProjects, value, rowId, updateProject ] );
 
+     if ( availableProjects.length === 0 ) {
+          // If no projects assigned, show text
+          return (
+               <span>
+                    No projects assigned
+               </span>
+          );
+     }
+
      if ( availableProjects.length === 1 ) {
-          // If only one project, display as text, no dropdown
+          // If only one project, display as text
           return (
                <span>
                     { availableProjects[ 0 ] }
@@ -68,62 +73,28 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
           );
      }
 
-     if ( availableProjects.length === 0 ) {
-          // If no projects assigned, show dropdown for selection
+     // If multiple projects, show dropdown if no value selected, else show text
+     if ( value ) {
           return (
-               <React.Fragment>
-                    { isEditing ? (
-                         <Form.Select value={ editingInputs[ rowId ]?.project || value } onChange={ ( e ) => {
-                              const val = e.target.value;
-                              setEditingInputs(
-                                   prev => ( {
-                                        ...prev,
-                                        [ rowId ]: { ...prev[ rowId ], project: val }
-                                   } ) );
-                              updateProject( rowId, val );
-                         } }>
-                              <option>Select Project</option>
-                              { availableProjects.map( projectName => (
-                                   <option key={ projectName } value={ projectName }>
-                                        { projectName }
-                                   </option>
-                              ) ) }
-                         </Form.Select>
-                    ) : (
-                         <span onClick={ () => updateProject( rowId, value ) }>
-                              { value }
-                         </span>
-                    ) }
-               </React.Fragment>
+               <span onClick={ () => updateProject( rowId, '' ) }>
+                    { value }
+               </span>
+          );
+     } else {
+          return (
+               <Form.Select value="" onChange={ ( e ) => {
+                    const val = e.target.value;
+                    updateProject( rowId, val );
+               } }>
+                    <option value="">Select Project</option>
+                    { availableProjects.map( projectName => (
+                         <option key={ projectName } value={ projectName }>
+                              { projectName }
+                         </option>
+                    ) ) }
+               </Form.Select>
           );
      }
-
-     return (
-          <React.Fragment>
-               { isEditing ? (
-                    <Form.Select value={ editingInputs[ rowId ]?.project || value } onChange={ ( e ) => {
-                         const val = e.target.value;
-                         setEditingInputs(
-                              prev => ( {
-                                   ...prev,
-                                   [ rowId ]: { ...prev[ rowId ], project: val }
-                              } ) );
-                         updateProject( rowId, val );
-                    } }>
-                         <option>Select Project</option>
-                         { availableProjects.map( projectName => (
-                              <option key={ projectName } value={ projectName }>
-                                   { projectName }
-                              </option>
-                         ) ) }
-                    </Form.Select>
-               ) : (
-                    <span onClick={ () => updateProject( rowId, value ) }>
-                         { value }
-                    </span>
-               ) }
-          </React.Fragment>
-     )
 }
 
 export default TimesheetProject

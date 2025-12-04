@@ -14,14 +14,13 @@ import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import TimesheetEditAction from './TimesheetEditAction';
-import ExportToExcel from '../../../components/ExportToExcel';
 import PageTitle from 'components/PageTitle';
 
 export interface Row {
      id: string;
      project: string;
      task: string;
-     times: Record<string, string>;
+     times: Record<string, { time: string, description: string }>;
      total: string;
 }
 
@@ -86,6 +85,16 @@ const Timesheet = () => {
                          if ( docSnap.exists() ) {
                               const data = docSnap.data();
                               const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                              // Ensure times structure is correct
+                              firestoreRows.forEach( ( row: any ) => {
+                                   if ( row.times ) {
+                                        Object.keys( row.times ).forEach( day => {
+                                             if ( typeof row.times[ day ] === 'string' ) {
+                                                  row.times[ day ] = { time: row.times[ day ], description: '' };
+                                             }
+                                        } );
+                                   }
+                              } );
                               setRows( firestoreRows );
                               // Update localStorage with Firestore data
                               localStorage.setItem( localStorageKey, JSON.stringify( firestoreRows ) );
@@ -170,7 +179,12 @@ const Timesheet = () => {
                [ id ]: {
                     project: rows.find( r => r.id === id )?.project || '',
                     task: rows.find( r => r.id === id )?.task || '',
-                    ...rows.find( r => r.id === id )?.times
+                    ...Object.fromEntries(
+                         Object.entries( rows.find( r => r.id === id )?.times || {} ).map( ( [ day, timeData ] ) => [
+                              day,
+                              ( timeData as any )?.time || timeData || ''
+                         ] )
+                    )
                }
           } ) );
      };
@@ -182,29 +196,6 @@ const Timesheet = () => {
                delete newInputs[ id ];
                return newInputs;
           } );
-     };
-
-     // Prepare data for Excel export
-     const prepareExportData = () => {
-          const data = [];
-          // Header row
-          const header = [ 'Project', 'Task', ...days, 'Total Hours' ];
-          data.push( header );
-          // Data rows
-          rows.forEach( row => {
-               const rowData = [ row.project, row.task ];
-               days.forEach( day => {
-                    rowData.push( row.times[ day ] || '00:00' );
-               } );
-               rowData.push( row.total );
-               data.push( rowData );
-          } );
-          // Empty row
-          data.push( [] );
-          // Totals row
-          const totalsRow = [ 'TOTAL', '', ...days.map( day => dailyTotals[ day ] ), grandTotal ];
-          data.push( totalsRow );
-          return data;
      };
 
      return (
@@ -233,12 +224,6 @@ const Timesheet = () => {
                          </Button>
                     </div>
                     <div className="d-flex">
-                         <ExportToExcel
-                              data={ prepareExportData() }
-                              filename={ `Timesheet_${ weekDisplay.replace( /[^a-zA-Z0-9]/g, '_' ) }.xlsx` }
-                              sheetName="Timesheet"
-                              buttonText="Export to Excel"
-                         />
                          <TimesheetAddAction
                               rows={ rows }
                               setRows={ setRows }
