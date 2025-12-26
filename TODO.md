@@ -1,4 +1,4 @@
-# TODO: Implement Export to Excel for Weekly Tab
+# TODO: User Timesheet and Reports Functionality
 
-- [x] Compute exportData in WeeklyTab.tsx: headers and rows from tableData
-- [x] Pass exportData to ExportToExcel component with filename 'weekly_timesheet.xlsx'
+- [x] Ensure user timesheet has same functionality as admin side (add/delete rows, no edit functionality)
+- [x] Ensure user reports have full functionality like admin side (Summary, Detailed, Weekly tabs with export options)

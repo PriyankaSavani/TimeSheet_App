@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button } from 'react-bootstrap';
+import { Table, Button, Card } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+
 
 
 // component
@@ -13,7 +14,6 @@ import TimesheetProject from './TimesheetProject';
 import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
-import TimesheetEditAction from './TimesheetEditAction';
 import PageTitle from 'components/PageTitle';
 
 export interface Row {
@@ -31,9 +31,7 @@ const Timesheet = () => {
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
-     const [ editing, setEditing ] = useState<Record<string, 'all' | null>>( {} ); // Track editing state for each row
 
-     const [ editingInputs, setEditingInputs ] = useState<Record<string, Record<string, string>>>( {} ); // Track raw input for editing
 
      // Listen to auth state changes
      useEffect( () => {
@@ -86,18 +84,21 @@ const Timesheet = () => {
                               const data = docSnap.data();
                               const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
                               // Ensure times structure is correct
-                              firestoreRows.forEach( ( row: any ) => {
-                                   if ( row.times ) {
-                                        Object.keys( row.times ).forEach( day => {
-                                             if ( typeof row.times[ day ] === 'string' ) {
-                                                  row.times[ day ] = { time: row.times[ day ], description: '' };
-                                             }
-                                        } );
-                                   }
-                              } );
-                              setRows( firestoreRows );
+                              const correctedRows = firestoreRows.map( ( row: any ) => ( {
+                                   ...row,
+                                   times: Object.keys( row.times || {} ).reduce( ( acc: Record<string, { time: string, description: string }>, day ) => {
+                                        const timeData = row.times[ day ];
+                                        if ( typeof timeData === 'string' ) {
+                                             acc[ day ] = { time: timeData, description: '' };
+                                        } else {
+                                             acc[ day ] = timeData;
+                                        }
+                                        return acc;
+                                   }, {} )
+                              } ) );
+                              setRows( correctedRows );
                               // Update localStorage with Firestore data
-                              localStorage.setItem( localStorageKey, JSON.stringify( firestoreRows ) );
+                              localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
                          } else {
                               // If no Firestore data, use default and save to localStorage
                               const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
@@ -172,160 +173,131 @@ const Timesheet = () => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times ) } : r ) );
      };
 
-     const startEditingAll = ( id: string ) => {
-          setEditing( prev => ( { ...prev, [ id ]: 'all' } ) );
-          setEditingInputs( prev => ( {
-               ...prev,
-               [ id ]: {
-                    project: rows.find( r => r.id === id )?.project || '',
-                    task: rows.find( r => r.id === id )?.task || '',
-                    ...Object.fromEntries(
-                         Object.entries( rows.find( r => r.id === id )?.times || {} ).map( ( [ day, timeData ] ) => [
-                              day,
-                              ( timeData as any )?.time || timeData || ''
-                         ] )
-                    )
-               }
-          } ) );
-     };
 
-     const stopEditingAll = ( id: string ) => {
-          setEditing( prev => ( { ...prev, [ id ]: null } ) );
-          setEditingInputs( prev => {
-               const newInputs = { ...prev };
-               delete newInputs[ id ];
-               return newInputs;
-          } );
-     };
 
      return (
           <React.Fragment>
                <PageTitle title={ 'Timesheet' } />
-               <div className="d-flex justify-content-between mb-3">
-                    <div className='d-flex'>
-                         <Button
-                              variant="primary"
-                              size='sm'
-                              onClick={ () => setWeekOffset( prev => prev - 1 ) }
-                         >
-                              <FeatherIcon icon='arrow-left-circle' className='me-2' />
-                              Previous
-                         </Button>
-                         <div className="border rounded align-self-center mx-3 p-1">
-                              { weekDisplay }
+               <Card>
+                    <Card.Body>
+                         <div className="d-xl-flex justify-content-between mb-3">
+                              <div className='d-flex mb-3 mb-xl-0'>
+                                   <Button
+                                        variant="primary"
+                                        size='sm'
+                                        onClick={ () => setWeekOffset( prev => prev - 1 ) }
+                                   >
+                                        <FeatherIcon icon='arrow-left-circle' className='me-2' />
+                                        Previous
+                                   </Button>
+                                   <div className="border rounded align-self-center mx-3 p-1">
+                                        { weekDisplay }
+                                   </div>
+                                   <Button
+                                        variant="primary"
+                                        size='sm'
+                                        onClick={ () => setWeekOffset( prev => prev + 1 ) }
+                                   >
+                                        Next
+                                        <FeatherIcon icon='arrow-right-circle' className='ms-2' />
+                                   </Button>
+                              </div>
+                              <div className="d-flex">
+                                   <TimesheetAddAction
+                                        rows={ rows }
+                                        setRows={ setRows }
+                                   />
+                              </div>
                          </div>
-                         <Button
-                              variant="primary"
-                              size='sm'
-                              onClick={ () => setWeekOffset( prev => prev + 1 ) }
+                         <Table
+                              bordered responsive
                          >
-                              Next
-                              <FeatherIcon icon='arrow-right-circle' className='ms-2' />
-                         </Button>
-                    </div>
-                    <div className="d-flex">
-                         <TimesheetAddAction
-                              rows={ rows }
-                              setRows={ setRows }
-                         />
-                    </div>
-               </div>
-               <Table
-                    bordered responsive
-               >
-                    <thead>
-                         <tr>
-                              <th>PROJECT</th>
-                              <th>TASK</th>
-                              { days.map( ( day: string ) => (
-                                   <th key={ day }>
-                                        { day }
-                                   </th>
-                              ) ) }
-                              <th>TOTAL HOURS</th>
-                              <th>ACTION</th>
-                         </tr>
-                    </thead>
-                    <tbody>
-                         { rows.map( row => (
-                              <tr key={ row.id }>
-                                   <td>
-                                        <TimesheetProject
-                                             rowId={ row.id }
-                                             value={ row.project }
-                                             isEditing={ editing[ row.id ] === 'all' }
-                                             editingInputs={ editingInputs }
-                                             setEditingInputs={ setEditingInputs }
-                                             updateProject={ updateProject }
-                                        />
-                                   </td>
-                                   <td>
-                                        <TimesheetTask
-                                             rowId={ row.id }
-                                             value={ row.task }
-                                             isEditing={ editing[ row.id ] === 'all' }
-                                             editingInputs={ editingInputs }
-                                             setEditingInputs={ setEditingInputs }
-                                             updateTask={ updateTask }
-                                        />
-                                   </td>
-                                   { days.map( ( day: string ) => (
-                                        <td key={ day }>
-                                             <TimesheetDay
-                                                  row={ row }
-                                                  setRows={ setRows }
-                                                  day={ day }
-                                                  isEditing={ editing[ row.id ] === 'all' }
-                                                  editingInputs={ editingInputs }
-                                                  setEditingInputs={ setEditingInputs }
-                                                  formatTimeInput={ formatTimeInput }
-                                                  calculateRowTotal={ calculateRowTotal }
-                                             />
-                                        </td>
+                              <thead>
+                                   <tr>
+                                        <th>PROJECT</th>
+                                        <th>TASK</th>
+                                        { days.map( ( day: string ) => (
+                                             <th key={ day }>
+                                                  { day }
+                                             </th>
+                                        ) ) }
+                                        <th>TOTAL HOURS</th>
+                                        <th>ACTION</th>
+                                   </tr>
+                              </thead>
+                              <tbody>
+                                   { rows.map( row => (
+                                        <tr key={ row.id }>
+                                             <td>
+                                                  <TimesheetProject
+                                                       rowId={ row.id }
+                                                       value={ row.project }
+                                                       isEditing={ false }
+                                                       editingInputs={ {} }
+                                                       setEditingInputs={ () => { } }
+                                                       updateProject={ updateProject }
+                                                  />
+                                             </td>
+                                             <td>
+                                                  <TimesheetTask
+                                                       rowId={ row.id }
+                                                       value={ row.task }
+                                                       isEditing={ false }
+                                                       editingInputs={ {} }
+                                                       setEditingInputs={ () => { } }
+                                                       updateTask={ updateTask }
+                                                       selectedProject={ row.project }
+                                                  />
+                                             </td>
+                                             { days.map( ( day: string ) => (
+                                                  <td key={ day }>
+                                                       <TimesheetDay
+                                                            row={ row }
+                                                            setRows={ setRows }
+                                                            day={ day }
+                                                            isEditing={ false }
+                                                            editingInputs={ {} }
+                                                            setEditingInputs={ () => { } }
+                                                            formatTimeInput={ formatTimeInput }
+                                                            calculateRowTotal={ calculateRowTotal }
+                                                       />
+                                                  </td>
+                                             ) ) }
+                                             <td>
+                                                  { calculateRowTotal( row.times ) }
+                                             </td>
+                                             <td>
+                                                  <div className="d-flex">
+                                                       <TimesheetDeleteAction
+                                                            rowId={ row.id }
+                                                            onDelete={ () => { } }
+                                                            rows={ rows }
+                                                            setRows={ setRows }
+                                                       />
+                                                  </div>
+                                             </td>
+                                        </tr>
                                    ) ) }
-                                   <td>
-                                        { calculateRowTotal( row.times ) }
-                                   </td>
-                                   <td>
-                                        <div className="d-flex">
-                                             <TimesheetEditAction
-                                                  onEdit={ () => {
-                                                       if ( editing[ row.id ] === 'all' ) {
-                                                            stopEditingAll( row.id );
-                                                       } else {
-                                                            startEditingAll( row.id );
-                                                       }
-                                                  } }
-                                                  isEditing={ editing[ row.id ] === 'all' }
-                                             />
-                                             <TimesheetDeleteAction
-                                                  rowId={ row.id }
-                                                  onDelete={ () => { } }
-                                                  rows={ rows }
-                                                  setRows={ setRows }
-                                             />
-                                        </div>
-                                   </td>
-                              </tr>
-                         ) ) }
-                         <tr>
-                              <td colSpan={ 2 }>
-                                   <strong>TOTAL</strong>
-                              </td>
-                              { days.map( ( day: string ) => (
-                                   <td key={ day }>
-                                        <strong>
-                                             { dailyTotals[ day ] }
-                                        </strong>
-                                   </td>
-                              ) ) }
-                              <td>
-                                   <strong>{ grandTotal }</strong>
-                              </td>
-                              <td></td>
-                         </tr>
-                    </tbody>
-               </Table >
+                                   <tr>
+                                        <td colSpan={ 2 }>
+                                             <strong>TOTAL</strong>
+                                        </td>
+                                        { days.map( ( day: string ) => (
+                                             <td key={ day }>
+                                                  <strong>
+                                                       { dailyTotals[ day ] }
+                                                  </strong>
+                                             </td>
+                                        ) ) }
+                                        <td>
+                                             <strong>{ grandTotal }</strong>
+                                        </td>
+                                        <td></td>
+                                   </tr>
+                              </tbody>
+                         </Table >
+                    </Card.Body>
+               </Card>
           </React.Fragment >
      )
 }
