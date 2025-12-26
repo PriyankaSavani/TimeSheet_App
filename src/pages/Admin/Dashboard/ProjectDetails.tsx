@@ -10,26 +10,18 @@ import SimpleBar from 'simplebar-react'
 interface ProjectDetailsProps {
      id: string;
      projectName: string;
-     assignEmployee: string;
+     assignEmployee: string[];
      totalHoursToday?: string;
      createdDate?: any;
+     employeeNames?: string[];
 }
 
 const ProjectDetails = () => {
      const [ projects, setProjects ] = useState<ProjectDetailsProps[]>( [] );
 
      useEffect( () => {
-          const fetchProjectsAndTimesheets = async () => {
+          ( async () => {
                try {
-                    const projectsCollection = collection( db, 'projects' );
-                    const projectsSnapshot = await getDocs( projectsCollection );
-                    const projectsList = projectsSnapshot.docs.map( doc => ( {
-                         id: doc.id,
-                         projectName: doc.data().projectName,
-                         assignEmployee: doc.data().assignEmployee,
-                         createdDate: doc.data().createdDate ? new Date( doc.data().createdDate ) : new Date(),
-                    } ) ) as ProjectDetailsProps[];
-
                     // Generate week key for current week (weekOffset=0)
                     const getWeekKey = ( offset: number ) => {
                          const today = new Date();
@@ -43,20 +35,40 @@ const ProjectDetails = () => {
                     };
                     const weekKey = getWeekKey( 0 );
 
-                    // For each project, find the assigned employee's UID, then fetch their timesheet for the current week and calculate total hours for today
-                    const updatedProjects = await Promise.all( projectsList.map( async ( project ) => {
-                         // Find the user document for the assigned employee
-                         const usersCollection = collection( db, 'users' );
-                         const userQuery = query( usersCollection, where( 'fullname', '==', project.assignEmployee ) );
-                         const userSnap = await getDocs( userQuery );
-                         let uid = null;
-                         if ( !userSnap.empty ) {
-                              const userDoc = userSnap.docs[ 0 ];
-                              uid = userDoc.id; // Assuming UID is the document ID
-                         }
+                    // Generate today's key using the same logic as useTimesheetCalculations
+                    const todayDate = new Date();
+                    const dayName = todayDate.toLocaleDateString( 'en-US', { weekday: 'short' } );
+                    const monthName = todayDate.toLocaleDateString( 'en-US', { month: 'short' } );
+                    const dayNum = todayDate.getDate();
+                    const today = `${ dayName }, ${ dayNum } ${ monthName }`;
 
+                    const projectsCollection = collection( db, 'projects' );
+                    const projectsSnapshot = await getDocs( projectsCollection );
+                    const projectsList = projectsSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         projectName: doc.data().projectName,
+                         assignEmployee: doc.data().assignEmployee as string[],
+                         createdDate: doc.data().createdDate ? ( doc.data().createdDate.toDate ? doc.data().createdDate.toDate() : new Date( doc.data().createdDate ) ) : null,
+                    } ) ) as ProjectDetailsProps[];
+
+                    // For each project, fetch employee UIDs from names and calculate total hours for today from all assigned employees
+                    const updatedProjects = await Promise.all( projectsList.map( async ( project ) => {
+                         // Fetch UIDs from employee names
+                         const employeeUids = await Promise.all( project.assignEmployee.map( async ( name: string ) => {
+                              const usersRef = collection( db, 'users' );
+                              const q = query( usersRef, where( 'fullname', '==', name ) );
+                              const querySnapshot = await getDocs( q );
+                              if ( !querySnapshot.empty ) {
+                                   return querySnapshot.docs[ 0 ].id;
+                              }
+                              return null;
+                         } ) );
+                         const validUids = employeeUids.filter( uid => uid !== null ) as string[];
+                         const employeeNames = project.assignEmployee; // Names are already in assignEmployee
+
+                         // Calculate total hours for today from all assigned employees
                          let totalMinutesToday = 0;
-                         if ( uid ) {
+                         for ( const uid of validUids ) {
                               let rows: any[] = [];
                               const localStorageKey = `timesheet_${ uid }_${ weekKey }`;
                               const localData = localStorage.getItem( localStorageKey );
@@ -77,19 +89,21 @@ const ProjectDetails = () => {
                               }
                               rows.forEach( ( row: any ) => {
                                    if ( row.project === project.projectName && row.times && row.project !== 'Select Project' ) {
-                                        Object.values( row.times ).forEach( ( time: any ) => {
-                                             if ( time && time.includes( ':' ) ) {
-                                                  const [ hours, minutes ] = time.split( ':' ).map( Number );
+                                        const timeData = row.times[ today ];
+                                        if ( timeData && ( ( typeof timeData === 'string' && timeData.includes( ':' ) ) || ( typeof timeData === 'object' && timeData.time && typeof timeData.time === 'string' && timeData.time.includes( ':' ) ) ) ) {
+                                             const timeStr = typeof timeData === 'string' ? timeData : timeData.time;
+                                             const [ hours, minutes ] = timeStr.split( ':' ).map( Number );
+                                             if ( !isNaN( hours ) && !isNaN( minutes ) ) {
                                                   totalMinutesToday += hours * 60 + minutes;
                                              }
-                                        } );
+                                        }
                                    }
                               } );
                          }
                          const totalHoursToday = Math.floor( totalMinutesToday / 60 );
                          const totalMinsToday = totalMinutesToday % 60;
                          const formattedTotalToday = `${ totalHoursToday.toString().padStart( 2, '0' ) }:${ totalMinsToday.toString().padStart( 2, '0' ) }`;
-                         return { ...project, totalHoursToday: formattedTotalToday };
+                         return { ...project, totalHoursToday: formattedTotalToday, employeeNames };
                     } ) );
 
                     // Sort projects by createdDate in descending order (newest first)
@@ -103,9 +117,7 @@ const ProjectDetails = () => {
                } catch ( error ) {
                     console.error( 'Error fetching data:', error );
                }
-          };
-
-          fetchProjectsAndTimesheets();
+          } )();
      }, [] );
 
      return (
@@ -161,10 +173,18 @@ const ProjectDetails = () => {
                                                        <tr key={ project.id }>
                                                             <td>{ dateStr }</td>
                                                             <td>{ project.projectName }</td>
-                                                            <td>{ project.assignEmployee }</td>
                                                             <td>
-                                                                 { project.totalHoursToday }
+                                                                 { project.employeeNames && project.employeeNames.length > 0
+                                                                      ? project.employeeNames.map( ( name, index ) => (
+                                                                           <span key={ index }>
+                                                                                { name }
+                                                                                { index < project.employeeNames!.length - 1 && <br /> }
+                                                                           </span>
+                                                                      ) )
+                                                                      : 'No employees assigned'
+                                                                 }
                                                             </td>
+                                                            <td>{ project.totalHoursToday }</td>
                                                        </tr>
                                                   );
                                              } )

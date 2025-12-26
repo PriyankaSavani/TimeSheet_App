@@ -16,7 +16,7 @@ interface EmployeeListProps {
 interface ProjectProps {
      id: string
      projectName: string
-     assignEmployee: string
+     assignEmployee: string[]
 }
 
 const EmployeeList = () => {
@@ -43,7 +43,7 @@ const EmployeeList = () => {
 
                     // Assign projects to employees (multiple projects possible)
                     const employeesWithProjects = empList.map( emp => {
-                         const assignedProjs = projList.filter( proj => proj.assignEmployee === emp.fullname )
+                         const assignedProjs = projList.filter( proj => proj.assignEmployee.includes( emp.fullname ) )
                          const projectNames = assignedProjs.length > 0 ? assignedProjs.map( p => p.projectName ).join( ', ' ) : 'N/A'
                          return {
                               ...emp,

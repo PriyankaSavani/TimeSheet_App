@@ -76,8 +76,8 @@ const Dashboard = () => {
                          let rowTotalMinutes = 0;
                          if ( row.times ) {
                               Object.values( row.times ).forEach( ( time: any ) => {
-                                   if ( time && typeof time === 'string' && time.includes( ':' ) ) {
-                                        const [ hours, minutes ] = time.split( ':' ).map( Number )
+                                   if ( time && typeof time === 'object' && time.time && typeof time.time === 'string' && time.time.includes( ':' ) ) {
+                                        const [ hours, minutes ] = time.time.split( ':' ).map( Number )
                                         if ( !isNaN( hours ) && !isNaN( minutes ) ) {
                                              rowTotalMinutes += hours * 60 + minutes
                                         }
@@ -139,8 +139,8 @@ const Dashboard = () => {
                          }
                     }
                     for ( const row of rows ) {
-                         if ( row.times && row.times[ today ] && row.times[ today ].includes( ':' ) ) {
-                              const [ hours, minutes ] = row.times[ today ].split( ':' ).map( Number )
+                         if ( row.times && row.times[ today ] && typeof row.times[ today ] === 'object' && row.times[ today ].time && typeof row.times[ today ].time === 'string' && row.times[ today ].time.includes( ':' ) ) {
+                              const [ hours, minutes ] = row.times[ today ].time.split( ':' ).map( Number )
                               if ( !isNaN( hours ) && !isNaN( minutes ) ) {
                                    totalMinutes += hours * 60 + minutes
                               }
@@ -169,8 +169,6 @@ const Dashboard = () => {
 
           return () => clearInterval( interval )
      }, [] )
-
-     console.log( "todaysHours: ", todaysHours );
 
      return (
           <React.Fragment>
