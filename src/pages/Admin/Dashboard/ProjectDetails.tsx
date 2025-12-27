@@ -87,7 +87,7 @@ const ProjectDetails = () => {
                                         rows = timesheetData.rows || [];
                                    }
                               }
-                              rows.forEach( ( row: any ) => {
+                              for ( const row of rows ) {
                                    if ( row.project === project.projectName && row.times && row.project !== 'Select Project' ) {
                                         const timeData = row.times[ today ];
                                         if ( timeData && ( ( typeof timeData === 'string' && timeData.includes( ':' ) ) || ( typeof timeData === 'object' && timeData.time && typeof timeData.time === 'string' && timeData.time.includes( ':' ) ) ) ) {
@@ -98,7 +98,7 @@ const ProjectDetails = () => {
                                              }
                                         }
                                    }
-                              } );
+                              }
                          }
                          const totalHoursToday = Math.floor( totalMinutesToday / 60 );
                          const totalMinsToday = totalMinutesToday % 60;

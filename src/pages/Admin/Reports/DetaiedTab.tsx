@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Table } from 'react-bootstrap'
 import { doc, getDoc } from 'firebase/firestore'
-import { db, auth } from '../../../config/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { db } from '../../../config/firebase'
 import classNames from 'classnames'
 import ExportToExcel from 'components/ExportToExcel'
 import ExportToPdf from 'components/ExportToPdf'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
+import { useSelector } from 'react-redux'
+import { selectAuthState } from '../../../redux/auth/selectors'
 
 interface DetailedRow {
      task: string
@@ -19,48 +20,12 @@ interface DetailedRow {
 }
 
 const DetaiedTab = () => {
-     const [ userId, setUserId ] = useState<string>( 'anonymous' )
-     const [ userName, setUserName ] = useState<string>( '' )
-     const [ isUserLoading, setIsUserLoading ] = useState<boolean>( true )
      const [ detailedData, setDetailedData ] = useState<DetailedRow[]>( [] )
 
-     console.log( isUserLoading );
+     const { user } = useSelector( selectAuthState );
 
-     // Listen to auth state changes
-     useEffect( () => {
-          const unsubscribe = onAuthStateChanged( auth, ( user ) => {
-               if ( user ) {
-                    setUserId( user.uid )
-                    setIsUserLoading( true )
-                    // Fetch user profile for full name
-                    const fetchUserProfile = async () => {
-                         try {
-                              const userDocRef = doc( db, 'users', user.uid )
-                              const userDocSnap = await getDoc( userDocRef )
-                              if ( userDocSnap.exists() ) {
-                                   const userData = userDocSnap.data()
-                                   const fullName = userData.firstName && userData.lastName ? `${ userData.firstName } ${ userData.lastName }` : userData.fullName || user.displayName || ''
-                                   setUserName( fullName )
-                              } else {
-                                   setUserName( user.displayName || '' )
-                              }
-                         } catch ( error ) {
-                              console.error( 'Error fetching user profile:', error )
-                              setUserName( user.displayName || '' )
-                         } finally {
-                              setIsUserLoading( false )
-                         }
-                    }
-                    fetchUserProfile()
-               } else {
-                    setUserId( 'anonymous' )
-                    setUserName( '' )
-                    setIsUserLoading( false )
-               }
-          } )
-
-          return () => unsubscribe()
-     }, [] )
+     const userId = user ? user.id : 'anonymous';
+     const username = user ? user.firstName + ' ' + user.lastName : 'anonymous';
 
      // Fetch timesheet data for current user/week
      useEffect( () => {
@@ -113,7 +78,7 @@ const DetaiedTab = () => {
                                    detailedRows.push( {
                                         task: row.task || 'No Task',
                                         description,
-                                        member: userName,
+                                        member: username,
                                         time: day,
                                         duration: time
                                    } )
@@ -125,12 +90,7 @@ const DetaiedTab = () => {
                }
                fetchDetailedData()
           }
-     }, [ userId, userName ] )
-
-     // Update member name in detailedData when userName changes
-     useEffect( () => {
-          setDetailedData( prev => prev.map( row => ( { ...row, member: userName } ) ) )
-     }, [ userName ] )
+     }, [ userId, username ] )
 
 
      const totalHours = detailedData.reduce( ( sum, row ) => {
