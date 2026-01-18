@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Table } from 'react-bootstrap'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 import classNames from 'classnames'
 import ExportToExcel from 'components/ExportToExcel'
@@ -8,8 +8,13 @@ import ExportToPdf from 'components/ExportToPdf'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
-import { useSelector } from 'react-redux'
-import { selectAuthState } from '../../../redux/auth/selectors'
+
+interface User {
+     id: string;
+     fullname: string;
+     email: string;
+     role: string;
+}
 
 interface DetailedRow {
      date: string
@@ -23,76 +28,71 @@ interface DetailedRow {
 const DetaiedTab = () => {
      const [ detailedData, setDetailedData ] = useState<DetailedRow[]>( [] )
 
-     const { user } = useSelector( selectAuthState );
-
-     const userId = user ? user.id : 'anonymous';
-     const username = user ? user.firstName + ' ' + user.lastName : 'anonymous';
-
-     // Fetch timesheet data for current user/week
+     // Fetch timesheet data for all users for the current week
      useEffect( () => {
-          if ( userId !== 'anonymous' ) {
-               const fetchDetailedData = async () => {
-                    const weekOffset = 0 // current week
-                    const today = new Date()
-                    const startOfWeek = new Date( today )
-                    const day = today.getDay()
-                    const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
-                    startOfWeek.setDate( diff )
-                    const year = startOfWeek.getFullYear()
-                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
-                    const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
-                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`
+          const fetchAllDetailedData = async () => {
+               const weekOffset = 0 // current week
+               const today = new Date()
+               const startOfWeek = new Date( today )
+               const day = today.getDay()
+               const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
+               startOfWeek.setDate( diff )
+               const year = startOfWeek.getFullYear()
+               const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
+               const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
 
-                    let rows: any[] = []
+               // Fetch all users
+               try {
+                    const usersSnapshot = await getDocs( collection( db, 'users' ) )
+                    const usersList: User[] = usersSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         ...doc.data()
+                    } ) as User )
 
-                    // First, load from localStorage
-                    const localData = localStorage.getItem( localStorageKey )
-                    if ( localData ) {
+                    // Fetch timesheet data for each user
+                    const allDetailedRows: DetailedRow[] = []
+                    for ( const user of usersList ) {
+                         let rows: any[] = []
+
+                         // Fetch from Firestore
                          try {
-                              rows = JSON.parse( localData )
-                         } catch ( error ) {
-                              console.error( 'Error parsing localStorage data:', error )
-                         }
-                    }
-
-                    // Then, fetch from Firestore and update if available
-                    try {
-                         const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey )
-                         const docSnap = await getDoc( timesheetDocRef )
-                         if ( docSnap.exists() ) {
-                              const data = docSnap.data()
-                              rows = data.rows || []
-                         }
-                    } catch ( error ) {
-                         console.error( 'Error fetching timesheet data:', error )
-                    }
-
-                    // Process data: flatten by day
-                    const detailedRows: DetailedRow[] = []
-
-                    rows.forEach( ( row: any ) => {
-                         Object.keys( row.times || {} ).forEach( day => {
-                              const timeData = row.times[ day ]
-                              const time = timeData?.time || '00:00'
-                              const description = timeData?.description || ''
-                              if ( time !== '00:00' ) {
-                                   detailedRows.push( {
-                                        date: day,
-                                        project: row.project || 'No Project',
-                                        task: row.task || 'No Task',
-                                        description,
-                                        hours: time,
-                                        member: username,
-                                   } )
+                              const timesheetDocRef = doc( db, 'timesheets', user.id, 'weeks', weekKey )
+                              const docSnap = await getDoc( timesheetDocRef )
+                              if ( docSnap.exists() ) {
+                                   const data = docSnap.data()
+                                   rows = data.rows || []
                               }
-                         } )
-                    } )
+                         } catch ( error ) {
+                              console.error( `Error fetching timesheet data for user ${ user.id }:`, error )
+                         }
 
-                    setDetailedData( detailedRows )
+                         // Process data: flatten by day
+                         rows.forEach( ( row: any ) => {
+                              Object.keys( row.times || {} ).forEach( day => {
+                                   const timeData = row.times[ day ]
+                                   const time = timeData?.time || '00:00'
+                                   const description = timeData?.description || ''
+                                   if ( time !== '00:00' ) {
+                                        allDetailedRows.push( {
+                                             date: day,
+                                             project: row.project || 'No Project',
+                                             task: row.task || 'No Task',
+                                             description,
+                                             hours: time,
+                                             member: user.fullname,
+                                        } )
+                                   }
+                              } )
+                         } )
+                    }
+
+                    setDetailedData( allDetailedRows )
+               } catch ( error ) {
+                    console.error( 'Error fetching users:', error )
                }
-               fetchDetailedData()
           }
-     }, [ userId, username ] )
+          fetchAllDetailedData()
+     }, [] )
 
 
      const totalHours = detailedData.reduce( ( sum, row ) => {

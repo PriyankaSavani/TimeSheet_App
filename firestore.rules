@@ -3,22 +3,22 @@ service cloud.firestore {
      match /databases/{database}/documents {
           // Allow authenticated users to read/write all timesheet documents
           match /timesheets/{userId} {
-               allow read, write: if request.auth != null;
+               allow read, write, delete: if request.auth != null;
           }
 
           // Allow authenticated users to read/write the shared timesheet document
           match /timesheets/shared {
-               allow read, write: if request.auth != null;
+               allow read, write, delete: if request.auth != null;
           }
 
           // Allow authenticated users to read timesheets by employee name (for admin dashboard)
           match /timesheets/{employeeName} {
-               allow read: if request.auth != null;
+               allow read, write, delete: if request.auth != null;
           }
 
           // Allow authenticated users to read timesheet weeks (for admin dashboard)
           match /timesheets/{userId}/weeks/{weekId} {
-               allow read: if request.auth != null;
+               allow read, write, delete: if request.auth != null;
           }
 
           // Allow all authenticated users to read/write/delete projects (authentication handled at app level)
@@ -28,7 +28,7 @@ service cloud.firestore {
 
           // Allow all authenticated users to read users collection (authentication handled at app level)
           match /users/{userId} {
-               allow read, write: if true;
+               allow read, write, delete: if true;
           }
      }
 }
