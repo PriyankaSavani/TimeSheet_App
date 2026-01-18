@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card } from 'react-bootstrap';
+import { Table, Button, Card, Alert, Spinner } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -31,6 +31,10 @@ const Timesheet = () => {
 
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // New state for week navigation
 
+     const [ loading, setLoading ] = useState<boolean>( true );
+
+     const [ error, setError ] = useState<string | null>( null );
+
 
 
      // Listen to auth state changes
@@ -58,26 +62,17 @@ const Timesheet = () => {
           return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
      };
 
-     // Fetch rows from localStorage and Firestore (per-user per-week timesheet)
+     // Fetch rows from Firestore first, then localStorage as fallback (per-user per-week timesheet)
      useEffect( () => {
           const fetchRows = async () => {
+               setLoading( true );
+               setError( null );
                if ( userId !== 'anonymous' ) {
                     const weekKey = getWeekKey( weekOffset );
                     const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
-                    // First, load from localStorage
-                    const localData = localStorage.getItem( localStorageKey );
-                    if ( localData ) {
-                         try {
-                              const parsed = JSON.parse( localData );
-                              setRows( parsed );
-                         } catch ( error ) {
-                              console.error( 'Error parsing localStorage data:', error );
-                         }
-                    }
-
-                    // Then, fetch from Firestore and update if available
                     try {
+                         // First, try to fetch from Firestore
                          const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
                          const docSnap = await getDoc( timesheetDocRef );
                          if ( docSnap.exists() ) {
@@ -100,21 +95,48 @@ const Timesheet = () => {
                               // Update localStorage with Firestore data
                               localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
                          } else {
-                              // If no Firestore data, use default and save to localStorage
-                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                              setRows( defaultRows );
-                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                              // If no Firestore data, check localStorage
+                              const localData = localStorage.getItem( localStorageKey );
+                              if ( localData ) {
+                                   try {
+                                        const parsed = JSON.parse( localData );
+                                        setRows( parsed );
+                                   } catch ( parseError ) {
+                                        console.error( 'Error parsing localStorage data:', parseError );
+                                        const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                                        setRows( defaultRows );
+                                        localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                                   }
+                              } else {
+                                   // Use default and save to localStorage
+                                   const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                                   setRows( defaultRows );
+                                   localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                              }
                          }
                     } catch ( error ) {
-                         console.error( 'Error fetching timesheet data:', error );
-                         // If Firestore fails, keep localStorage data or default
-                         if ( !localData ) {
+                         console.error( 'Error fetching timesheet data from Firestore:', error );
+                         setError( 'Failed to load timesheet data. Please check your connection.' );
+                         // Fallback to localStorage
+                         const localData = localStorage.getItem( localStorageKey );
+                         if ( localData ) {
+                              try {
+                                   const parsed = JSON.parse( localData );
+                                   setRows( parsed );
+                              } catch ( parseError ) {
+                                   console.error( 'Error parsing localStorage data:', parseError );
+                                   const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                                   setRows( defaultRows );
+                                   localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                              }
+                         } else {
                               const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
                               setRows( defaultRows );
                               localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                          }
                     }
                }
+               setLoading( false );
           };
           fetchRows();
      }, [ userId, weekOffset ] );
@@ -178,6 +200,19 @@ const Timesheet = () => {
      return (
           <React.Fragment>
                <PageTitle title={ 'Timesheet' } />
+               { loading && (
+                    <div className="text-center my-4">
+                         <Spinner animation="border" role="status">
+                              <span className="visually-hidden">Loading...</span>
+                         </Spinner>
+                         <p>Loading timesheet data...</p>
+                    </div>
+               ) }
+               { error && (
+                    <Alert variant="danger" className="my-3">
+                         { error }
+                    </Alert>
+               ) }
                <Card>
                     <Card.Body>
                          <div className="d-xl-flex justify-content-between mb-3">
