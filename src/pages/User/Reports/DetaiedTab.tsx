@@ -12,11 +12,12 @@ import { useSelector } from 'react-redux'
 import { selectAuthState } from '../../../redux/auth/selectors'
 
 interface DetailedRow {
+     date: string
+     project: string
      task: string
      description: string
+     hours: string
      member: string
-     time: string
-     duration: string
 }
 
 const DetaiedTab = () => {
@@ -76,11 +77,12 @@ const DetaiedTab = () => {
                               const description = timeData?.description || ''
                               if ( time !== '00:00' ) {
                                    detailedRows.push( {
+                                        date: day,
+                                        project: row.project || 'No Project',
                                         task: row.task || 'No Task',
                                         description,
+                                        hours: time,
                                         member: username,
-                                        time: day,
-                                        duration: time
                                    } )
                               }
                          } )
@@ -94,7 +96,7 @@ const DetaiedTab = () => {
 
 
      const totalHours = detailedData.reduce( ( sum, row ) => {
-          const [ hours, minutes ] = row.duration.split( ':' ).map( Number )
+          const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
           return sum + hours + minutes / 60
      }, 0 )
 
@@ -123,25 +125,27 @@ const DetaiedTab = () => {
 
      // Prepare data for export to excel
      const prepareExportToExcelData: any[][] = [
-          [ 'DATE', 'TASK', 'DESCRIPTION', 'MEMBER', 'DURATION' ],
+          [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...detailedData.map( ( row: DetailedRow ) => [
-               row.time,
+               row.date,
+               row.project,
                row.task,
                row.description,
+               row.hours,
                row.member,
-               row.duration
           ] )
      ]
 
      // Prepare data for export to pdf
      const prepareExportToPdfData: any[][] = [
-          [ 'DATE', 'TASK', 'DESCRIPTION', 'MEMBER', 'DURATION' ],
+          [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...detailedData.map( ( row: DetailedRow ) => [
-               row.time,
+               row.date,
+               row.project,
                row.task,
                row.description,
+               row.hours,
                row.member,
-               row.duration
           ] )
      ]
 
@@ -182,26 +186,28 @@ const DetaiedTab = () => {
                     <Table bordered responsive>
                          <thead>
                               <tr>
+                                   <th>DATE</th>
+                                   <th>PROJECT</th>
                                    <th>TASK</th>
                                    <th>DESCRIPTION</th>
+                                   <th>HOURS</th>
                                    <th>MEMBER</th>
-                                   <th>TIME</th>
-                                   <th>DURATION</th>
                               </tr>
                          </thead>
                          <tbody>
                               { detailedData.map( ( row, index ) => (
                                    <tr key={ index }>
+                                        <td>{ row.date }</td>
+                                        <td>{ row.project }</td>
                                         <td>{ row.task }</td>
                                         <td>{ row.description }</td>
+                                        <td>{ row.hours }</td>
                                         <td>{ row.member }</td>
-                                        <td>{ row.time }</td>
-                                        <td>{ row.duration }</td>
                                    </tr>
                               ) ) }
                               { detailedData.length === 0 && (
                                    <tr>
-                                        <td colSpan={ 5 } className="text-center">
+                                        <td colSpan={ 6 } className="text-center">
                                              No data available for this week
                                         </td>
                                    </tr>
