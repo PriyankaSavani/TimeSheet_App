@@ -6,8 +6,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
-
-
 // component
 import TimesheetTask from './TimesheetTask';
 import TimesheetProject from './TimesheetProject';
@@ -35,7 +33,7 @@ const Timesheet = () => {
 
      const [ error, setError ] = useState<string | null>( null );
 
-
+     const [ dataLoaded, setDataLoaded ] = useState<boolean>( false );
 
      // Listen to auth state changes
      useEffect( () => {
@@ -67,6 +65,7 @@ const Timesheet = () => {
           const fetchRows = async () => {
                setLoading( true );
                setError( null );
+               setDataLoaded( false );
                if ( userId !== 'anonymous' ) {
                     const weekKey = getWeekKey( weekOffset );
                     const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
@@ -137,13 +136,14 @@ const Timesheet = () => {
                     }
                }
                setLoading( false );
+               setDataLoaded( true );
           };
           fetchRows();
      }, [ userId, weekOffset ] );
 
      // Save rows to localStorage and Firestore whenever rows change (per-user per-week timesheet)
      useEffect( () => {
-          if ( userId !== 'anonymous' ) {
+          if ( userId !== 'anonymous' && dataLoaded ) {
                const weekKey = getWeekKey( weekOffset );
                const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
@@ -163,7 +163,7 @@ const Timesheet = () => {
                };
                saveToFirestore();
           }
-     }, [ rows, userId, weekOffset ] );
+     }, [ rows, userId, weekOffset, dataLoaded ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {
