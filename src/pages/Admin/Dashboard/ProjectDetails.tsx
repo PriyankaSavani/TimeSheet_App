@@ -22,15 +22,15 @@ const ProjectDetails = () => {
      useEffect( () => {
           ( async () => {
                try {
-                    // Generate week key for current week (weekOffset=0)
+                    // Generate week key for current week (weekOffset=0) using UTC time for consistency across timezones
                     const getWeekKey = ( offset: number ) => {
                          const today = new Date();
-                         const startOfWeek = new Date( today );
-                         const day = today.getDay();
-                         const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
-                         startOfWeek.setDate( diff );
-                         const year = startOfWeek.getFullYear();
-                         const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 );
+                         const startOfWeek = new Date( Date.UTC( today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() ) );
+                         const day = today.getUTCDay();
+                         const diff = today.getUTCDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
+                         startOfWeek.setUTCDate( diff );
+                         const year = startOfWeek.getUTCFullYear();
+                         const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 );
                          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
                     };
                     const weekKey = getWeekKey( 0 );
