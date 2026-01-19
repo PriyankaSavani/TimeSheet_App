@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Alert, Spinner } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -72,28 +72,39 @@ const Timesheet = () => {
           return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
      };
 
-     // Fetch rows from Firestore first, then localStorage as fallback (per-user per-week timesheet)
+     // Set up real-time listener for Firestore data (per-user per-week timesheet)
      useEffect( () => {
-          const fetchRows = async () => {
-               setLoading( true );
-               setError( null );
-               setDataLoaded( false );
-               if ( userId !== 'anonymous' ) {
-                    const weekKey = getWeekKey( weekOffset );
-                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
+          if ( userId === 'anonymous' ) {
+               setLoading( false );
+               setDataLoaded( true );
+               return;
+          }
 
-                    try {
-                         // First, try to fetch from Firestore using UTC week key
-                         let timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-                         let docSnap = await getDoc( timesheetDocRef );
+          setLoading( true );
+          setError( null );
+          setDataLoaded( false );
 
-                         // If no data found with UTC key, try local week key for backward compatibility
-                         if ( !docSnap.exists() ) {
-                              const localWeekKey = getLocalWeekKey( weekOffset );
-                              timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', localWeekKey );
-                              docSnap = await getDoc( timesheetDocRef );
-                         }
+          const weekKey = getWeekKey( weekOffset );
+          const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
+          // First, try to fetch from Firestore using UTC week key
+          let timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+
+          // Check if data exists with UTC key, if not, try local key
+          const checkDocExists = async () => {
+               let docSnap = await getDoc( timesheetDocRef );
+               if ( !docSnap.exists() ) {
+                    const localWeekKey = getLocalWeekKey( weekOffset );
+                    timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', localWeekKey );
+                    docSnap = await getDoc( timesheetDocRef );
+               }
+               return docSnap.exists();
+          };
+
+          checkDocExists().then( ( exists ) => {
+               if ( exists ) {
+                    // Set up real-time listener
+                    const unsubscribe = onSnapshot( timesheetDocRef, ( docSnap ) => {
                          if ( docSnap.exists() ) {
                               const data = docSnap.data();
                               const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
@@ -133,8 +144,10 @@ const Timesheet = () => {
                                    localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                               }
                          }
-                    } catch ( error ) {
-                         console.error( 'Error fetching timesheet data from Firestore:', error );
+                         setLoading( false );
+                         setDataLoaded( true );
+                    }, ( error ) => {
+                         console.error( 'Error listening to timesheet data from Firestore:', error );
                          setError( 'Failed to load timesheet data. Please check your connection.' );
                          // Fallback to localStorage
                          const localData = localStorage.getItem( localStorageKey );
@@ -153,12 +166,56 @@ const Timesheet = () => {
                               setRows( defaultRows );
                               localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                          }
+                         setLoading( false );
+                         setDataLoaded( true );
+                    } );
+
+                    return unsubscribe;
+               } else {
+                    // No Firestore data, use localStorage
+                    const localData = localStorage.getItem( localStorageKey );
+                    if ( localData ) {
+                         try {
+                              const parsed = JSON.parse( localData );
+                              setRows( parsed );
+                         } catch ( parseError ) {
+                              console.error( 'Error parsing localStorage data:', parseError );
+                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                              setRows( defaultRows );
+                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                         }
+                    } else {
+                         // Use default and save to localStorage
+                         const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                         setRows( defaultRows );
+                         localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                     }
+                    setLoading( false );
+                    setDataLoaded( true );
+               }
+          } ).catch( ( error ) => {
+               console.error( 'Error checking document existence:', error );
+               setError( 'Failed to load timesheet data. Please check your connection.' );
+               // Fallback to localStorage
+               const localData = localStorage.getItem( localStorageKey );
+               if ( localData ) {
+                    try {
+                         const parsed = JSON.parse( localData );
+                         setRows( parsed );
+                    } catch ( parseError ) {
+                         console.error( 'Error parsing localStorage data:', parseError );
+                         const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                         setRows( defaultRows );
+                         localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                    }
+               } else {
+                    const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
+                    setRows( defaultRows );
+                    localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                }
                setLoading( false );
                setDataLoaded( true );
-          };
-          fetchRows();
+          } );
      }, [ userId, weekOffset ] );
 
      // Save rows to localStorage and Firestore whenever rows change (per-user per-week timesheet)

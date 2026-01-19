@@ -19,3 +19,22 @@ Remove offline persistence from Firebase config since the app already uses local
 ## Testing
 
 - [ ] Test entering data from one device, then logging in from another device to verify data appears correctly.
+
+# Add Real-Time Updates for Timesheets
+
+## Requirements
+
+- Add real-time listeners to both User and Admin timesheet components for immediate sync when data changes on other devices.
+- Ensure previous weeks data access works with UTC keys.
+- Test real-time sync across devices.
+
+## Files to Modify
+
+- [x] `timesheet-app/src/pages/User/Timesheet/index.tsx` - Add onSnapshot listener for real-time updates
+- [x] `timesheet-app/src/pages/Admin/Timesheet/index.tsx` - Add onSnapshot listener for real-time updates
+
+## Testing
+
+- [ ] Test real-time sync: Enter data on one device, verify it appears immediately on another device
+- [ ] Test previous weeks: Navigate to previous weeks and verify data loads correctly with UTC keys
+- [ ] Verify no data loss or sync conflicts
