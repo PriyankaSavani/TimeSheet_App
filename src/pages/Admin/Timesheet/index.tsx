@@ -60,6 +60,18 @@ const Timesheet = () => {
           return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
      };
 
+     // Generate week key based on local time (for backward compatibility)
+     const getLocalWeekKey = ( offset: number ) => {
+          const today = new Date();
+          const startOfWeek = new Date( today );
+          const day = today.getDay();
+          const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
+          startOfWeek.setDate( diff );
+          const year = startOfWeek.getFullYear();
+          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 );
+          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
+     };
+
      // Fetch rows from Firestore first, then localStorage as fallback (per-user per-week timesheet)
      useEffect( () => {
           const fetchRows = async () => {
@@ -71,9 +83,17 @@ const Timesheet = () => {
                     const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
                     try {
-                         // First, try to fetch from Firestore
-                         const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-                         const docSnap = await getDoc( timesheetDocRef );
+                         // First, try to fetch from Firestore using UTC week key
+                         let timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+                         let docSnap = await getDoc( timesheetDocRef );
+
+                         // If no data found with UTC key, try local week key for backward compatibility
+                         if ( !docSnap.exists() ) {
+                              const localWeekKey = getLocalWeekKey( weekOffset );
+                              timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', localWeekKey );
+                              docSnap = await getDoc( timesheetDocRef );
+                         }
+
                          if ( docSnap.exists() ) {
                               const data = docSnap.data();
                               const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
