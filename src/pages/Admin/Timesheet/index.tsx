@@ -48,6 +48,8 @@ const Timesheet = () => {
           const unsubscribe = onAuthStateChanged( auth, ( user ) => {
                if ( user ) {
                     setUserId( user.uid );
+                    // Reset to current week on login
+                    setWeekOffset( 0 );
                } else {
                     setUserId( 'anonymous' );
                }
@@ -315,6 +317,7 @@ const Timesheet = () => {
                                         variant="primary"
                                         size='sm'
                                         onClick={ () => setWeekOffset( prev => prev + 1 ) }
+                                        disabled={ weekOffset === 0 }
                                    >
                                         Next
                                         <FeatherIcon icon='arrow-right-circle' className='ms-2' />
