@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 
 export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
-     const { days, weekDisplay } = useMemo( () => {
+     const { days, weekDisplay, currentDay } = useMemo( () => {
           const today = new Date();
           const startOfWeek = new Date( today );
           const day = today.getDay();
@@ -23,7 +23,14 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
           const year = startOfWeek.getFullYear();
           const prefix = weekOffset === 0 ? 'This week' : 'Week of';
           const weekDisplay = `${ prefix } : ${ startStr } -> ${ endStr } ${ year }`;
-          return { days: weekDays, weekDisplay };
+
+          // Calculate current day string
+          const currentDayName = today.toLocaleDateString( 'en-US', { weekday: 'short' } );
+          const currentMonthName = today.toLocaleDateString( 'en-US', { month: 'short' } );
+          const currentDayNum = today.getDate();
+          const currentDay = `${ currentDayName }, ${ currentDayNum } ${ currentMonthName }`;
+
+          return { days: weekDays, weekDisplay, currentDay };
      }, [ weekOffset ] );
 
      // Helper function to normalize time format
@@ -109,6 +116,7 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      return {
           days,
           weekDisplay,
+          currentDay,
           normalizeTime,
           formatTimeInput,
           calculateRowTotal,

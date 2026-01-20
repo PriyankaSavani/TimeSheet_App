@@ -272,7 +272,7 @@ const Timesheet = () => {
           };
      }, [ rows, userId, weekOffset ] );
 
-     const { days, weekDisplay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
+     const { days, weekDisplay, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
      const updateProject = ( id: string, project: string ) => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r ) );
@@ -338,7 +338,7 @@ const Timesheet = () => {
                                         <th>PROJECT</th>
                                         <th>TASK</th>
                                         { days.map( ( day: string ) => (
-                                             <th key={ day }>
+                                             <th key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
                                                   { day }
                                              </th>
                                         ) ) }
@@ -371,7 +371,7 @@ const Timesheet = () => {
                                                   />
                                              </td>
                                              { days.map( ( day: string ) => (
-                                                  <td key={ day }>
+                                                  <td key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
                                                        <TimesheetDay
                                                             row={ row }
                                                             setRows={ setRows }
@@ -401,11 +401,11 @@ const Timesheet = () => {
                                         </tr>
                                    ) ) }
                                    <tr>
-                                        <td colSpan={ 2 }>
+                                        <td colSpan={ 2 } className={ 'text-center' }>
                                              <strong>TOTAL</strong>
                                         </td>
                                         { days.map( ( day: string ) => (
-                                             <td key={ day }>
+                                             <td key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
                                                   <strong>
                                                        { dailyTotals[ day ] }
                                                   </strong>
