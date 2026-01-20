@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Form } from 'react-bootstrap';
+import { Form, Dropdown } from 'react-bootstrap';
 import { APICore } from '../../../helpers/api/apiCore';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
@@ -16,6 +16,8 @@ interface TimesheetProjectProps {
 const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEditing, editingInputs, setEditingInputs, updateProject } ) => {
      const [ user, setUser ] = useState<any>( null );
      const [ projects, setProjects ] = useState<any[]>( [] );
+     const [ searchTerm, setSearchTerm ] = useState<string>( '' );
+     const [ showDropdown, setShowDropdown ] = useState<boolean>( false );
 
      useEffect( () => {
           const api = new APICore();
@@ -93,18 +95,42 @@ const TimesheetProject: React.FC<TimesheetProjectProps> = ( { rowId, value, isEd
                </span>
           );
      } else {
+          const filteredProjects = availableProjects.filter( project =>
+               project.toLowerCase().includes( searchTerm.toLowerCase() )
+          );
+
           return (
-               <Form.Select value="" onChange={ ( e ) => {
-                    const val = e.target.value;
-                    updateProject( rowId, val );
-               } }>
-                    <option value="">Select Project</option>
-                    { availableProjects.map( projectName => (
-                         <option key={ projectName } value={ projectName }>
-                              { projectName }
-                         </option>
-                    ) ) }
-               </Form.Select>
+               <Dropdown show={ showDropdown } onToggle={ setShowDropdown }>
+                    <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic" className="w-100">
+                         Select Project
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu className="">
+                         <Form.Control
+                              type="text"
+                              placeholder="Search projects..."
+                              value={ searchTerm }
+                              onChange={ ( e ) => setSearchTerm( e.target.value ) }
+                              onClick={ ( e ) => e.stopPropagation() }
+                              className="mb-2"
+                         />
+                         { filteredProjects.length > 0 ? (
+                              filteredProjects.map( projectName => (
+                                   <Dropdown.Item
+                                        key={ projectName }
+                                        onClick={ () => {
+                                             updateProject( rowId, projectName );
+                                             setSearchTerm( '' );
+                                             setShowDropdown( false );
+                                        } }
+                                   >
+                                        { projectName }
+                                   </Dropdown.Item>
+                              ) )
+                         ) : (
+                              <Dropdown.Item disabled>No projects found</Dropdown.Item>
+                         ) }
+                    </Dropdown.Menu>
+               </Dropdown>
           );
      }
 }
