@@ -13,6 +13,7 @@ import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import PageTitle from 'components/PageTitle';
+import { WeekNavigation } from '../../../components';
 
 export interface Row {
      id: string;
@@ -303,28 +304,12 @@ const Timesheet = () => {
                <Card>
                     <Card.Body>
                          <div className="d-xl-flex justify-content-between mb-3">
-                              <div className='d-flex mb-3 mb-xl-0'>
-                                   <Button
-                                        variant="primary"
-                                        size='sm'
-                                        onClick={ () => setWeekOffset( prev => prev - 1 ) }
-                                   >
-                                        <FeatherIcon icon='arrow-left-circle' className='me-2' />
-                                        Previous
-                                   </Button>
-                                   <div className="border rounded align-self-center mx-3 p-1">
-                                        { weekDisplay }
-                                   </div>
-                                   <Button
-                                        variant="primary"
-                                        size='sm'
-                                        onClick={ () => setWeekOffset( prev => prev + 1 ) }
-                                        disabled={ weekOffset === 0 }
-                                   >
-                                        Next
-                                        <FeatherIcon icon='arrow-right-circle' className='ms-2' />
-                                   </Button>
-                              </div>
+                              <WeekNavigation
+                                   weekOffset={ weekOffset }
+                                   setWeekOffset={ setWeekOffset }
+                                   localStorageKey="timesheet_weekOffset"
+                                   className='mb-3 mb-xl-0'
+                              />
                               <div className="d-flex">
                                    <TimesheetAddAction
                                         rows={ rows }

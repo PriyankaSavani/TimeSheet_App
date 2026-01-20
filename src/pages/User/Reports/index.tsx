@@ -1,12 +1,19 @@
 import PageTitle from 'components/PageTitle'
 import React, { useState } from 'react'
 import { Card, Nav } from 'react-bootstrap'
+import { WeekNavigation } from '../../../components'
 import SummaryTab from './SummaryTab'
 import WeeklyTab from './WeeklyTab'
 import DetaiedTab from './DetaiedTab'
 
 const UserReports = () => {
      const [ activeTab, setActiveTab ] = useState( 'Summary' )
+     const [ weekOffset, setWeekOffset ] = useState( 0 ); // Always start with current week
+
+     // Save weekOffset to localStorage whenever it changes
+     React.useEffect( () => {
+          localStorage.setItem( 'reports_weekOffset', weekOffset.toString() );
+     }, [ weekOffset ] );
 
      return (
           <React.Fragment>
@@ -40,7 +47,19 @@ const UserReports = () => {
                                    </Nav.Link>
                               </Nav.Item>
                          </Nav>
-                         { activeTab === 'Summary' && <SummaryTab /> }
+                         { activeTab === 'Summary' && (
+                              <>
+                                   <div className="d-xl-flex justify-content-between my-3">
+                                        <WeekNavigation
+                                             weekOffset={ weekOffset }
+                                             setWeekOffset={ setWeekOffset }
+                                             localStorageKey="reports_weekOffset"
+                                             className='mb-3 mb-xl-0'
+                                        />
+                                   </div>
+                                   <SummaryTab weekOffset={ weekOffset } />
+                              </>
+                         ) }
                          { activeTab === 'Detailed' && <DetaiedTab /> }
                          { activeTab === 'Weekly' && <WeeklyTab /> }
                     </Card.Body>

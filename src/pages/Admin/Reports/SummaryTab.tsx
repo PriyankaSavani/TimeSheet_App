@@ -11,15 +11,15 @@ import ExportToPdf from 'components/ExportToPdf'
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
 
-const SummaryTab = () => {
+const SummaryTab = ( { weekOffset }: { weekOffset: number } ) => {
 
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
      const [ chartData, setChartData ] = useState<{ categories: string[], series: { name: string, data: number[] }[] }>( { categories: [], series: [] } )
      const [ weekStart, setWeekStart ] = useState<string>( '' )
      const [ weekEnd, setWeekEnd ] = useState<string>( '' )
 
-     // Get days for current week
-     const { days } = useTimesheetCalculations( 0, [] )
+     // Get days for selected week
+     const { days } = useTimesheetCalculations( weekOffset, [] )
 
      // Listen to auth state changes
      useEffect( () => {
@@ -34,22 +34,21 @@ const SummaryTab = () => {
           return () => unsubscribe()
      }, [] )
 
-     // Fetch timesheet data for current week
+     // Fetch timesheet data for selected week
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
                const fetchTimesheetData = async () => {
-                    const weekOffset = 0 // current week
                     const today = new Date()
-                    const startOfWeek = new Date( today )
-                    const day = today.getDay()
-                    const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
-                    startOfWeek.setDate( diff )
+                    const startOfWeek = new Date( Date.UTC( today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() ) )
+                    const day = today.getUTCDay()
+                    const diff = today.getUTCDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
+                    startOfWeek.setUTCDate( diff )
                     const endOfWeek = new Date( startOfWeek )
-                    endOfWeek.setDate( startOfWeek.getDate() + 6 )
+                    endOfWeek.setUTCDate( startOfWeek.getUTCDate() + 6 )
                     setWeekStart( startOfWeek.toDateString() )
                     setWeekEnd( endOfWeek.toDateString() )
-                    const year = startOfWeek.getFullYear()
-                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
+                    const year = startOfWeek.getUTCFullYear()
+                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 )
                     const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
                     const localStorageKey = `timesheet_${ userId }_${ weekKey }`
 
@@ -190,7 +189,7 @@ const SummaryTab = () => {
                }
                fetchTimesheetData()
           }
-     }, [ userId, days ] )
+     }, [ userId, days, weekOffset ] )
 
      const colors = [ '#6658dd', '#f7b84b', '#f1556c', '#1abc9c', '#4a81d4', '#e3eaef' ]
 

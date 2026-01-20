@@ -13,6 +13,7 @@ import TimesheetDay from './TimesheetDay';
 import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import PageTitle from 'components/PageTitle';
+import { WeekNavigation } from '../../../components';
 
 export interface Row {
      id: string;
