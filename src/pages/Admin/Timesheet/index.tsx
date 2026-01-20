@@ -331,7 +331,9 @@ const Timesheet = () => {
                               </div>
                          </div>
                          <Table
-                              bordered responsive
+                              bordered
+                              responsive
+                              variant='warning'
                          >
                               <thead>
                                    <tr>
