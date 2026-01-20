@@ -12,10 +12,11 @@ interface TimesheetDayProps {
      editingInputs: Record<string, Record<string, string>>;
      setEditingInputs: React.Dispatch<React.SetStateAction<Record<string, Record<string, string>>>>;
      formatTimeInput: ( input: string ) => string;
-     calculateRowTotal: ( times: Record<string, { time: string, description: string }> ) => string;
+     calculateRowTotal: ( times: Record<string, { time: string, description: string }>, days: string[] ) => string;
+     days: string[];
 }
 
-const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal } ) => {
+const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal, days } ) => {
      const timeData = row.times[ day ];
      const time = timeData?.time || '';
      const [ showModal, setShowModal ] = useState( false )
@@ -52,7 +53,7 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
      const handleSaveNotes = () => {
           // Update the time in the table
           const newTimes = { ...row.times, [ day ]: { time: modalTime, description: notes } };
-          const newTotal = calculateRowTotal( newTimes );
+          const newTotal = calculateRowTotal( newTimes, days );
           setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
           setShowModal( false );
      }
@@ -66,7 +67,7 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
                               setRawDigits( digits );
                               // Switch to input mode by clearing the time
                               const newTimes = { ...row.times, [ day ]: { time: '', description: '' } };
-                              setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: calculateRowTotal( newTimes ) } : r ) );
+                              setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: calculateRowTotal( newTimes, days ) } : r ) );
                          } }>
                               { normalizeTime( time ) }
                          </span>
@@ -99,7 +100,7 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
                               } else if ( e.key === 'Enter' || e.key === 'Tab' ) {
                                    const formatted = formatTimeInput( inputValue );
                                    const newTimes = { ...row.times, [ day ]: { time: formatted, description: '' } };
-                                   const newTotal = calculateRowTotal( newTimes );
+                                   const newTotal = calculateRowTotal( newTimes, days );
                                    setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
                               }
                          } }

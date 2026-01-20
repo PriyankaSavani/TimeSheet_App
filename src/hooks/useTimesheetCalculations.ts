@@ -44,9 +44,10 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      }, [] );
 
      // Function to calculate total hours for a row
-     const calculateRowTotal = useCallback( ( times: Record<string, { time: string, description: string }> ) => {
+     const calculateRowTotal = useCallback( ( times: Record<string, { time: string, description: string }>, days: string[] ) => {
           let totalMinutes = 0;
-          Object.values( times ).forEach( timeData => {
+          days.forEach( day => {
+               const timeData = times[ day ];
                const time = timeData?.time || '';
                if ( time && time.includes( ':' ) ) {
                     const [ hours, minutes ] = time.split( ':' ).map( Number );

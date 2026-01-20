@@ -273,11 +273,11 @@ const Timesheet = () => {
      const { days, weekDisplay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
      const updateProject = ( id: string, project: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times ) } : r ) );
+          setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r ) );
      };
 
      const updateTask = ( id: string, task: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times ) } : r ) );
+          setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times, days ) } : r ) );
      };
 
 
@@ -380,11 +380,12 @@ const Timesheet = () => {
                                                             setEditingInputs={ () => { } }
                                                             formatTimeInput={ formatTimeInput }
                                                             calculateRowTotal={ calculateRowTotal }
+                                                            days={ days }
                                                        />
                                                   </td>
                                              ) ) }
                                              <td>
-                                                  { calculateRowTotal( row.times ) }
+                                                  { calculateRowTotal( row.times, days ) }
                                              </td>
                                              <td>
                                                   <div className="d-flex">
