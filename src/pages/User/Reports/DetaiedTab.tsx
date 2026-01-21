@@ -117,17 +117,24 @@ const DetaiedTab = () => {
           }
           return {
                start: formatDate( startOfWeek ),
-               end: formatDate( endOfWeek )
+               end: formatDate( endOfWeek ),
+               startOfWeek
           }
      }
 
-     const { start: weekStart, end: weekEnd } = getWeekDates()
+     const { start: weekStart, end: weekEnd, startOfWeek } = getWeekDates()
+
+     // Function to parse date string like "Mon, 5 Jan" to mm/dd/yyyy
+     const parseDateToMMDDYYYY = ( dateStr: string ) => {
+          const date = new Date( dateStr + ' ' + new Date().getFullYear() )
+          return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getFullYear() }`
+     }
 
      // Prepare data for export to excel
      const prepareExportToExcelData: any[][] = [
           [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...detailedData.map( ( row: DetailedRow ) => [
-               row.date,
+               parseDateToMMDDYYYY( row.date ),
                row.project,
                row.task,
                row.description,
@@ -140,7 +147,7 @@ const DetaiedTab = () => {
      const prepareExportToPdfData: any[][] = [
           [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...detailedData.map( ( row: DetailedRow ) => [
-               row.date,
+               parseDateToMMDDYYYY( row.date ),
                row.project,
                row.task,
                row.description,
@@ -197,7 +204,7 @@ const DetaiedTab = () => {
                          <tbody>
                               { detailedData.map( ( row, index ) => (
                                    <tr key={ index }>
-                                        <td>{ row.date }</td>
+                                        <td>{ parseDateToMMDDYYYY( row.date ) }</td>
                                         <td>{ row.project }</td>
                                         <td>{ row.task }</td>
                                         <td>{ row.description }</td>
