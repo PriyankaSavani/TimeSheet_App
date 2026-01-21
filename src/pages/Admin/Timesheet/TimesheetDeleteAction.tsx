@@ -7,9 +7,10 @@ interface TimesheetDeleteActionProps {
      onDelete: ( id: string, rows: Row[], setRows: React.Dispatch<React.SetStateAction<Row[]>> ) => void;
      rows: Row[];
      setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+     saveToFirestore?: () => void;
 }
 
-const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, onDelete, rows, setRows } ) => {
+const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, onDelete, rows, setRows, saveToFirestore } ) => {
      const [ showModal, setShowModal ] = useState( false );
 
      const handleDelete = () => {
@@ -18,6 +19,9 @@ const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, o
                newRows.push( { id: Date.now().toString(), project: 'Select Project', task: '', times: {}, total: '00:00' } );
           }
           setRows( newRows );
+          if ( saveToFirestore ) {
+               saveToFirestore();
+          }
           setShowModal( false );
      };
 

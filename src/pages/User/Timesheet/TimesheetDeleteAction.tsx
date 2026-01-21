@@ -7,6 +7,7 @@ interface TimesheetDeleteActionProps {
      onDelete: ( id: string, rows: Row[], setRows: React.Dispatch<React.SetStateAction<Row[]>> ) => void;
      rows: Row[];
      setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+     saveToFirestore?: () => void;
 }
 
 const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, onDelete, rows, setRows } ) => {

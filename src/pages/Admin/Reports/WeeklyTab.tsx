@@ -20,6 +20,7 @@ interface TaskData {
 
 const WeeklyTab = () => {
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
+     const [ userRole, setUserRole ] = useState<string | null>( null )
      const [ tableData, setTableData ] = useState<TaskData[]>( [] )
      const [ weekStart, setWeekStart ] = useState<string>( '' )
      const [ weekEnd, setWeekEnd ] = useState<string>( '' )
@@ -44,9 +45,33 @@ const WeeklyTab = () => {
           return () => unsubscribe()
      }, [] )
 
-     // Fetch timesheet data for current week
+     // Fetch user role
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
+               const fetchUserRole = async () => {
+                    try {
+                         const userDocRef = doc( db, 'users', userId )
+                         const docSnap = await getDoc( userDocRef )
+                         if ( docSnap.exists() ) {
+                              const data = docSnap.data()
+                              setUserRole( data.role || null )
+                         } else {
+                              setUserRole( null )
+                         }
+                    } catch ( error ) {
+                         console.error( 'Error fetching user role:', error )
+                         setUserRole( null )
+                    }
+               }
+               fetchUserRole()
+          } else {
+               setUserRole( null )
+          }
+     }, [ userId ] )
+
+     // Fetch timesheet data for current week
+     useEffect( () => {
+          if ( userId !== 'anonymous' && userRole === 'admin' ) {
                const fetchTimesheetData = async () => {
                     const today = new Date()
                     const startOfWeek = new Date( today )
@@ -64,17 +89,7 @@ const WeeklyTab = () => {
 
                     let rows: any[] = []
 
-                    // First, load from localStorage
-                    const localData = localStorage.getItem( localStorageKey )
-                    if ( localData ) {
-                         try {
-                              rows = JSON.parse( localData )
-                         } catch ( error ) {
-                              console.error( 'Error parsing localStorage data:', error )
-                         }
-                    }
-
-                    // Then, fetch from Firestore and update if available
+                    // For admin users, only load from Firestore to ensure data integrity
                     try {
                          const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey )
                          const docSnap = await getDoc( timesheetDocRef )
@@ -127,8 +142,10 @@ const WeeklyTab = () => {
                     setTableData( tableRows )
                }
                fetchTimesheetData()
+          } else {
+               setTableData( [] )
           }
-     }, [ userId, days, weekOffset ] )
+     }, [ userId, userRole, days, weekOffset ] )
 
      const totalHours = tableData.reduce( ( sum, row ) => sum + parseFloat( row.total as string ), 0 )
 
