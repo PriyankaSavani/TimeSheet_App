@@ -7,11 +7,18 @@ import { onAuthStateChanged } from 'firebase/auth'
 import classNames from 'classnames'
 import ExportToExcel from '../../../components/ExportToExcel'
 import ExportToPdf from 'components/ExportToPdf'
+import { WeekNavigation } from '../../../components'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
 
-const SummaryTab = ( { weekOffset }: { weekOffset: number } ) => {
+const SummaryTab = () => {
+     const [ weekOffset, setWeekOffset ] = useState( 0 ); // Always start with current week
+
+     // Save weekOffset to localStorage whenever it changes
+     React.useEffect( () => {
+          localStorage.setItem( 'reports_weekOffset', weekOffset.toString() );
+     }, [ weekOffset ] );
 
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
      const [ chartData, setChartData ] = useState<{ categories: string[], series: { name: string, data: number[] }[] }>( { categories: [], series: [] } )
@@ -287,6 +294,14 @@ const SummaryTab = ( { weekOffset }: { weekOffset: number } ) => {
 
      return (
           <div className="mt-3">
+               <div className="d-xl-flex justify-content-between my-3">
+                    <WeekNavigation
+                         weekOffset={ weekOffset }
+                         setWeekOffset={ setWeekOffset }
+                         localStorageKey="reports_weekOffset"
+                         className='mb-3 mb-xl-0'
+                    />
+               </div>
                <div className={
                     classNames(
                          'bg-light border rounded p-2 mb-3 d-flex align-items-center justify-content-between'
