@@ -10,6 +10,8 @@ import MonthNavigation from '../../../components/MonthNavigation'
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
 import { useSelector } from 'react-redux'
 import { selectAuthState } from '../../../redux/auth/selectors'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../../../config/firebase'
 
 interface DetailedRow {
      date: string
@@ -33,10 +35,22 @@ const DetaiedTab = () => {
      const userId = user ? user.id : 'anonymous';
      const username = user ? user.firstName + ' ' + user.lastName : 'anonymous';
 
-     // Fetch timesheet data for selected month from localStorage (matching timesheet page data)
+     // Generate week key based on weekOffset using UTC time for consistency across timezones
+     const getWeekKey = ( offset: number ) => {
+          const today = new Date();
+          const startOfWeek = new Date( Date.UTC( today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() ) );
+          const day = today.getUTCDay();
+          const diff = today.getUTCDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
+          startOfWeek.setUTCDate( diff );
+          const year = startOfWeek.getUTCFullYear();
+          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 );
+          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
+     };
+
+     // Fetch timesheet data for selected month from Firestore (matching timesheet page data)
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
-               const fetchDetailedData = () => {
+               const fetchDetailedData = async () => {
                     const today = new Date()
                     const targetDate = new Date( today.getFullYear(), today.getMonth() + monthOffset, 1 )
                     const year = targetDate.getFullYear()
@@ -52,13 +66,14 @@ const DetaiedTab = () => {
                     while ( currentWeekStart <= endOfMonth ) {
                          const weekNum = Math.ceil( ( ( currentWeekStart.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
                          const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
-                         const localStorageKey = `timesheet_${ userId }_${ weekKey }`
+                         const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey )
 
-                         // Load from localStorage (matching timesheet page)
-                         const localData = localStorage.getItem( localStorageKey )
-                         if ( localData ) {
-                              try {
-                                   const rows = JSON.parse( localData )
+                         // Fetch from Firestore
+                         try {
+                              const docSnap = await getDoc( timesheetDocRef )
+                              if ( docSnap.exists() ) {
+                                   const data = docSnap.data()
+                                   const rows = data.rows || []
                                    rows.forEach( ( row: any ) => {
                                         Object.keys( row.times || {} ).forEach( day => {
                                              const timeData = row.times[ day ]
@@ -84,9 +99,9 @@ const DetaiedTab = () => {
                                              }
                                         } )
                                    } )
-                              } catch ( error ) {
-                                   console.error( 'Error parsing localStorage data:', error )
                               }
+                         } catch ( error ) {
+                              console.error( 'Error fetching timesheet data from Firestore:', error )
                          }
 
                          // Move to next week
