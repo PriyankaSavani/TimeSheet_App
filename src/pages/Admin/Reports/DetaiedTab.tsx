@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Table } from 'react-bootstrap'
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 import classNames from 'classnames'
 import ExportToExcel from 'components/ExportToExcel'
 import ExportToPdf from 'components/ExportToPdf'
+import FeatherIcon from 'feather-icons-react'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
@@ -27,6 +28,7 @@ interface DetailedRow {
 
 const DetaiedTab = () => {
      const [ detailedData, setDetailedData ] = useState<DetailedRow[]>( [] )
+     const [ sortOrder, setSortOrder ] = useState<'asc' | 'desc'>( 'desc' )
 
      // Fetch timesheet data for all users for the current week
      useEffect( () => {
@@ -94,12 +96,6 @@ const DetaiedTab = () => {
           fetchAllDetailedData()
      }, [] )
 
-
-     const totalHours = detailedData.reduce( ( sum, row ) => {
-          const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
-          return sum + hours + minutes / 60
-     }, 0 )
-
      // Calculate week start and end dates
      const getWeekDates = () => {
           const today = new Date()
@@ -122,7 +118,7 @@ const DetaiedTab = () => {
           }
      }
 
-     const { start: weekStart, end: weekEnd, startOfWeek } = getWeekDates()
+     const { start: weekStart, end: weekEnd } = getWeekDates()
 
      // Function to parse date string like "Mon, 5 Jan" to mm/dd/yyyy
      const parseDateToMMDDYYYY = ( dateStr: string ) => {
@@ -130,10 +126,29 @@ const DetaiedTab = () => {
           return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getFullYear() }`
      }
 
+     // Sort data by date
+     const sortedData = useMemo( () => {
+          return [ ...detailedData ].sort( ( a, b ) => {
+               const dateA = new Date( parseDateToMMDDYYYY( a.date ) )
+               const dateB = new Date( parseDateToMMDDYYYY( b.date ) )
+               return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime()
+          } )
+     }, [ detailedData, sortOrder ] )
+
+     // Handle sort toggle
+     const handleSort = () => {
+          setSortOrder( prev => prev === 'asc' ? 'desc' : 'asc' )
+     }
+
+     const totalHours = sortedData.reduce( ( sum, row ) => {
+          const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
+          return sum + hours + minutes / 60
+     }, 0 )
+
      // Prepare data for export to excel
      const prepareExportToExcelData: any[][] = [
           [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
-          ...detailedData.map( ( row: DetailedRow ) => [
+          ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
                row.project,
                row.task,
@@ -146,7 +161,7 @@ const DetaiedTab = () => {
      // Prepare data for export to pdf
      const prepareExportToPdfData: any[][] = [
           [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
-          ...detailedData.map( ( row: DetailedRow ) => [
+          ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
                row.project,
                row.task,
@@ -193,7 +208,17 @@ const DetaiedTab = () => {
                     <Table bordered responsive>
                          <thead>
                               <tr>
-                                   <th>DATE</th>
+                                   <th className={ 'cursor-pointer align-items-center' } onClick={ handleSort }>
+                                        DATE
+                                        {
+                                             sortOrder === 'asc' &&
+                                             <FeatherIcon icon="chevron-up" style={ { float: 'right' } } />
+                                        }
+                                        {
+                                             sortOrder === 'desc' &&
+                                             <FeatherIcon icon="chevron-down" style={ { float: 'right' } } />
+                                        }
+                                   </th>
                                    <th>PROJECT</th>
                                    <th>TASK</th>
                                    <th>DESCRIPTION</th>
@@ -202,7 +227,7 @@ const DetaiedTab = () => {
                               </tr>
                          </thead>
                          <tbody>
-                              { detailedData.map( ( row, index ) => (
+                              { sortedData.map( ( row, index ) => (
                                    <tr key={ index }>
                                         <td>{ parseDateToMMDDYYYY( row.date ) }</td>
                                         <td>{ row.project }</td>
@@ -212,7 +237,7 @@ const DetaiedTab = () => {
                                         <td>{ row.member }</td>
                                    </tr>
                               ) ) }
-                              { detailedData.length === 0 && (
+                              { sortedData.length === 0 && (
                                    <tr>
                                         <td colSpan={ 6 } className="text-center">
                                              No data available for this week
