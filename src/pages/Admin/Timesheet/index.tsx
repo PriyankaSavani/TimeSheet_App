@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Alert, Spinner } from 'react-bootstrap';
-import FeatherIcon from 'feather-icons-react';
+import { Table, Card, Alert, Spinner } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
@@ -49,8 +48,6 @@ const Timesheet = () => {
           const unsubscribe = onAuthStateChanged( auth, ( user ) => {
                if ( user ) {
                     setUserId( user.uid );
-                    // Reset to current week on login
-                    setWeekOffset( 0 );
                } else {
                     setUserId( 'anonymous' );
                }
@@ -273,7 +270,7 @@ const Timesheet = () => {
           };
      }, [ rows, userId, weekOffset ] );
 
-     const { days, weekDisplay, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
+     const { days, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
      const updateProject = ( id: string, project: string ) => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r ) );
@@ -302,28 +299,12 @@ const Timesheet = () => {
                <Card>
                     <Card.Body>
                          <div className="d-xl-flex justify-content-between mb-3">
-                              <div className='d-flex mb-3 mb-xl-0'>
-                                   <Button
-                                        variant="primary"
-                                        size='sm'
-                                        onClick={ () => setWeekOffset( prev => prev - 1 ) }
-                                   >
-                                        <FeatherIcon icon='arrow-left-circle' className='me-2' />
-                                        Previous
-                                   </Button>
-                                   <div className="border rounded align-self-center mx-3 p-1">
-                                        { weekDisplay }
-                                   </div>
-                                   <Button
-                                        variant="primary"
-                                        size='sm'
-                                        onClick={ () => setWeekOffset( prev => prev + 1 ) }
-                                        disabled={ weekOffset === 0 }
-                                   >
-                                        Next
-                                        <FeatherIcon icon='arrow-right-circle' className='ms-2' />
-                                   </Button>
-                              </div>
+                              <WeekNavigation
+                                   weekOffset={ weekOffset }
+                                   setWeekOffset={ setWeekOffset }
+                                   localStorageKey="timesheet_weekOffset"
+                                   className='mb-3 mb-xl-0'
+                              />
                               <div className="d-flex">
                                    <TimesheetAddAction
                                         rows={ rows }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Alert, Spinner } from 'react-bootstrap';
-import FeatherIcon from 'feather-icons-react';
+import { Table, Card, Alert, Spinner } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
@@ -49,8 +48,6 @@ const Timesheet = () => {
           const unsubscribe = onAuthStateChanged( auth, ( user ) => {
                if ( user ) {
                     setUserId( user.uid );
-                    // Reset to current week on login
-                    setWeekOffset( 0 );
                } else {
                     setUserId( 'anonymous' );
                }
@@ -273,7 +270,7 @@ const Timesheet = () => {
           };
      }, [ rows, userId, weekOffset ] );
 
-     const { days, weekDisplay, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
+     const { days, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
      const updateProject = ( id: string, project: string ) => {
           setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r ) );
