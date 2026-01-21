@@ -7,11 +7,13 @@ import { onAuthStateChanged } from 'firebase/auth'
 import classNames from 'classnames'
 import ExportToExcel from 'components/ExportToExcel'
 import ExportToPdf from 'components/ExportToPdf'
+import WeekNavigation from 'components/WeekNavigation'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
 
 interface TaskData {
+     project: string
      task: string
      [ key: string ]: string | number // For day columns and total
 }
@@ -21,9 +23,13 @@ const WeeklyTab = () => {
      const [ tableData, setTableData ] = useState<TaskData[]>( [] )
      const [ weekStart, setWeekStart ] = useState<string>( '' )
      const [ weekEnd, setWeekEnd ] = useState<string>( '' )
+     const [ weekOffset, setWeekOffset ] = useState<number>( () => {
+          const saved = localStorage.getItem( 'weeklyReportWeekOffset' )
+          return saved ? parseInt( saved, 10 ) : 0
+     } )
 
      // Get days for current week
-     const { days } = useTimesheetCalculations( 0, [] )
+     const { days } = useTimesheetCalculations( weekOffset, [] )
 
      // Listen to auth state changes
      useEffect( () => {
@@ -42,7 +48,6 @@ const WeeklyTab = () => {
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
                const fetchTimesheetData = async () => {
-                    const weekOffset = 0 // current week
                     const today = new Date()
                     const startOfWeek = new Date( today )
                     const day = today.getDay()
@@ -81,15 +86,18 @@ const WeeklyTab = () => {
                          console.error( 'Error fetching timesheet data:', error )
                     }
 
-                    // Process data: group by task
-                    const taskMap: Record<string, Record<string, number>> = {}
+                    // Process data: group by project and task
+                    const projectTaskMap: Record<string, Record<string, number>> = {}
 
                     rows.forEach( ( row: any ) => {
+                         const project = row.project || 'No Project'
                          const task = row.task || 'No Task'
-                         if ( !taskMap[ task ] ) {
-                              taskMap[ task ] = {}
+                         const key = `${ project }|${ task }`
+
+                         if ( !projectTaskMap[ key ] ) {
+                              projectTaskMap[ key ] = {}
                               days.forEach( day => {
-                                   taskMap[ task ][ day ] = 0
+                                   projectTaskMap[ key ][ day ] = 0
                               } )
                          }
 
@@ -98,16 +106,17 @@ const WeeklyTab = () => {
                               const time = timeData?.time || '00:00'
                               const [ hours, minutes ] = time.split( ':' ).map( Number )
                               const totalHours = hours + minutes / 60
-                              taskMap[ task ][ day ] += totalHours
+                              projectTaskMap[ key ][ day ] += totalHours
                          } )
                     } )
 
                     // Convert to table data
-                    const tableRows: TaskData[] = Object.keys( taskMap ).map( task => {
-                         const row: TaskData = { task }
+                    const tableRows: TaskData[] = Object.keys( projectTaskMap ).map( key => {
+                         const [ project, task ] = key.split( '|' )
+                         const row: TaskData = { project, task }
                          let total = 0
                          days.forEach( day => {
-                              const hours = taskMap[ task ][ day ]
+                              const hours = projectTaskMap[ key ][ day ]
                               row[ day ] = hours.toFixed( 2 )
                               total += hours
                          } )
@@ -119,14 +128,15 @@ const WeeklyTab = () => {
                }
                fetchTimesheetData()
           }
-     }, [ userId, days ] )
+     }, [ userId, days, weekOffset ] )
 
      const totalHours = tableData.reduce( ( sum, row ) => sum + parseFloat( row.total as string ), 0 )
 
      // Prepare data for export to excel
      const prepareExportToExcelData: any[][] = [
-          [ 'Task Name', ...days, 'Total Hours' ],
+          [ 'Project Name', 'Task Name', ...days, 'Total Hours' ],
           ...tableData.map( row => [
+               row.project,
                row.task,
                ...days.map( day => row[ day ] ),
                row.total
@@ -135,8 +145,9 @@ const WeeklyTab = () => {
 
      // Prepare data for export to pdf
      const prepareExportToPdfData: any[][] = [
-          [ 'Task Name', ...days, 'Total Hours' ],
+          [ 'Project Name', 'Task Name', ...days, 'Total Hours' ],
           ...tableData.map( row => [
+               row.project,
                row.task,
                ...days.map( day => row[ day ] ),
                row.total
@@ -146,6 +157,12 @@ const WeeklyTab = () => {
      return (
           <React.Fragment>
                <div className="mt-3">
+                    <WeekNavigation
+                         weekOffset={ weekOffset }
+                         setWeekOffset={ setWeekOffset }
+                         localStorageKey="weeklyReportWeekOffset"
+                         className="mb-3"
+                    />
                     <div className={
                          classNames(
                               'bg-light border rounded p-2 mb-3 d-flex align-items-center justify-content-between'
@@ -180,6 +197,7 @@ const WeeklyTab = () => {
                     <Table bordered responsive>
                          <thead>
                               <tr>
+                                   <th>Project Name</th>
                                    <th>Task Name</th>
                                    { days.map( day => (
                                         <th key={ day }>{ day }</th>
@@ -190,6 +208,7 @@ const WeeklyTab = () => {
                          <tbody>
                               { tableData.map( ( row, index ) => (
                                    <tr key={ index }>
+                                        <td>{ row.project }</td>
                                         <td>{ row.task }</td>
                                         { days.map( day => (
                                              <td key={ day }>{ row[ day ] === "0.00" || !row[ day ] ? "-" : row[ day ] }</td>
@@ -199,7 +218,7 @@ const WeeklyTab = () => {
                               ) ) }
                               { tableData.length === 0 && (
                                    <tr>
-                                        <td colSpan={ days.length + 2 } className="text-center">
+                                        <td colSpan={ days.length + 3 } className="text-center">
                                              No data available for this week
                                         </td>
                                    </tr>
