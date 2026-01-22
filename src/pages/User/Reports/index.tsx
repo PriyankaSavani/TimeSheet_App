@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Card, Nav } from 'react-bootstrap'
 import SummaryTab from './SummaryTab'
 import WeeklyTab from './WeeklyTab'
-import DetaiedTab from './DetaiedTab'
+import DetailedTab from './DetailedTab'
 
 const UserReports = () => {
      const [ activeTab, setActiveTab ] = useState( 'Summary' )
@@ -41,7 +41,7 @@ const UserReports = () => {
                               </Nav.Item>
                          </Nav>
                          { activeTab === 'Summary' && <SummaryTab /> }
-                         { activeTab === 'Detailed' && <DetaiedTab /> }
+                         { activeTab === 'Detailed' && <DetailedTab /> }
                          { activeTab === 'Weekly' && <WeeklyTab /> }
                     </Card.Body>
                </Card>
