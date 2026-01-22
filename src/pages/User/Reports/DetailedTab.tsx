@@ -35,18 +35,6 @@ const DetailedTab = () => {
      const userId = user ? user.id : 'anonymous';
      const username = user ? user.firstName + ' ' + user.lastName : 'anonymous';
 
-     // Generate week key based on weekOffset using UTC time for consistency across timezones
-     const getWeekKey = ( offset: number ) => {
-          const today = new Date();
-          const startOfWeek = new Date( Date.UTC( today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() ) );
-          const day = today.getUTCDay();
-          const diff = today.getUTCDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
-          startOfWeek.setUTCDate( diff );
-          const year = startOfWeek.getUTCFullYear();
-          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 );
-          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
-     };
-
      // Fetch timesheet data for selected month from Firestore (matching timesheet page data)
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
