@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Table } from 'react-bootstrap'
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
@@ -168,10 +168,10 @@ const DetailedTab = () => {
      const selectedYear = startOfMonth.getFullYear()
 
      // Function to parse date string like "Mon, 5 Jan" to mm/dd/yyyy
-     const parseDateToMMDDYYYY = ( dateStr: string ) => {
+     const parseDateToMMDDYYYY = useCallback( ( dateStr: string ) => {
           const date = new Date( dateStr + ' ' + selectedYear )
           return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getFullYear() }`
-     }
+     }, [ selectedYear ] )
 
      // Sort data by date
      const sortedData = useMemo( () => {
@@ -180,7 +180,7 @@ const DetailedTab = () => {
                const dateB = new Date( parseDateToMMDDYYYY( b.date ) )
                return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime()
           } )
-     }, [ detailedData, sortOrder ] )
+     }, [ detailedData, sortOrder, parseDateToMMDDYYYY ] )
 
      // Handle sort toggle
      const handleSort = () => {

@@ -8,6 +8,7 @@ import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculation
 import ExportToExcel from 'components/ExportToExcel'
 import ExportToPdf from 'components/ExportToPdf'
 import { WeekNavigation } from '../../../components'
+import { COLORS } from '../../../constants/colors'
 
 // image
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
@@ -137,7 +138,16 @@ const SummaryTab = () => {
           }
      }, [ userId, days, weekOffset ] )
 
-     const colors = [ '#6658dd', '#f7b84b', '#f1556c', '#1abc9c', '#4a81d4', '#e3eaef' ]
+     const colors = [
+          COLORS.PRIMARY,
+          COLORS.SECONDARY,
+          COLORS.SUCCESS,
+          COLORS.INFO,
+          COLORS.WARNING,
+          COLORS.DANGER,
+          COLORS.LIGHT,
+          COLORS.DARK
+     ]
 
      const seriesForChart = chartData.series.map( ( task, index ) => {
           return {

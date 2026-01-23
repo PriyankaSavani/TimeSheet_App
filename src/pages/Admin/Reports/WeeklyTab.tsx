@@ -85,7 +85,6 @@ const WeeklyTab = () => {
                     const year = startOfWeek.getFullYear()
                     const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
                     const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
-                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`
 
                     let rows: any[] = []
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 import { useTimesheetCalculations } from '../hooks/useTimesheetCalculations';
