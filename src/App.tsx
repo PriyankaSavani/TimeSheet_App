@@ -11,6 +11,7 @@ import { APICore } from './helpers/api/apiCore';
 
 // theme
 import './assets/scss/Default.scss';
+import { Spinner } from 'components';
 
 const App = () => {
      const dispatch = useDispatch<AppDispatch>();
@@ -54,7 +55,7 @@ const App = () => {
      }, [ dispatch, api ] );
 
      if ( loading ) {
-          return <div>Loading...</div>; // Or a proper loading component
+          return <Spinner />;
      }
 
      return <Routes />;

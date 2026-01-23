@@ -3,3 +3,4 @@ export { default as FormInput } from './FormInput';
 export { default as ProfileDropdown } from './ProfileDropdown';
 export { default as WeekNavigation } from './WeekNavigation';
 export { default as MonthNavigation } from './MonthNavigation';
+export { default as Spinner } from './Spinner';
