@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { Table } from 'react-bootstrap'
+import { Table, Dropdown } from 'react-bootstrap'
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 import classNames from 'classnames'
@@ -30,10 +30,17 @@ interface DetailedRow {
 const DetailedTab = () => {
      const [ detailedData, setDetailedData ] = useState<DetailedRow[]>( [] )
      const [ sortOrder, setSortOrder ] = useState<'asc' | 'desc'>( 'desc' )
+     const [ selectedProject, setSelectedProject ] = useState<string>( 'All' )
      const [ monthOffset, setMonthOffset ] = useState<number>( () => {
           const stored = localStorage.getItem( 'detailedTabMonthOffset' );
           return stored ? parseInt( stored, 10 ) : 0;
      } );
+
+     // Get unique projects from detailed data
+     const uniqueProjects = useMemo( () => {
+          const projects = detailedData.map( row => row.project )
+          return [ 'All', ...Array.from( new Set( projects ) ) ].sort()
+     }, [ detailedData ] )
 
      // Function to get week key for a specific date using UTC
      const getWeekKeyForDate = ( date: Date ) => {
@@ -138,10 +145,21 @@ const DetailedTab = () => {
           fetchAllDetailedData()
      }, [ monthOffset ] )
 
-     const totalHours = detailedData.reduce( ( sum, row ) => {
-          const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
-          return sum + hours + minutes / 60
-     }, 0 )
+     // Filter by selected project
+     const filteredData = useMemo( () => {
+          if ( selectedProject === 'All' ) {
+               return detailedData
+          }
+          return detailedData.filter( row => row.project === selectedProject )
+     }, [ detailedData, selectedProject ] )
+
+     // Calculate total hours from filtered data
+     const totalHours = useMemo( () => {
+          return filteredData.reduce( ( sum, row ) => {
+               const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
+               return sum + hours + minutes / 60
+          }, 0 )
+     }, [ filteredData ] )
 
      // Calculate month start and end dates
      const getMonthDates = () => {
@@ -175,12 +193,12 @@ const DetailedTab = () => {
 
      // Sort data by date
      const sortedData = useMemo( () => {
-          return [ ...detailedData ].sort( ( a, b ) => {
+          return [ ...filteredData ].sort( ( a, b ) => {
                const dateA = new Date( parseDateToMMDDYYYY( a.date ) )
                const dateB = new Date( parseDateToMMDDYYYY( b.date ) )
                return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime()
           } )
-     }, [ detailedData, sortOrder, parseDateToMMDDYYYY ] )
+     }, [ filteredData, sortOrder, parseDateToMMDDYYYY ] )
 
      // Handle sort toggle
      const handleSort = () => {
@@ -275,7 +293,29 @@ const DetailedTab = () => {
                                              <FeatherIcon icon="chevron-down" style={ { float: 'right' } } />
                                         }
                                    </th>
-                                   <th>PROJECT</th>
+                                   <th className={ 'align-items-center' }>
+                                        PROJECT
+                                        <Dropdown align="end" className="d-inline float-end">
+                                             <Dropdown.Toggle variant="light" id="dropdown-project-filter" className="btn-sm border-0 p-0 ms-1">
+                                                  <FeatherIcon icon="filter" size={ 14 } />
+                                             </Dropdown.Toggle>
+                                             <Dropdown.Menu>
+                                                  <Dropdown.Header>Filter by Project</Dropdown.Header>
+                                                  { uniqueProjects.map( ( project ) => (
+                                                       <Dropdown.Item
+                                                            key={ project }
+                                                            onClick={ () => setSelectedProject( project ) }
+                                                            active={ selectedProject === project }
+                                                       >
+                                                            { project }
+                                                       </Dropdown.Item>
+                                                  ) ) }
+                                             </Dropdown.Menu>
+                                        </Dropdown>
+                                        { selectedProject !== 'All' && (
+                                             <span className="badge bg-primary ms-1">{ selectedProject }</span>
+                                        ) }
+                                   </th>
                                    <th>TASK</th>
                                    <th>DESCRIPTION</th>
                                    <th>HOURS</th>
