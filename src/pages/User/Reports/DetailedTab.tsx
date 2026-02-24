@@ -201,12 +201,13 @@ const DetailedTab = () => {
                          <h5><b>Total Hours:</b> { totalHours.toFixed( 2 ) }</h5>
                          <div>
                               <ExportToExcel
-                                   data={ prepareExportToExcelData }
+                                   data={ prepareExportToExcelData } // 2D array: [headerRow, ...rows]
                                    filename={ `DetailedReport_${ monthName.replace( ' ', '_' ) }.xlsx` }
                                    sheetName="Detailed Report"
                                    buttonText="Export to Excel"
-                                   addBlankRowAfterHeader={ true }
-                                   columnAlignments={ [ 'center', 'center', 'left', 'center', 'center' ] }
+                                   // addBlankRowAfterHeader // <-- remove this prop; not used in the new layout
+                                   columnAlignments={ [ 'center', 'center', 'center', 'left', 'center', 'center' ] }
+                                   weekEnd={ monthEnd }
                               />
                               <ExportToPdf
                                    data={ prepareExportToPdfData }
