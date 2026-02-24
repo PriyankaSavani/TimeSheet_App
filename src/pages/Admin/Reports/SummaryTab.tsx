@@ -5,13 +5,8 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db, auth } from '../../../config/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import classNames from 'classnames'
-import ExportToExcel from '../../../components/ExportToExcel'
-import ExportToPdf from 'components/ExportToPdf'
 import { WeekNavigation } from '../../../components'
 import { COLORS } from '../../../constants/colors'
-
-// image
-import logo from "../../../assets/images/logo/LOGO_DARK.png";
 
 const SummaryTab = () => {
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // Always start with current week
@@ -23,8 +18,6 @@ const SummaryTab = () => {
 
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
      const [ chartData, setChartData ] = useState<{ categories: string[], series: { name: string, data: number[] }[] }>( { categories: [], series: [] } )
-     const [ weekStart, setWeekStart ] = useState<string>( '' )
-     const [ weekEnd, setWeekEnd ] = useState<string>( '' )
 
      // Get days for selected week
      const { days } = useTimesheetCalculations( weekOffset, [] )
@@ -53,8 +46,6 @@ const SummaryTab = () => {
                     startOfWeek.setUTCDate( diff )
                     const endOfWeek = new Date( startOfWeek )
                     endOfWeek.setUTCDate( startOfWeek.getUTCDate() + 6 )
-                    setWeekStart( startOfWeek.toDateString() )
-                    setWeekEnd( endOfWeek.toDateString() )
                     const year = startOfWeek.getUTCFullYear()
                     const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 )
                     const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
@@ -268,40 +259,6 @@ const SummaryTab = () => {
 
      const totalHours = chartData.series.reduce( ( sum, task ) => sum + task.data.filter( h => h !== -1 ).reduce( ( s, h ) => s + h, 0 ), 0 )
 
-     // Prepare data for export to excel
-     const prepareExportToExcelData: any[][] = [
-          [ 'Project Name', 'Task Name', ...days, 'Total Hours' ],
-          ...chartData.series.map( task => {
-               const [ taskName, projectName ] = task.name.split( ' (' )
-               const project = projectName ? projectName.slice( 0, -1 ) : ''
-               // Replace -1 with 0 before calculating total
-               const total = task.data.reduce( ( sum, h ) => sum + ( h === -1 ? 0 : h ), 0 )
-               return [
-                    project,
-                    taskName,
-                    ...task.data.map( h => ( h === -1 ? 0 : h ).toFixed( 2 ) ),
-                    total.toFixed( 2 )
-               ]
-          } )
-     ]
-
-     // Prepare data for export to pdf
-     const prepareExportToPdfData: any[][] = [
-          [ 'Project Name', 'Task Name', ...days, 'Total Hours' ],
-          ...chartData.series.map( task => {
-               const [ taskName, projectName ] = task.name.split( ' (' )
-               const project = projectName ? projectName.slice( 0, -1 ) : ''
-               // Replace -1 with 0 before calculating total
-               const total = task.data.reduce( ( sum, h ) => sum + ( h === -1 ? 0 : h ), 0 )
-               return [
-                    project,
-                    taskName,
-                    ...task.data.map( h => ( h === -1 ? 0 : h ).toFixed( 2 ) ),
-                    total.toFixed( 2 )
-               ]
-          } )
-     ]
-
      return (
           <div className="mt-3">
                <div className="d-xl-flex justify-content-between my-3">
@@ -319,29 +276,6 @@ const SummaryTab = () => {
                }>
                     <div>
                          Total Hours: { totalHours.toFixed( 2 ) }
-                    </div>
-                    <div>
-                         <ExportToExcel
-                              data={ prepareExportToExcelData }
-                              filename="SummaryReport.xlsx"
-                              sheetName='Summary Report'
-                              buttonText='Export to Excel'
-                              columnAlignments={ [] }
-                         />
-                         <ExportToPdf
-                              data={ prepareExportToPdfData }
-                              filename='SummaryReport.pdf'
-                              buttonText='Export To PDF'
-                              buttonVariant='primary'
-                              buttonSize='sm'
-                              title='Summary Report'
-                              weekStart={ weekStart }
-                              weekEnd={ weekEnd }
-                              totalHours={ totalHours }
-                              columnAlignments={ [] }
-                              orientation='landscape'
-                              logo={ logo }
-                         />
                     </div>
                </div>
                <ReactApexChart
