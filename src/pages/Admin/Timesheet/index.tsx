@@ -253,7 +253,7 @@ const Timesheet = () => {
                };
                saveToFirestore();
           }
-     }, [ rows, userId, dataLoaded ] );
+     }, [ rows, userId, dataLoaded, weekOffset ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {

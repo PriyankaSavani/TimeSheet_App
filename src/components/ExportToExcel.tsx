@@ -173,7 +173,7 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
           const headerRowIdx = 3;
           const hdr = ws.getRow( headerRowIdx );
           hdr.values = [
-               , , // A (spacer), we start populating from B
+               undefined, undefined, // A (spacer), we start populating from B
                header?.[ 0 ] ?? 'DATE',
                header?.[ 1 ] ?? 'PROJECT',
                header?.[ 2 ] ?? 'TASK',

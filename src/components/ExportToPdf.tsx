@@ -202,7 +202,7 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
 
           for ( let rowIdx = 0; rowIdx < body.length; rowIdx++ ) {
                const row = body[ rowIdx ];
-               xPosition = 14;
+               let rowXPosition = 14;
 
                // Parse date for tracking
                const dateVal = row[ 0 ];
@@ -221,11 +221,11 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
 
                     // Draw cell with colored background
                     doc.setFillColor( col.dataColor[ 0 ], col.dataColor[ 1 ], col.dataColor[ 2 ] );
-                    doc.rect( xPosition, yPosition, col.width, cellHeight, 'F' );
+                    doc.rect( rowXPosition, yPosition, col.width, cellHeight, 'F' );
 
                     // Draw border
                     doc.setDrawColor( 204, 204, 204 );
-                    doc.rect( xPosition, yPosition, col.width, cellHeight, 'S' );
+                    doc.rect( rowXPosition, yPosition, col.width, cellHeight, 'S' );
 
                     // Draw text with vertical centering
                     doc.setTextColor( COLORS.textDark[ 0 ], COLORS.textDark[ 1 ], COLORS.textDark[ 2 ] );
@@ -239,19 +239,20 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
                     // Vertically center the text in the cell
                     const textStartY = yPosition + ( cellHeight - totalTextHeight ) / 2 + 3;
 
-                    textLines.forEach( ( line: string, lineIdx: number ) => {
+                    for ( let lineIdx = 0; lineIdx < textLines.length; lineIdx++ ) {
+                         const line = textLines[ lineIdx ];
                          let textX;
                          if ( alignment === 'left' ) {
-                              textX = xPosition + 3;
+                              textX = rowXPosition + 3;
                          } else if ( alignment === 'right' ) {
-                              textX = xPosition + col.width - 3;
+                              textX = rowXPosition + col.width - 3;
                          } else {
-                              textX = xPosition + col.width / 2;
+                              textX = rowXPosition + col.width / 2;
                          }
                          doc.text( line, textX, textStartY + ( lineIdx * lineHeight ), { align: alignment } );
-                    } );
+                    }
 
-                    xPosition += col.width;
+                    rowXPosition += col.width;
                }
 
                yPosition += cellHeight;
@@ -264,7 +265,6 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
           }
 
           // ---- Footer row ----
-          const lastDataRow = yPosition;
           const footerRowIdx = yPosition;
 
           // Calculate widths for footer sections
