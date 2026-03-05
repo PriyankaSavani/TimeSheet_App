@@ -68,24 +68,15 @@ const Timesheet = () => {
           return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
      };
 
-     // Clear ALL old timesheet localStorage data on component mount
+     // Clear only the current week's localStorage data to ensure fresh data from Firestore
      useEffect( () => {
-          // Clear all timesheet localStorage entries for this user to prevent old data issues
-          if ( userId && userId !== 'anonymous' ) {
-               const keysToRemove: string[] = [];
-               for ( let i = 0; i < localStorage.length; i++ ) {
-                    const key = localStorage.key( i );
-                    if ( key && key.startsWith( `timesheet_${ userId }_` ) ) {
-                         keysToRemove.push( key );
-                    }
-               }
-               // Remove all old timesheet entries
-               keysToRemove.forEach( key => localStorage.removeItem( key ) );
-               if ( keysToRemove.length > 0 ) {
-                    console.log( 'Cleared old timesheet localStorage entries:', keysToRemove.length );
-               }
+          if ( userId && userId !== 'anonymous' && weekOffset !== undefined ) {
+               const currentWeekKey = getWeekKey( weekOffset );
+               const localStorageKey = `timesheet_${ userId }_${ currentWeekKey }`;
+               // Only clear the current week's data, not all weeks
+               localStorage.removeItem( localStorageKey );
           }
-     }, [ userId ] );
+     }, [ userId, weekOffset ] );
 
      // Set up real-time listener for Firestore data (per-user per-week timesheet)
      useEffect( () => {
@@ -231,7 +222,7 @@ const Timesheet = () => {
      }, [ userId, weekOffset ] );
 
      // Save rows to localStorage and Firestore whenever rows change (per-user per-week timesheet)
-     // Note: Only save when rows change, not when weekOffset changes to avoid saving data to multiple week keys
+     // Note: Only save when rows change, NOT when weekOffset changes - this prevents saving to wrong weeks
      useEffect( () => {
           if ( userId !== 'anonymous' && dataLoaded ) {
                const weekKey = getWeekKey( weekOffset );
@@ -253,7 +244,7 @@ const Timesheet = () => {
                };
                saveToFirestore();
           }
-     }, [ rows, userId, dataLoaded, weekOffset ] );
+     }, [ rows, userId, dataLoaded ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {
