@@ -131,15 +131,16 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
           const wb = new ExcelJS.Workbook();
           const ws = wb.addWorksheet( sheetName );
 
-          // ---- Column layout: A blank spacer; B..G are the 6 visible columns ----
+          // ---- Column layout: A blank spacer; B..H are the 7 visible columns ----
           ws.columns = [
                { key: 'A', width: 2 },   // spacer
-               { key: 'B', width: 14 },  // DATE
+               { key: 'B', width: 12 },  // DATE
                { key: 'C', width: 30 },  // PROJECT
-               { key: 'D', width: 16 },  // TASK
-               { key: 'E', width: 36 },  // DESCRIPTION
-               { key: 'F', width: 12 },  // HOURS
-               { key: 'G', width: 18 },  // USER NAME
+               { key: 'D', width: 16 },  // CLIENT
+               { key: 'E', width: 16 },  // TASK
+               { key: 'F', width: 72 },  // DESCRIPTION
+               { key: 'G', width: 12 },  // HOURS
+               { key: 'H', width: 18 },  // USER NAME
           ];
 
           // Freeze panes so header stays visible while scrolling
@@ -150,9 +151,9 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
 
           // Row 2: Colored band with merges
           const bandRowIdx = 2;
-          ws.mergeCells( bandRowIdx, 3, bandRowIdx, 5 ); // D..E  PROJECT DETAILS
-          // F      DURATIONS
-          // G      MEMBER
+          ws.mergeCells( bandRowIdx, 3, bandRowIdx, 6 ); // C..F  PROJECT DETAILS
+          // G      DURATIONS
+          // H      MEMBER
 
           const styleBandCell = ( r: number, c: number, text: string, bg: string ) => {
                const cell = ws.getCell( r, c );
@@ -165,25 +166,26 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
 
           styleBandCell( bandRowIdx, 2, 'MONTH', COLORS.headPurple );
           styleBandCell( bandRowIdx, 4, 'PROJECT DETAILS', COLORS.headBrown );
-          styleBandCell( bandRowIdx, 6, 'DURATIONS', COLORS.headNavy );
-          styleBandCell( bandRowIdx, 7, 'MEMBER', COLORS.headGreen );
+          styleBandCell( bandRowIdx, 7, 'DURATIONS', COLORS.headNavy );
+          styleBandCell( bandRowIdx, 8, 'MEMBER', COLORS.headGreen );
           ws.getRow( bandRowIdx ).height = 18;
 
-          // Row 3: Column headers (white background) - removed spacer row
+          // Row 3: Column headers (white background)
           const headerRowIdx = 3;
           const hdr = ws.getRow( headerRowIdx );
           hdr.values = [
-               undefined, undefined, // A (spacer), we start populating from B
-               header?.[ 0 ] ?? 'DATE',
-               header?.[ 1 ] ?? 'PROJECT',
-               header?.[ 2 ] ?? 'TASK',
-               header?.[ 3 ] ?? 'DESCRIPTION',
-               header?.[ 4 ] ?? 'HOURS',
-               header?.[ 5 ] ?? 'USER NAME',
+               '', // A (spacer - empty)
+               header?.[ 0 ] ?? 'DATE',     // B
+               header?.[ 1 ] ?? 'PROJECT',  // C
+               header?.[ 2 ] ?? 'CLIENT',   // D
+               header?.[ 3 ] ?? 'TASK',     // E
+               header?.[ 4 ] ?? 'DESCRIPTION', // F
+               header?.[ 5 ] ?? 'HOURS',    // G
+               header?.[ 6 ] ?? 'USER NAME', // H
           ];
           hdr.height = headerStyle.rowHeight ?? 20;
 
-          for ( let col = 2; col <= 7; col++ ) {
+          for ( let col = 2; col <= 8; col++ ) {
                const cell = ws.getCell( headerRowIdx, col );
                cell.font = {
                     bold: headerStyle.bold !== undefined ? !!headerStyle.bold : true,
@@ -206,10 +208,11 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
 
                const dateVal = row[ 0 ];
                const projectVal = row[ 1 ];
-               const taskVal = row[ 2 ];
-               const descVal = row[ 3 ];
-               const hoursVal = row[ 4 ];
-               const userVal = row[ 5 ];
+               const clientVal = row[ 2 ];
+               const taskVal = row[ 3 ];
+               const descVal = row[ 4 ];
+               const hoursVal = row[ 5 ];
+               const userVal = row[ 6 ];
 
                // DATE (B)
                const dateCell = ws.getCell( rowIdx, 2 );
@@ -224,12 +227,14 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
 
                // PROJECT (C)
                ws.getCell( rowIdx, 3 ).value = projectVal ?? '';
-               // TASK (D)
-               ws.getCell( rowIdx, 4 ).value = taskVal ?? '';
-               // DESCRIPTION (E)
-               ws.getCell( rowIdx, 5 ).value = descVal ?? '';
-               // HOURS (F)
-               const hoursCell = ws.getCell( rowIdx, 6 );
+               // CLIENT (D)
+               ws.getCell( rowIdx, 4 ).value = clientVal ?? '';
+               // TASK (E)
+               ws.getCell( rowIdx, 5 ).value = taskVal ?? '';
+               // DESCRIPTION (F)
+               ws.getCell( rowIdx, 6 ).value = descVal ?? '';
+               // HOURS (G)
+               const hoursCell = ws.getCell( rowIdx, 7 );
                const timeFraction = typeof hoursVal === 'string' ? hhmmToExcelTime( hoursVal ) : null;
                if ( timeFraction !== null ) {
                     hoursCell.value = timeFraction;
@@ -237,16 +242,16 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
                } else {
                     hoursCell.value = hoursVal ?? '';
                }
-               // USER (G)
-               ws.getCell( rowIdx, 7 ).value = userVal ?? '';
+               // USER (H)
+               ws.getCell( rowIdx, 8 ).value = userVal ?? '';
 
                // Style row: borders + fills + alignment
-               for ( let col = 2; col <= 7; col++ ) {
+               for ( let col = 2; col <= 8; col++ ) {
                     const cell = ws.getCell( rowIdx, col );
-                    const idx = col - 2; // 0..5
+                    const idx = col - 2; // 0..6
                     const alignment =
                          ( columnAlignments && columnAlignments[ idx ] ) ||
-                         ( col === 3 || col === 5 ? 'left' : 'center' ); // default: PROJECT & DESCRIPTION left
+                         ( col === 3 || col === 6 ? 'left' : 'center' ); // default: PROJECT & DESCRIPTION left
 
                     cell.alignment = { vertical: 'middle', horizontal: alignment };
                     cell.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
@@ -259,11 +264,11 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
                     // subtle fills for certain columns to match screenshot
                     if ( col === 2 ) {
                          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dataPurple } };
-                    } else if ( col === 3 || col === 4 || col === 5 ) {
+                    } else if ( col === 3 || col === 4 || col === 5 || col === 6 ) {
                          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dataBrown } };
-                    } else if ( col === 6 ) {
-                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dataNavy } };
                     } else if ( col === 7 ) {
+                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dataNavy } };
+                    } else if ( col === 8 ) {
                          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dataGreen } };
                     } else {
                          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: dataStyle.bg ?? COLORS.white } };
@@ -278,9 +283,7 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
 
           // Footer green band below data
           const footerRowIdx = lastDataRow + 1;
-          ws.mergeCells( footerRowIdx, 2, footerRowIdx, 4 ); // B..D => END OF ...
-          // Column E (column 5) is single cell for "Total"
-          ws.mergeCells( footerRowIdx, 6, footerRowIdx, 7 ); // F..G => PRINT TOTAL HOURS
+          ws.mergeCells( footerRowIdx, 2, footerRowIdx, 6 ); // B..F => END OF ...
 
           // Prefer weekEnd (if provided & valid); otherwise use latestDate from data
           const endBase: Date | null = ( () => {
@@ -296,12 +299,12 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
                if ( isValidDate( d ) ) {
                     const month = d.toLocaleString( undefined, { month: 'long' } ).toUpperCase();
                     const year = d.getFullYear();
-                    return `END OF ${ month } ${ year }`;
+                    return `END OF ${ month } ${ year } - TOTAL HOURS`;
                }
-               return 'END OF PERIOD';
+               return 'END OF PERIOD - TOTAL HOURS';
           } )();
 
-          // Left block (B..D) - END OF period text
+          // Left block (B..F) - END OF period text - TOTAL HOURS TEXT
           const footerLeft = ws.getCell( footerRowIdx, 2 );
           footerLeft.value = endOfText;
           footerLeft.font = { bold: true, color: { argb: COLORS.white } };
@@ -309,22 +312,22 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
           footerLeft.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.footerGreen } };
           footerLeft.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
 
-          // Middle block (E) - "Total" text
-          const footerMiddle = ws.getCell( footerRowIdx, 5 );
-          footerMiddle.value = 'Total';
-          footerMiddle.font = { bold: true, color: { argb: COLORS.white } };
-          footerMiddle.alignment = { vertical: 'middle', horizontal: 'center' };
-          footerMiddle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.footerGreen } };
-          footerMiddle.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
+          // Column G - Total hours sum with green background
+          const footerSum = ws.getCell( footerRowIdx, 7 );
+          footerSum.value = { formula: `SUM(G4:G${ lastDataRow })` };
+          footerSum.numFmt = '[h]:mm';
+          footerSum.font = { bold: true, color: { argb: COLORS.white } };
+          footerSum.alignment = { vertical: 'middle', horizontal: 'center' };
+          footerSum.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.footerGreen } };
+          footerSum.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
 
-          // Right block (F..G) - PRINT TOTAL HOURS with SUM formula
-          const footerRight = ws.getCell( footerRowIdx, 6 );
-          footerRight.value = { formula: `SUM(F4:F${ lastDataRow })` };
-          footerRight.numFmt = '[h]:mm';
-          footerRight.font = { bold: true, color: { argb: COLORS.white } };
-          footerRight.alignment = { vertical: 'middle', horizontal: 'center' };
-          footerRight.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.footerGreen } };
-          footerRight.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
+          // Column H - Empty cell with green background only
+          const footerEmpty = ws.getCell( footerRowIdx, 8 );
+          footerEmpty.value = '';
+          footerEmpty.font = { bold: true, color: { argb: COLORS.white } };
+          footerEmpty.alignment = { vertical: 'middle', horizontal: 'center' };
+          footerEmpty.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.footerGreen } };
+          footerEmpty.border = { top: BORDER_THIN, left: BORDER_THIN, right: BORDER_THIN, bottom: BORDER_THIN };
 
           ws.getRow( footerRowIdx ).height = 18;
 

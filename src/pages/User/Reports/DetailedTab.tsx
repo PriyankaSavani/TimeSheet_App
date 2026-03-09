@@ -10,12 +10,19 @@ import MonthNavigation from '../../../components/MonthNavigation'
 import logo from "../../../assets/images/logo/LOGO_DARK.png";
 import { useSelector } from 'react-redux'
 import { selectAuthState } from '../../../redux/auth/selectors'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
+
+interface Project {
+     id: string;
+     projectName: string;
+     clientName: string;
+}
 
 interface DetailedRow {
      date: string
      project: string
+     client: string
      task: string
      description: string
      hours: string
@@ -29,11 +36,36 @@ const DetailedTab = () => {
           const stored = localStorage.getItem( 'detailedTabMonthOffset' );
           return stored ? parseInt( stored, 10 ) : 0;
      } );
+     const [ projects, setProjects ] = useState<Project[]>( [] )
 
      const { user } = useSelector( selectAuthState );
 
      const userId = user ? user.id : 'anonymous';
      const username = user ? user.firstName + ' ' + user.lastName : 'anonymous';
+
+     // Fetch projects from Firebase
+     useEffect( () => {
+          const fetchProjects = async () => {
+               try {
+                    const projectsSnapshot = await getDocs( collection( db, 'projects' ) )
+                    const projectsList: Project[] = projectsSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         projectName: doc.data().projectName || '',
+                         clientName: doc.data().clientName || ''
+                    } ) )
+                    setProjects( projectsList )
+               } catch ( error ) {
+                    console.error( 'Error fetching projects:', error )
+               }
+          }
+          fetchProjects()
+     }, [] )
+
+     // Helper function to get client name from project name
+     const getClientName = ( projectName: string ): string => {
+          const project = projects.find( p => p.projectName === projectName )
+          return project?.clientName || ''
+     }
 
      // Fetch timesheet data for selected month from Firestore (matching timesheet page data)
      useEffect( () => {
@@ -77,6 +109,7 @@ const DetailedTab = () => {
                                                             detailedRows.push( {
                                                                  date: day,
                                                                  project: row.project || 'No Project',
+                                                                 client: getClientName( row.project || 'No Project' ),
                                                                  task: row.task || 'No Task',
                                                                  description,
                                                                  hours: time,
@@ -100,7 +133,7 @@ const DetailedTab = () => {
                }
                fetchDetailedData()
           }
-     }, [ userId, username, monthOffset ] )
+     }, [ userId, username, monthOffset, projects ] )
 
      const totalHours = detailedData.reduce( ( sum, row ) => {
           const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
@@ -152,10 +185,11 @@ const DetailedTab = () => {
 
      // Prepare data for export to excel
      const prepareExportToExcelData: any[][] = [
-          [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
+          [ 'DATE', 'PROJECT', 'CLIENT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
                row.project,
+               row.client,
                row.task,
                row.description,
                row.hours,
@@ -173,10 +207,11 @@ const DetailedTab = () => {
 
      // Prepare data for export to pdf
      const prepareExportToPdfData: any[][] = [
-          [ 'DATE', 'PROJECT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
+          [ 'DATE', 'PROJECT', 'CLIENT', 'TASK', 'DESCRIPTION', 'HOURS', 'USER NAME' ],
           ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
                row.project,
+               row.client,
                row.task,
                row.description,
                row.hours,
@@ -206,7 +241,7 @@ const DetailedTab = () => {
                                    sheetName="Detailed Report"
                                    buttonText="Export to Excel"
                                    // addBlankRowAfterHeader // <-- remove this prop; not used in the new layout
-                                   columnAlignments={ [ 'center', 'center', 'center', 'left', 'center', 'center' ] }
+                                   columnAlignments={ [ 'center', 'center', 'center', 'center', 'left', 'center', 'center' ] }
                                    weekEnd={ monthEnd }
                               />
                               <ExportToPdf
@@ -219,7 +254,7 @@ const DetailedTab = () => {
                                    weekStart={ monthStart }
                                    weekEnd={ monthEnd }
                                    totalHours={ totalHours }
-                                   columnAlignments={ [ 'center', 'center', 'left', 'center', 'center' ] }
+                                   columnAlignments={ [ 'center', 'center', 'center', 'center', 'left', 'center', 'center' ] }
                                    orientation="portrait"
                                    logo={ logo }
                               />
@@ -240,6 +275,7 @@ const DetailedTab = () => {
                                         }
                                    </th>
                                    <th>PROJECT</th>
+                                   <th>CLIENT</th>
                                    <th>TASK</th>
                                    <th>DESCRIPTION</th>
                                    <th>HOURS</th>
@@ -251,6 +287,7 @@ const DetailedTab = () => {
                                    <tr key={ index }>
                                         <td>{ parseDateToMMDDYYYY( row.date ) }</td>
                                         <td>{ row.project }</td>
+                                        <td>{ row.client }</td>
                                         <td>{ row.task }</td>
                                         <td>{ row.description }</td>
                                         <td>{ row.hours }</td>
@@ -259,7 +296,7 @@ const DetailedTab = () => {
                               ) ) }
                               { sortedData.length === 0 && (
                                    <tr>
-                                        <td colSpan={ 6 } className="text-center">
+                                        <td colSpan={ 7 } className="text-center">
                                              No data available for this month
                                         </td>
                                    </tr>

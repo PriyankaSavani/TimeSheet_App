@@ -29,6 +29,113 @@ interface ExportToPdfProps {
      };
 }
 
+/**
+ * Wraps text to fit within a specified column width
+ * @param text - The text to wrap
+ * @param maxWidth - Maximum width available for the text (in mm)
+ * @param doc - The jsPDF document instance
+ * @param fontSize - Font size to use for width calculation
+ * @returns Array of wrapped lines
+ */
+const wrapText = ( text: string, maxWidth: number, doc: jsPDF, fontSize: number = 9 ): string[] => {
+     if ( !text ) return [ '' ];
+
+     // First, handle existing newlines
+     const lines = text.toString().split( '\n' );
+     const wrappedLines: string[] = [];
+
+     doc.setFontSize( fontSize );
+     doc.setFont( 'helvetica', 'normal' );
+
+     for ( const line of lines ) {
+          if ( doc.getTextWidth( line ) <= maxWidth ) {
+               wrappedLines.push( line );
+          } else {
+               // Need to wrap this line
+               const words = line.split( ' ' );
+               let currentLine = '';
+
+               for ( const word of words ) {
+                    const testLine = currentLine ? `${ currentLine } ${ word }` : word;
+                    if ( doc.getTextWidth( testLine ) <= maxWidth ) {
+                         currentLine = testLine;
+                    } else {
+                         if ( currentLine ) {
+                              wrappedLines.push( currentLine );
+                         }
+                         // Check if single word is wider than maxWidth
+                         if ( doc.getTextWidth( word ) > maxWidth ) {
+                              // Need to break the word itself
+                              let chars = word;
+                              let testCharLine = '';
+                              for ( const char of chars ) {
+                                   const testChar = testCharLine + char;
+                                   if ( doc.getTextWidth( testChar ) <= maxWidth ) {
+                                        testCharLine = testChar;
+                                   } else {
+                                        wrappedLines.push( testCharLine );
+                                        testCharLine = char;
+                                   }
+                              }
+                              currentLine = testCharLine;
+                         } else {
+                              currentLine = word;
+                         }
+                    }
+               }
+               if ( currentLine ) {
+                    wrappedLines.push( currentLine );
+               }
+          }
+     }
+
+     return wrappedLines;
+};
+
+/**
+ * Calculates the maximum number of lines needed for each row
+ * @param data - 2D array of data (excluding header)
+ * @param columns - Column configuration
+ * @param doc - The jsPDF document instance
+ * @param lineHeight - Height per line in mm
+ * @returns Array of row heights
+ */
+const calculateRowHeights = (
+     data: any[][],
+     columns: { key: string; width: number }[],
+     doc: jsPDF,
+     lineHeight: number = 5
+): number[] => {
+     const MIN_CELL_HEIGHT = 10; // Minimum cell height
+
+     return data.map( row => {
+          let maxLines = 1;
+
+          // Check PROJECT (index 1) and DESCRIPTION (index 4) columns for wrapping needs
+          const wrapColumnIndices = [ 1, 4 ]; // Project and Description
+
+          for ( const colIdx of wrapColumnIndices ) {
+               if ( colIdx < row.length ) {
+                    const cellValue = row[ colIdx ]?.toString() || '';
+                    const colWidth = columns[ colIdx ]?.width || 30;
+                    // Account for padding (3mm on each side)
+                    const availableWidth = colWidth - 6;
+
+                    if ( cellValue ) {
+                         const wrappedLines = wrapText( cellValue, availableWidth, doc );
+                         if ( wrappedLines.length > maxLines ) {
+                              maxLines = wrappedLines.length;
+                         }
+                    }
+               }
+          }
+
+          // Calculate height based on number of lines, but minimum is MIN_CELL_HEIGHT
+          const calculatedHeight = Math.max( maxLines * lineHeight + 2, MIN_CELL_HEIGHT );
+          return calculatedHeight;
+     } );
+};
+
 const ExportToPdf: React.FC<ExportToPdfProps> = ( {
      data,
      filename,
@@ -70,14 +177,15 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
           const doc = new jsPDF( orientation );
           const pageWidth = doc.internal.pageSize.getWidth();
 
-          // Column configuration matching Excel
+          // Column configuration matching Excel - 7 columns now
           const columns = [
-               { key: 'date', width: 22, label: 'DATE', color: COLORS.headPurple, dataColor: COLORS.dataPurple },
+               { key: 'date', width: 18, label: 'DATE', color: COLORS.headPurple, dataColor: COLORS.dataPurple },
                { key: 'project', width: 30, label: 'PROJECT', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
-               { key: 'task', width: 18, label: 'TASK', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
-               { key: 'description', width: 60, label: 'DESCRIPTION', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
-               { key: 'hours', width: 25, label: 'HOURS', color: COLORS.headNavy, dataColor: COLORS.dataNavy },
-               { key: 'member', width: 25, label: 'MEMBER', color: COLORS.headGreen, dataColor: COLORS.dataGreen },
+               { key: 'client', width: 22, label: 'CLIENT', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
+               { key: 'task', width: 20, label: 'TASK', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
+               { key: 'description', width: 55, label: 'DESCRIPTION', color: COLORS.headBrown, dataColor: COLORS.dataBrown },
+               { key: 'hours', width: 22, label: 'HOURS', color: COLORS.headNavy, dataColor: COLORS.dataNavy },
+               { key: 'member', width: 22, label: 'USER NAME', color: COLORS.headGreen, dataColor: COLORS.dataGreen },
           ];
 
           // Add logo and title on the same line
@@ -138,24 +246,24 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
           doc.setFont( 'helvetica', 'bold' );
           doc.text( 'MONTH', 14 + columns[ 0 ].width / 2, bandRowIdx + 6.5, { align: 'center' } );
 
-          // PROJECT DETAILS band (PROJECT, TASK, DESCRIPTION columns)
-          const projectDetailsWidth = columns[ 1 ].width + columns[ 2 ].width + columns[ 3 ].width;
+          // PROJECT DETAILS band (PROJECT, CLIENT, TASK, DESCRIPTION columns)
+          const projectDetailsWidth = columns[ 1 ].width + columns[ 2 ].width + columns[ 3 ].width + columns[ 4 ].width;
           doc.setFillColor( COLORS.headBrown[ 0 ], COLORS.headBrown[ 1 ], COLORS.headBrown[ 2 ] );
           doc.rect( 14 + columns[ 0 ].width, bandRowIdx, projectDetailsWidth, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
           doc.text( 'PROJECT DETAILS', 14 + columns[ 0 ].width + projectDetailsWidth / 2, bandRowIdx + 6.5, { align: 'center' } );
 
-          // DURATIONS band (HOURS column)
+          // DURATIONS band (HOURS column - columns[5])
           doc.setFillColor( COLORS.headNavy[ 0 ], COLORS.headNavy[ 1 ], COLORS.headNavy[ 2 ] );
-          doc.rect( 14 + columns[ 0 ].width + projectDetailsWidth, bandRowIdx, columns[ 4 ].width, cellHeight, 'F' );
+          doc.rect( 14 + columns[ 0 ].width + projectDetailsWidth, bandRowIdx, columns[ 5 ].width, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
-          doc.text( 'DURATIONS', 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 4 ].width / 2, bandRowIdx + 6.5, { align: 'center' } );
+          doc.text( 'DURATIONS', 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 5 ].width / 2, bandRowIdx + 6.5, { align: 'center' } );
 
-          // MEMBER band (USER NAME column)
+          // MEMBER band (USER NAME column - columns[6])
           doc.setFillColor( COLORS.headGreen[ 0 ], COLORS.headGreen[ 1 ], COLORS.headGreen[ 2 ] );
-          doc.rect( 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 4 ].width, bandRowIdx, columns[ 5 ].width, cellHeight, 'F' );
+          doc.rect( 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 5 ].width, bandRowIdx, columns[ 6 ].width, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
-          doc.text( 'MEMBER', 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 4 ].width + columns[ 5 ].width / 2, bandRowIdx + 6.5, { align: 'center' } );
+          doc.text( 'MEMBER', 14 + columns[ 0 ].width + projectDetailsWidth + columns[ 5 ].width + columns[ 6 ].width / 2, bandRowIdx + 6.5, { align: 'center' } );
 
           yPosition += cellHeight;
 
@@ -197,11 +305,15 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
           // Expect data[0] is header, rest is body
           const body = data.slice( 1 );
 
+          // Calculate row heights dynamically based on content
+          const rowHeights = calculateRowHeights( body, columns, doc, lineHeight );
+
           // Track latest date found for footer - use any to avoid TypeScript narrowing issues
           let latestDate: any = null;
 
           for ( let rowIdx = 0; rowIdx < body.length; rowIdx++ ) {
                const row = body[ rowIdx ];
+               const currentRowHeight = rowHeights[ rowIdx ];
                let rowXPosition = 14;
 
                // Parse date for tracking
@@ -219,25 +331,36 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
                     const cellValue = row[ colIdx ];
                     const alignment = columnAlignments[ colIdx ] || ( col.key === 'project' || col.key === 'description' ? 'left' : 'center' );
 
-                    // Draw cell with colored background
+                    // Draw cell with colored background using dynamic row height
                     doc.setFillColor( col.dataColor[ 0 ], col.dataColor[ 1 ], col.dataColor[ 2 ] );
-                    doc.rect( rowXPosition, yPosition, col.width, cellHeight, 'F' );
+                    doc.rect( rowXPosition, yPosition, col.width, currentRowHeight, 'F' );
 
                     // Draw border
                     doc.setDrawColor( 204, 204, 204 );
-                    doc.rect( rowXPosition, yPosition, col.width, cellHeight, 'S' );
+                    doc.rect( rowXPosition, yPosition, col.width, currentRowHeight, 'S' );
 
                     // Draw text with vertical centering
                     doc.setTextColor( COLORS.textDark[ 0 ], COLORS.textDark[ 1 ], COLORS.textDark[ 2 ] );
-                    doc.setFontSize( 8 );
+                    doc.setFontSize( 9 );
                     doc.setFont( 'helvetica', 'normal' );
 
-                    // Get text and calculate vertical centering
+                    // Get text - use wrapText for PROJECT (index 1) and DESCRIPTION (index 4) columns
                     const textValue = cellValue?.toString() || '';
-                    const textLines = textValue.includes( '\n' ) ? textValue.split( '\n' ) : [ textValue ];
+                    let textLines: string[];
+
+                    // Use automatic wrapping for project and description columns
+                    if ( colIdx === 1 || colIdx === 4 ) {
+                         // Account for padding (3mm on each side)
+                         const availableWidth = col.width - 6;
+                         textLines = wrapText( textValue, availableWidth, doc );
+                    } else {
+                         // For other columns, just split on explicit newlines
+                         textLines = textValue.includes( '\n' ) ? textValue.split( '\n' ) : [ textValue ];
+                    }
+
                     const totalTextHeight = textLines.length * lineHeight;
                     // Vertically center the text in the cell
-                    const textStartY = yPosition + ( cellHeight - totalTextHeight ) / 2 + 3;
+                    const textStartY = yPosition + ( currentRowHeight - totalTextHeight ) / 2 + 3;
 
                     for ( let lineIdx = 0; lineIdx < textLines.length; lineIdx++ ) {
                          const line = textLines[ lineIdx ];
@@ -255,7 +378,7 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
                     rowXPosition += col.width;
                }
 
-               yPosition += cellHeight;
+               yPosition += currentRowHeight;
 
                // Add new page if needed
                if ( yPosition > 270 ) {
@@ -267,11 +390,11 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
           // ---- Footer row ----
           const footerRowIdx = yPosition;
 
-          // Calculate widths for footer sections
-          const dateTaskWidth = columns[ 0 ].width + columns[ 1 ].width + columns[ 2 ].width + columns[ 3 ].width;
+          // Calculate widths for footer sections - columns B through F = date to description
+          const dateToDescWidth = columns[ 0 ].width + columns[ 1 ].width + columns[ 2 ].width + columns[ 3 ].width + columns[ 4 ].width;
 
-          // Determine end of period text - use a regular variable instead of type guard
-          let endOfText = 'END OF PERIOD';
+          // Determine end of period text
+          let endOfText = 'END OF PERIOD - TOTAL HOURS';
 
           // Try weekEnd first
           if ( weekEnd ) {
@@ -280,35 +403,35 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
                if ( !isNaN( time ) ) {
                     const month = d.toLocaleString( undefined, { month: 'long' } ).toUpperCase();
                     const year = d.getFullYear();
-                    endOfText = `END OF ${ month } ${ year }`;
+                    endOfText = `END OF ${ month } ${ year } - TOTAL HOURS`;
                }
           }
           // Try latestDate from data if weekEnd didn't work
           else if ( latestDate instanceof Date && !isNaN( latestDate.getTime() ) ) {
                const month = latestDate.toLocaleString( undefined, { month: 'long' } ).toUpperCase();
                const year = latestDate.getFullYear();
-               endOfText = `END OF ${ month } ${ year }`;
+               endOfText = `END OF ${ month } ${ year } - TOTAL HOURS`;
           }
 
-          // Left block - END OF period (DATE through DESCRIPTION)
+          // Left block (B..F) - END OF period - TOTAL HOURS (green background)
           doc.setFillColor( COLORS.footerGreen[ 0 ], COLORS.footerGreen[ 1 ], COLORS.footerGreen[ 2 ] );
-          doc.rect( 14, footerRowIdx, dateTaskWidth, cellHeight, 'F' );
+          doc.rect( 14, footerRowIdx, dateToDescWidth, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
           doc.setFontSize( 9 );
           doc.setFont( 'helvetica', 'bold' );
-          doc.text( endOfText, 14 + dateTaskWidth / 2, footerRowIdx + 6.5, { align: 'center' } );
+          doc.text( endOfText, 14 + dateToDescWidth / 2, footerRowIdx + 6.5, { align: 'center' } );
 
-          // Middle block - "Total" label (HOURS column)
+          // Column G - Total hours value (green background)
           doc.setFillColor( COLORS.footerGreen[ 0 ], COLORS.footerGreen[ 1 ], COLORS.footerGreen[ 2 ] );
-          doc.rect( 14 + dateTaskWidth, footerRowIdx, columns[ 4 ].width, cellHeight, 'F' );
+          doc.rect( 14 + dateToDescWidth, footerRowIdx, columns[ 5 ].width, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
-          doc.text( 'Total', 14 + dateTaskWidth + columns[ 4 ].width / 2, footerRowIdx + 6.5, { align: 'center' } );
+          doc.text( totalHours?.toFixed( 2 ) || '0.00', 14 + dateToDescWidth + columns[ 5 ].width / 2, footerRowIdx + 6.5, { align: 'center' } );
 
-          // Right block - Total hours value (MEMBER column)
+          // Column H - Empty with green background only
           doc.setFillColor( COLORS.footerGreen[ 0 ], COLORS.footerGreen[ 1 ], COLORS.footerGreen[ 2 ] );
-          doc.rect( 14 + dateTaskWidth + columns[ 4 ].width, footerRowIdx, columns[ 5 ].width, cellHeight, 'F' );
+          doc.rect( 14 + dateToDescWidth + columns[ 5 ].width, footerRowIdx, columns[ 6 ].width, cellHeight, 'F' );
           doc.setTextColor( COLORS.white[ 0 ], COLORS.white[ 1 ], COLORS.white[ 2 ] );
-          doc.text( totalHours?.toFixed( 2 ) || '0.00', 14 + dateTaskWidth + columns[ 4 ].width + columns[ 5 ].width / 2, footerRowIdx + 6.5, { align: 'center' } );
+          doc.text( '', 14 + dateToDescWidth + columns[ 5 ].width + columns[ 6 ].width / 2, footerRowIdx + 6.5, { align: 'center' } );
 
           // Save the PDF
           doc.save( filename );
@@ -328,3 +451,4 @@ const ExportToPdf: React.FC<ExportToPdfProps> = ( {
 };
 
 export default ExportToPdf;
+
