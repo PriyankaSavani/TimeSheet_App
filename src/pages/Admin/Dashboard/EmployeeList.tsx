@@ -1,7 +1,9 @@
 import classNames from 'classnames'
 import FeatherIcon from 'feather-icons-react'
 import React, { useEffect, useState } from 'react'
+import SimpleBar from 'simplebar-react'
 import { Card, Table } from 'react-bootstrap'
+import 'simplebar-react/dist/simplebar.min.css'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 
@@ -63,10 +65,10 @@ const EmployeeList = () => {
      return (
           <React.Fragment>
                <Card>
-                    <Card.Body>
+                    <Card.Body className="p-0">
                          <Card.Title
                               className={
-                                   classNames( 'd-flex align-items-center justify-content-between' )
+                                   classNames( 'd-flex align-items-center justify-content-between px-3 pt-3' )
                               }
                          >
                               Employee List
@@ -75,36 +77,38 @@ const EmployeeList = () => {
                                    className={ classNames( 'cursor-pointer' ) }
                               />
                          </Card.Title>
-                         <Table>
-                              <thead>
-                                   <tr>
-                                        <th>Name</th>
-                                        <th>Role</th>
-                                        <th>Email</th>
-                                        <th>Assigned Project Name</th>
-                                   </tr>
-                              </thead>
-                              <tbody>
-                                   { loading ? (
+                         <SimpleBar style={ { maxHeight: '390px' } } className="px-3 my-3">
+                              <Table className="mb-0">
+                                   <thead>
                                         <tr>
-                                             <td colSpan={ 5 }>Loading...</td>
+                                             <th>Name</th>
+                                             <th>Role</th>
+                                             <th>Email</th>
+                                             <th>Assigned Project Name</th>
                                         </tr>
-                                   ) : employees.length === 0 ? (
-                                        <tr>
-                                             <td colSpan={ 5 }>No employees found</td>
-                                        </tr>
-                                   ) : (
-                                        employees.map( emp => (
-                                             <tr key={ emp.id }>
-                                                  <td>{ emp.fullname || 'N/A' }</td>
-                                                  <td>{ emp.role || 'N/A' }</td>
-                                                  <td>{ emp.email || 'N/A' }</td>
-                                                  <td>{ emp.assignedProject || 'N/A' }</td>
+                                   </thead>
+                                   <tbody>
+                                        { loading ? (
+                                             <tr>
+                                                  <td colSpan={ 5 }>Loading...</td>
                                              </tr>
-                                        ) )
-                                   ) }
-                              </tbody>
-                         </Table>
+                                        ) : employees.length === 0 ? (
+                                             <tr>
+                                                  <td colSpan={ 5 }>No employees found</td>
+                                             </tr>
+                                        ) : (
+                                             employees.map( emp => (
+                                                  <tr key={ emp.id }>
+                                                       <td>{ emp.fullname || 'N/A' }</td>
+                                                       <td>{ emp.role || 'N/A' }</td>
+                                                       <td>{ emp.email || 'N/A' }</td>
+                                                       <td>{ emp.assignedProject || 'N/A' }</td>
+                                                  </tr>
+                                             ) )
+                                        ) }
+                                   </tbody>
+                              </Table>
+                         </SimpleBar>
                     </Card.Body>
                </Card>
           </React.Fragment>
