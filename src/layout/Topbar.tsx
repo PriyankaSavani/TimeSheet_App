@@ -24,17 +24,12 @@ const ProfileMenus = [
      {
           label: 'My Account',
           icon: 'fe-user',
-          redirectTo: '/',
+          redirectTo: '/my-account',
      },
      {
           label: 'Settings',
           icon: 'fe-settings',
           redirectTo: '/',
-     },
-     {
-          label: 'Lock Screen',
-          icon: 'fe-lock',
-          redirectTo: '/auth/lock-screen',
      },
      {
           label: 'Sign Out',

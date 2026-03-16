@@ -22,6 +22,8 @@ const AccessDenied = React.lazy( () => import( '../pages/AccessDenied' ) );
 const Projects = React.lazy( () => import( '../pages/Admin/Projects' ) );
 const Users = React.lazy( () => import( '../pages/Admin/Users' ) );
 
+const MyAccount = React.lazy( () => import( '../pages/Other/MyAccount' ) );
+
 export interface RoutesProps {
      path: string;
      name?: string;
@@ -112,6 +114,14 @@ const timesheetRoutes: RoutesProps = {
      roles: [ 'admin', 'user' ],
 }
 
+const myAccountRoutes: RoutesProps = {
+     path: '/my-account',
+     name: 'My Account',
+     element: <MyAccount />,
+     route: PrivateRoute,
+     roles: [ 'admin', 'user' ],
+}
+
 const timesheetManagementRoutes = [
      projectsRoutes,
      usersRoutes,
@@ -143,7 +153,7 @@ const accessDeniedRoute: RoutesProps = {
 }
 
 // all routes
-const authProtectedRoutes = [ rootRoute, dashboardRoutes, reportsRoutes, ...timesheetManagementRoutes ];
+const authProtectedRoutes = [ rootRoute, dashboardRoutes, reportsRoutes, myAccountRoutes, ...timesheetManagementRoutes ];
 const publicRoutes = [ ...authRoutes, accessDeniedRoute ];
 
 const authProtectedFlattenRoutes = flattenRoutes( [ ...authProtectedRoutes ] );
