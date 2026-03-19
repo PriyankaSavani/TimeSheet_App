@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
-// import LogoDark from '../../assets/images/logo-dark.png';
-// import LogoLight from '../../assets/images/logo-light.png';
+// logo
+import logo_dark from '../../assets/images/logo/logo-dark.png';
+import logo_auth_light from '../../assets/images/logo/logo-auth-light.png';
 
 interface AccountLayoutProps {
      helpText?: string;
@@ -27,19 +28,19 @@ const AuthLayout = ( { helpText, bottomLinks, children, isCombineForm }: Account
                     <Container>
                          <Row className="justify-content-center">
                               <Col md={ 8 } lg={ 6 } xl={ isCombineForm ? 9 : 4 }>
-                                   <Card className="bg-pattern">
+                                   <Card className="">
                                         <Card.Body className="p-4">
                                              <div className="text-center w-75 m-auto">
                                                   <div className="auth-logo">
                                                        <Link to="/" className="logo logo-dark text-center">
                                                             <span className="logo-lg">
-                                                                 {/* <img src={ LogoDark } alt="" height="22" /> */ }
+                                                                 <img src={ logo_auth_light } alt="" height="50" />
                                                             </span>
                                                        </Link>
 
                                                        <Link to="/" className="logo logo-light text-center">
                                                             <span className="logo-lg">
-                                                                 {/* <img src={ LogoLight } alt="" height="22" /> */ }
+                                                                 <img src={ logo_dark } alt="" height="50" />
                                                             </span>
                                                        </Link>
                                                   </div>

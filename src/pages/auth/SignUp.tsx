@@ -13,7 +13,6 @@ import { RootState, AppDispatch } from '../../redux/store';
 
 // components
 import { VerticalForm, FormInput } from '../../components';
-import SocialLinks from '../../components/SocialLinks';
 
 import AuthLayout from './AuthLayout';
 
@@ -121,16 +120,16 @@ const SignUp = () => {
                          />
 
                          <div className="text-center d-grid">
-                              <Button variant="success" type="submit" disabled={ loading }>
+                              <Button variant="primary" type="submit" disabled={ loading }>
                                    { t( 'Sign Up' ) }
                               </Button>
                          </div>
                     </VerticalForm>
 
-                    <div className="text-center">
+                    {/* <div className="text-center">
                          <h5 className="mt-3 text-muted">{ t( 'Sign up using' ) }</h5>
                          <SocialLinks />
-                    </div>
+                    </div> */}
                </AuthLayout>
           </>
      );

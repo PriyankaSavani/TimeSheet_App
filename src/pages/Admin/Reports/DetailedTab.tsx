@@ -9,7 +9,7 @@ import FeatherIcon from 'feather-icons-react'
 import MonthNavigation from '../../../components/MonthNavigation'
 
 // image
-import logo from "../../../assets/images/logo/LOGO_DARK.png";
+import logo from "../../../assets/images/logo/logo-dark.png";
 
 interface User {
      id: string;

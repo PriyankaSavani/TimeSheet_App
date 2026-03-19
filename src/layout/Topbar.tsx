@@ -8,7 +8,8 @@ import { selectAuthState } from '../redux/auth/selectors';
 
 
 // logo
-import logo from '../assets/images/logo/LOGO_LIGHT.png';
+import logo_dark from '../assets/images/logo/logo-dark.png';
+import logo_light from '../assets/images/logo/logo-light.png';
 
 // images
 import profilePic from '../assets/images/users/user-5.jpg';
@@ -78,45 +79,33 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                               <div className="logo-box">
                                    <Link to="/" className="logo logo-dark text-center">
                                         <span className="logo-sm">
-                                             {/* <img src={ logoSm } alt="" height="22" /> */ }
                                              <img
-                                                  src={ logo }
+                                                  src={ logo_light }
                                                   alt='Timesheet App'
-                                                  height='50'
+                                                  height='60'
                                              />
                                         </span>
                                         <span className="logo-lg">
-                                             {/* <img
-                                                                      src={ layoutType === LayoutTypes.LAYOUT_TWO_COLUMN ? logoDark2 : logoDark }
-                                                                      alt=""
-                                                                      height="20"
-                                                               /> */}
                                              <img
-                                                  src={ logo }
+                                                  src={ logo_light }
                                                   alt='Timesheet App'
-                                                  height='50'
+                                                  height='60'
                                              />
                                         </span>
                                    </Link>
                                    <Link to="/" className="logo logo-light text-center">
                                         <span className="logo-sm">
-                                             {/* <img src={ logoSm } alt="" height="22" /> */ }
                                              <img
-                                                  src={ logo }
+                                                  src={ logo_dark }
                                                   alt='Timesheet App'
-                                                  height='50'
+                                                  height='60'
                                              />
                                         </span>
                                         <span className="logo-lg">
-                                             {/* <img
-                                                                      src={ layoutType === LayoutTypes.LAYOUT_TWO_COLUMN ? logoLight2 : logoLight }
-                                                                      alt=""
-                                                                      height="20"
-                                                               /> */}
                                              <img
-                                                  src={ logo }
+                                                  src={ logo_dark }
                                                   alt='Timesheet App'
-                                                  height='50'
+                                                  height='60'
                                              />
                                         </span>
                                    </Link>

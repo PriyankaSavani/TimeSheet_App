@@ -17,7 +17,6 @@ import { selectAuthState } from '../../redux/auth/selectors';
 
 // components
 import { VerticalForm, FormInput } from '../../components';
-import SocialLinks from '../../components/SocialLinks';
 
 import AuthLayout from './AuthLayout';
 
@@ -125,10 +124,10 @@ const SignIn = () => {
                          </div>
                     </VerticalForm>
 
-                    <div className="text-center">
+                    {/* <div className="text-center">
                          <h5 className="mt-3 text-muted">{ t( 'Sign in with' ) }</h5>
                          <SocialLinks />
-                    </div>
+                    </div> */}
                </AuthLayout>
           </>
      );
