@@ -28,10 +28,12 @@ const INIT_STATE = {
      showTwoToneIcons: false,
      showSidebarUserInfo: false,
      topbarTheme: TopbarTheme.TOPBAR_THEME_DARK,
+     bsTheme: 'light',
      isOpenRightSideBar: false,
 };
 
-const Layout = ( state: LayoutStateTypes = INIT_STATE, action: LayoutActionType<string | boolean | null> ) => {
+
+const Layout = ( state: LayoutStateTypes = INIT_STATE, action: LayoutActionType<string | boolean | 'light' | 'dark' | null> ) => {
      switch ( action.type ) {
           case LayoutActionTypes.CHANGE_LAYOUT:
                return {
@@ -74,6 +76,11 @@ const Layout = ( state: LayoutStateTypes = INIT_STATE, action: LayoutActionType<
                return {
                     ...state,
                     topbarTheme: action.payload,
+               };
+          case LayoutActionTypes.CHANGE_BS_THEME:
+               return {
+                    ...state,
+                    bsTheme: action.payload,
                };
           case LayoutActionTypes.TOGGLE_TWO_TONE_ICONS:
                return {

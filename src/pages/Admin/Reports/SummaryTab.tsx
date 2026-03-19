@@ -17,7 +17,39 @@ const SummaryTab = () => {
      }, [ weekOffset ] );
 
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
-     const [ chartData, setChartData ] = useState<{ categories: string[], series: { name: string, data: number[] }[] }>( { categories: [], series: [] } )
+
+     const [ chartData, setChartData ] = useState<{
+          categories: string[],
+          series: { name: string, data: number[] }[]
+     }>( { categories: [], series: [] } )
+
+     // Bootstrap theme state
+     const getBsTheme = () =>
+          document.documentElement.getAttribute( 'data-bs-theme' ) ??
+          document.body.getAttribute( 'data-bs-theme' ) ??
+          'light'
+
+     const [ bsTheme, setBsTheme ] = useState<'light' | 'dark'>( getBsTheme() as any )
+     const isDark = bsTheme === 'dark'
+
+     // Watch for Bootstrap theme change
+     useEffect( () => {
+          const observer = new MutationObserver( () => {
+               setBsTheme( getBsTheme() as any )
+          } )
+
+          observer.observe( document.documentElement, {
+               attributes: true,
+               attributeFilter: [ 'data-bs-theme' ]
+          } )
+
+          observer.observe( document.body, {
+               attributes: true,
+               attributeFilter: [ 'data-bs-theme' ]
+          } )
+
+          return () => observer.disconnect()
+     }, [] )
 
      // Get days for selected week
      const { days } = useTimesheetCalculations( weekOffset, [] )
@@ -212,40 +244,71 @@ const SummaryTab = () => {
           }
      } )
 
-     const chartOptions = {
+     const chartOptions: ApexCharts.ApexOptions = {
           chart: {
                type: 'bar' as const,
                height: 450,
-               toolbar: {
-                    show: false,
-               },
+               toolbar: { show: false },
+               zoom: { enabled: false },
+               background: 'transparent',
+               foreColor: 'var(--bs-body-color)'
           },
+
+          theme: {
+               mode: isDark ? 'dark' : 'light'
+          },
+
           colors: colors,
+
           plotOptions: {
                bar: {
                     horizontal: false,
                     columnWidth: '50%',
-                    stacked: true,
                },
           },
+
           dataLabels: {
                enabled: false,
           },
+
           xaxis: {
                categories: chartData.categories,
+               labels: {
+                    style: {
+                         colors: 'var(--bs-body-color, var(--JK-body-color))'
+                    }
+               },
                title: {
                     text: 'Current Week',
+                    style: {
+                         color: 'var(--bs-body-color, var(--JK-body-color))'
+                    }
                },
           },
+
           yaxis: {
                title: {
                     text: 'Hours',
+                    style: {
+                         color: 'var(--bs-body-color, var(--JK-body-color))'
+                    }
                },
                labels: {
                     formatter: ( val: number ) => val.toFixed( 2 ),
+                    style: {
+                         colors: 'var(--bs-body-color, var(--JK-body-color))'
+                    }
                },
           },
+
+          legend: {
+               labels: {
+                    colors: 'var(--bs-body-color, var(--JK-body-color))'
+               }
+          },
+
           tooltip: {
+               theme: isDark ? 'dark' : 'light',
                y: {
                     formatter: ( val: number, opts: any ) => {
                          const dataPointIndex = opts.dataPointIndex

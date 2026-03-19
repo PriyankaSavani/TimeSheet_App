@@ -1,5 +1,5 @@
 
-// 
+//
 // breadcrumb.scss
 //
 
@@ -18,7 +18,7 @@
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .breadcrumb-item {
         > a {
             color: #{map-get($dark-grays, "700")};

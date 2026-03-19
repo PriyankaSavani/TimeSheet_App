@@ -18,6 +18,7 @@ enum LayoutActionTypes {
      CHANGE_SIDEBAR_TYPE = '@@layout/CHANGE_SIDEBAR_TYPE',
      TOGGLE_SIDEBAR_USER_INFO = '@@layout/TOGGLE_SIDEBAR_USER_INFO',
      CHANGE_TOPBAR_THEME = '@@layout/CHANGE_TOPBAR_THEME',
+     CHANGE_BS_THEME = '@@layout/CHANGE_BS_THEME',
 
      TOGGLE_TWO_TONE_ICONS = '@@layout/TOGGLE_TWO_TONE_ICONS',
      SHOW_RIGHT_SIDEBAR = '@@layout/SHOW_RIGHT_SIDEBAR',
@@ -45,6 +46,7 @@ export interface LayoutStateTypes {
      showTwoToneIcons: boolean;
      showSidebarUserInfo: boolean;
      topbarTheme: TopbarTheme.TOPBAR_THEME_LIGHT | TopbarTheme.TOPBAR_THEME_DARK;
+     bsTheme: string;
      isOpenRightSideBar: boolean;
 }
 

@@ -5,335 +5,334 @@
 
 :root {
 
-     // <=============================================>
-     // Bootstrap variable
-     // <=============================================>
+    // <=============================================>
+    // Bootstrap variable
+    // <=============================================>
 
-     // Link Variable
-     --#{$variable-prefix}link-color: #{$primary};
-     --#{$variable-prefix}link-hover-color: #{shade-color($primary, $link-shade-percentage)};
+    // Link Variable
+    --#{$prefix}link-color:                                    #{$primary};
+    --#{$prefix}link-hover-color:                              #{shade-color($primary, $link-shade-percentage)};
 
-     // Border Variable
-     --#{$variable-prefix}border-color: #{map-get($grays, "300")};
+    // Border Variable
+    --#{$prefix}border-color:                                  #{map-get($grays, "300")};
 
-     // scss-docs-start box-shadow-variables
-     --#{$variable-prefix}box-shadow: 0px 0px 35px 0px #{rgba(154, 161, 171, 0.15)};
-     --#{$variable-prefix}box-shadow-sm: 0 0.75rem 6rem #{rgba(56, 65, 74,.03)};
-     --#{$variable-prefix}box-shadow-lg: 0 0 45px 0 #{rgba(0, 0, 0, 0.12)};
-     --#{$variable-prefix}box-shadow-inset: inset 0 1px 2px #{rgba($black, .075)};
+    // scss-docs-start box-shadow-variables
+    --#{$prefix}box-shadow:                                    0px 0px 35px 0px #{rgba(154, 161, 171, 0.15)};
+    --#{$prefix}box-shadow-sm:                                 0 0.75rem 6rem #{rgba(56, 65, 74,.03)};
+    --#{$prefix}box-shadow-lg:                                 0 0 45px 0 #{rgba(0, 0, 0, 0.12)};
+    --#{$prefix}box-shadow-inset:                              inset 0 1px 2px #{rgba($black, .075)};
 
-     // scss-docs-end box-shadow-variables
-     --#{$variable-prefix}component-active-color: #{$white};
-     --#{$variable-prefix}component-active-bg: #{$primary};
+    // scss-docs-end box-shadow-variables
+    --#{$prefix}component-active-color:                        #{$white};
+    --#{$prefix}component-active-bg:                           #{$primary};
 
-     // scss-docs-start type-variables
-     --#{$variable-prefix}text-muted: #{map-get($grays, "600")};
-     --#{$variable-prefix}blockquote-footer-color: #{map-get($grays, "600")};
+    // scss-docs-start type-variables
+    --#{$prefix}text-muted:                                    #{map-get($grays, "600")};
+    --#{$prefix}blockquote-footer-color:                       #{map-get($grays, "600")};
 
-     --#{$variable-prefix}hr-color: #{lighten(map-get($grays, "300"),2.5%)};
+    --#{$prefix}hr-color:                                      #{lighten(map-get($grays, "300"),2.5%)};
 
-     --#{$variable-prefix}mark-bg: #fcf8e3;
+    --#{$prefix}mark-bg:                                       #fcf8e3;
 
-     // scss-docs-start table-variables
-     --#{$variable-prefix}table-color: #{$body-color};
-     --#{$variable-prefix}table-bg: transparent;
-     --#{$variable-prefix}table-accent-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}table-striped-color: #{$table-color};
-     --#{$variable-prefix}table-striped-bg: #{rgba(map-get($grays, '100'), $table-striped-bg-factor)};
-     --#{$variable-prefix}table-active-color: #{$table-color};
-     --#{$variable-prefix}table-active-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}table-hover-color: #{$table-color};
-     --#{$variable-prefix}table-hover-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}table-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}table-group-separator-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}table-caption-color: #{$text-muted};
+    // scss-docs-start table-variables
+    --#{$prefix}table-color:                                    #{$body-color};
+    --#{$prefix}table-bg:                                       transparent;
+    --#{$prefix}table-accent-bg:                                #{map-get($grays, "100")};
+    --#{$prefix}table-striped-color:                            #{$table-color};
+    --#{$prefix}table-striped-bg:                               #{rgba(map-get($grays, '100'), $table-striped-bg-factor)};
+    --#{$prefix}table-active-color:                             #{$table-color};
+    --#{$prefix}table-active-bg:                                #{map-get($grays, "100")};
+    --#{$prefix}table-hover-color:                              #{$table-color};
+    --#{$prefix}table-hover-bg:                                 #{map-get($grays, "100")};
+    --#{$prefix}table-border-color:                             #{map-get($grays, "300")};
+    --#{$prefix}table-group-separator-color:                    #{map-get($grays, "300")};
+    --#{$prefix}table-caption-color:                            #{$text-muted};
 
-     // scss-docs-start input-btn-variables
-     --#{$variable-prefix}input-btn-focus-color: #{rgba($primary, .25)};
+    // scss-docs-start input-btn-variables
+    --#{$prefix}input-btn-focus-color:                          #{rgba($primary, .25)};
 
-     // scss-docs-start btn-variables
-     --#{$variable-prefix}btn-box-shadow: inset 0 1px 0 #{rgba($white, .15)},
-     0 1px 1px #{rgba($black, .075)};
-     --#{$variable-prefix}btn-active-box-shadow: inset 0 3px 5px #{rgba($black, .125)};
-     --#{$variable-prefix}btn-link-color: #{$link-color};
-     --#{$variable-prefix}btn-link-hover-color: #{$link-hover-color};
-     --#{$variable-prefix}btn-link-disabled-color: #{map-get($grays, "600")};
+    // scss-docs-start btn-variables
+    --#{$prefix}btn-box-shadow:                                 inset 0 1px 0 #{rgba($white, .15)}, 0 1px 1px #{rgba($black, .075)};
+    --#{$prefix}btn-active-box-shadow:                          inset 0 3px 5px #{rgba($black, .125)};
+    --#{$prefix}btn-link-color:                                 #{$link-color};
+    --#{$prefix}btn-link-hover-color:                           #{$link-hover-color};
+    --#{$prefix}btn-link-disabled-color:                        #{map-get($grays, "600")};
 
-     // scss-docs-start form-text-variables
-     --#{$variable-prefix}form-text-color: #{$text-muted};
+    // scss-docs-start form-text-variables
+    --#{$prefix}form-text-color:                                #{$text-muted};
 
-     // scss-docs-start form-input-variables
-     --#{$variable-prefix}input-bg: #{$white};
-     --#{$variable-prefix}input-disabled-bg: #{$white};
-     --#{$variable-prefix}input-color: #{$body-color};
-     --#{$variable-prefix}input-border-color: #{map-get($grays, "400")};
-     --#{$variable-prefix}input-box-shadow: #{$box-shadow-inset};
-     --#{$variable-prefix}input-focus-bg: #{$input-bg};
-     --#{$variable-prefix}input-focus-border-color: #{shade-color(map-get($grays, "400"),10%)};
-     --#{$variable-prefix}input-focus-color: #{$input-color};
-     --#{$variable-prefix}input-placeholder-color: #{map-get($grays, "500")};
-     --#{$variable-prefix}input-plaintext-color: #{$body-color};
+    // scss-docs-start form-input-variables
+    --#{$prefix}input-bg:                                       #{$white};
+    --#{$prefix}input-disabled-bg:                              #{$white};
+    --#{$prefix}input-color:                                    #{$body-color};
+    --#{$prefix}input-border-color:                             #{map-get($grays, "400")};
+    --#{$prefix}input-box-shadow:                               #{$box-shadow-inset};
+    --#{$prefix}input-focus-bg:                                 #{$input-bg};
+    --#{$prefix}input-focus-border-color:                       #{shade-color(map-get($grays, "400"),10%)};
+    --#{$prefix}input-focus-color:                              #{$input-color};
+    --#{$prefix}input-placeholder-color:                        #{map-get($grays, "500")};
+    --#{$prefix}input-plaintext-color:                          #{$body-color};
 
-     // scss-docs-start form-check-variables
-     --#{$variable-prefix}form-check-input-bg: #{$white};
-     --#{$variable-prefix}form-check-input-border: #{$border-width solid (map-get($grays, "500"))};
-     --#{$variable-prefix}form-check-input-checked-color: #{$component-active-color};
-     --#{$variable-prefix}form-check-input-checked-bg-color: #{$component-active-bg};
-     --#{$variable-prefix}form-check-input-checked-border-color: #{$form-check-input-checked-bg-color};
-     --#{$variable-prefix}form-check-input-indeterminate-color: #{$component-active-color};
-     --#{$variable-prefix}form-check-input-indeterminate-bg-color: #{$component-active-bg};
-     --#{$variable-prefix}form-check-input-indeterminate-border-color: #{$form-check-input-indeterminate-bg-color};
+    // scss-docs-start form-check-variables
+    --#{$prefix}form-check-input-bg:                            #{$white};
+    --#{$prefix}form-check-input-border:                        #{$border-width solid (map-get($grays, "500"))};
+    --#{$prefix}form-check-input-checked-color:                 #{$component-active-color};
+    --#{$prefix}form-check-input-checked-bg-color:              #{$component-active-bg};
+    --#{$prefix}form-check-input-checked-border-color:          #{$form-check-input-checked-bg-color};
+    --#{$prefix}form-check-input-indeterminate-color:           #{$component-active-color};
+    --#{$prefix}form-check-input-indeterminate-bg-color:        #{$component-active-bg};
+    --#{$prefix}form-check-input-indeterminate-border-color:    #{$form-check-input-indeterminate-bg-color};
 
-     // scss-docs-start form-switch-variables
-     --#{$variable-prefix}form-switch-color: #{map-get($grays, "300")};
+    // scss-docs-start form-switch-variables
+    --#{$prefix}form-switch-color:                              #{map-get($grays, "300")};
 
-     // scss-docs-start input-group-variables
-     --#{$variable-prefix}input-group-addon-color: #{$input-color};
-     --#{$variable-prefix}input-group-addon-bg: #{map-get($grays, "200")};
-     --#{$variable-prefix}input-group-addon-border-color: #{map-get($grays, "400")};
+    // scss-docs-start input-group-variables
+    --#{$prefix}input-group-addon-color:                        #{$input-color};
+    --#{$prefix}input-group-addon-bg:                           #{map-get($grays, "200")};
+    --#{$prefix}input-group-addon-border-color:                 #{map-get($grays, "400")};
 
-     // scss-docs-start form-select-variables
-     --#{$variable-prefix}form-select-color: #{$input-color};
-     --#{$variable-prefix}form-select-bg: #{$input-bg};
-     --#{$variable-prefix}form-select-disabled-color: #{map-get($grays, "600")};
-     --#{$variable-prefix}form-select-disabled-bg: #{map-get($grays, "200")};
-     --#{$variable-prefix}form-select-disabled-border-color: #{$input-disabled-border-color};
-     --#{$variable-prefix}form-select-indicator-color: #{map-get($grays, "800")};
+    // scss-docs-start form-select-variables
+    --#{$prefix}form-select-color:                              #{$input-color};
+    --#{$prefix}form-select-bg:                                 #{$input-bg};
+    --#{$prefix}form-select-disabled-color:                     #{map-get($grays, "600")};
+    --#{$prefix}form-select-disabled-bg:                        #{map-get($grays, "200")};
+    --#{$prefix}form-select-disabled-border-color:              #{$input-disabled-border-color};
+    --#{$prefix}form-select-indicator-color:                    #{map-get($grays, "800")};
 
-     // scss-docs-start form-range-variables
-     --#{$variable-prefix}form-range-track-bg: #{map-get($grays, "300")};
-     --#{$variable-prefix}form-range-track-box-shadow: #{$box-shadow-inset};
-     --#{$variable-prefix}form-range-thumb-box-shadow: 0 .1rem .25rem #{rgba($black, .1)};
-     --#{$variable-prefix}form-range-thumb-active-bg: #{tint-color($primary, 70%)};
-     --#{$variable-prefix}form-range-thumb-disabled-bg: #{map-get($grays, "500")};
+    // scss-docs-start form-range-variables
+    --#{$prefix}form-range-track-bg:                            #{map-get($grays, "300")};
+    --#{$prefix}form-range-track-box-shadow:                    #{$box-shadow-inset};
+    --#{$prefix}form-range-thumb-box-shadow:                    0 .1rem .25rem #{rgba($black, .1)};
+    --#{$prefix}form-range-thumb-active-bg:                     #{tint-color($primary, 70%)};
+    --#{$prefix}form-range-thumb-disabled-bg:                   #{map-get($grays, "500")};
 
-     // scss-docs-start form-file-variables
-     --#{$variable-prefix}form-file-button-color: #{$input-color};
-     --#{$variable-prefix}form-file-button-bg: #{$input-group-addon-bg};
-     --#{$variable-prefix}form-file-button-hover-bg: #{shade-color(map-get($grays, "200"), 5%)};
+    // scss-docs-start form-file-variables
+    --#{$prefix}form-file-button-color:                         #{$input-color};
+    --#{$prefix}form-file-button-bg:                            #{$input-group-addon-bg};
+    --#{$prefix}form-file-button-hover-bg:                      #{shade-color(map-get($grays, "200"), 5%)};
 
-     // scss-docs-start nav-variables
-     --#{$variable-prefix}nav-link-disabled-color: #{map-get($grays, "600")};
-     --#{$variable-prefix}nav-tabs-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}nav-tabs-link-hover-border-color: #{map-get($grays, "200")} #{map-get($grays, "200")} #{$nav-tabs-border-color};
-     --#{$variable-prefix}nav-tabs-link-active-color: #{map-get($grays, "700")};
-     --#{$variable-prefix}nav-tabs-link-active-bg: #{$white};
-     --#{$variable-prefix}nav-tabs-link-active-border-color: #{map-get($grays, "300") map-get($grays, "300") $nav-tabs-link-active-bg};
+    // scss-docs-start nav-variables
+    --#{$prefix}nav-link-disabled-color:                        #{map-get($grays, "600")};
+    --#{$prefix}nav-tabs-border-color:                          #{map-get($grays, "300")};
+    --#{$prefix}nav-tabs-link-hover-border-color:               #{map-get($grays, "200")} #{map-get($grays, "200")} #{$nav-tabs-border-color};
+    --#{$prefix}nav-tabs-link-active-color:                     #{map-get($grays, "700")};
+    --#{$prefix}nav-tabs-link-active-bg:                        #{$white};
+    --#{$prefix}nav-tabs-link-active-border-color:              #{map-get($grays, "300") map-get($grays, "300") $nav-tabs-link-active-bg};
 
-     // scss-docs-start navbar-theme-variables
-     --#{$variable-prefix}navbar-dark-color: #{rgba($white, .55)};
-     --#{$variable-prefix}navbar-dark-hover-color: #{rgba($white, .75)};
-     --#{$variable-prefix}navbar-dark-active-color: #{$white};
-     --#{$variable-prefix}navbar-dark-disabled-color: #{rgba($white, .25)};
-     --#{$variable-prefix}navbar-dark-toggler-border-color: #{rgba($white, .1)};
-     --#{$variable-prefix}navbar-light-color: #{rgba($black, .55)};
-     --#{$variable-prefix}navbar-light-hover-color: #{rgba($black, .7)};
-     --#{$variable-prefix}navbar-light-active-color: #{rgba($black, .9)};
-     --#{$variable-prefix}navbar-light-disabled-color: #{rgba($black, .3)};
-     --#{$variable-prefix}navbar-light-toggler-border-color: #{rgba($black, .1)};
+    // scss-docs-start navbar-theme-variables
+    --#{$prefix}navbar-dark-color:                              #{rgba($white, .55)};
+    --#{$prefix}navbar-dark-hover-color:                        #{rgba($white, .75)};
+    --#{$prefix}navbar-dark-active-color:                       #{$white};
+    --#{$prefix}navbar-dark-disabled-color:                     #{rgba($white, .25)};
+    --#{$prefix}navbar-dark-toggler-border-color:               #{rgba($white, .1)};
+    --#{$prefix}navbar-light-color:                             #{rgba($black, .55)};
+    --#{$prefix}navbar-light-hover-color:                       #{rgba($black, .7)};
+    --#{$prefix}navbar-light-active-color:                      #{rgba($black, .9)};
+    --#{$prefix}navbar-light-disabled-color:                    #{rgba($black, .3)};
+    --#{$prefix}navbar-light-toggler-border-color:              #{rgba($black, .1)};
 
-     // scss-docs-start dropdown-variables
-     --#{$variable-prefix}dropdown-color: #{$body-color};
-     --#{$variable-prefix}dropdown-bg: #{$white};
-     --#{$variable-prefix}dropdown-border-color: #{shade-color($light, 3%)};
-     --#{$variable-prefix}dropdown-divider-bg: #{map-get($grays, "200")};
-     --#{$variable-prefix}dropdown-box-shadow: 0 .5rem 1rem #{rgba($black, .175)};
-     --#{$variable-prefix}dropdown-link-color: #{$body-color};
-     --#{$variable-prefix}dropdown-link-hover-color: #{$headings-color};
-     --#{$variable-prefix}dropdown-link-hover-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}dropdown-link-active-color: #{$dark};
-     --#{$variable-prefix}dropdown-link-active-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}dropdown-link-disabled-color: #{map-get($grays, "600")};
+    // scss-docs-start dropdown-variables
+    --#{$prefix}dropdown-color:                                 #{$body-color};
+    --#{$prefix}dropdown-bg:                                    #{$white};
+    --#{$prefix}dropdown-border-color:                          #{shade-color($light, 3%)};
+    --#{$prefix}dropdown-divider-bg:                            #{map-get($grays, "200")};
+    --#{$prefix}dropdown-box-shadow:                            0 .5rem 1rem #{rgba($black, .175)};
+    --#{$prefix}dropdown-link-color:                            #{$body-color};
+    --#{$prefix}dropdown-link-hover-color:                      #{$headings-color};
+    --#{$prefix}dropdown-link-hover-bg:                         #{map-get($grays, "100")};
+    --#{$prefix}dropdown-link-active-color:                     #{$dark};
+    --#{$prefix}dropdown-link-active-bg:                        #{map-get($grays, "100")};
+    --#{$prefix}dropdown-link-disabled-color:                   #{map-get($grays, "600")};
 
-     // scss-docs-start dropdown-dark-variables
-     --#{$variable-prefix}dropdown-dark-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}dropdown-dark-bg: #{map-get($grays, "800")};
-     --#{$variable-prefix}dropdown-dark-border-color: #{$dropdown-border-color};
-     --#{$variable-prefix}dropdown-dark-divider-bg: #{$dropdown-divider-bg};
-     --#{$variable-prefix}dropdown-dark-link-color: #{$dropdown-dark-color};
-     --#{$variable-prefix}dropdown-dark-link-hover-color: #{$white};
-     --#{$variable-prefix}dropdown-dark-link-hover-bg: #{rgba($white, .15)};
-     --#{$variable-prefix}dropdown-dark-link-active-color: #{$dropdown-link-active-color};
-     --#{$variable-prefix}dropdown-dark-link-active-bg: #{$dropdown-link-active-bg};
-     --#{$variable-prefix}dropdown-dark-link-disabled-color: #{map-get($grays, "500")};
-     --#{$variable-prefix}dropdown-dark-header-color: #{map-get($grays, "500")};
+    // scss-docs-start dropdown-dark-variables
+    --#{$prefix}dropdown-dark-color:                            #{map-get($grays, "300")};
+    --#{$prefix}dropdown-dark-bg:                               #{map-get($grays, "800")};
+    --#{$prefix}dropdown-dark-border-color:                     #{$dropdown-border-color};
+    --#{$prefix}dropdown-dark-divider-bg:                       #{$dropdown-divider-bg};
+    --#{$prefix}dropdown-dark-link-color:                       #{$dropdown-dark-color};
+    --#{$prefix}dropdown-dark-link-hover-color:                 #{$white};
+    --#{$prefix}dropdown-dark-link-hover-bg:                    #{rgba($white, .15)};
+    --#{$prefix}dropdown-dark-link-active-color:                #{$dropdown-link-active-color};
+    --#{$prefix}dropdown-dark-link-active-bg:                   #{$dropdown-link-active-bg};
+    --#{$prefix}dropdown-dark-link-disabled-color:              #{map-get($grays, "500")};
+    --#{$prefix}dropdown-dark-header-color:                     #{map-get($grays, "500")};
 
-     // scss-docs-start pagination-variables
-     --#{$variable-prefix}pagination-color: #{$dark};
-     --#{$variable-prefix}pagination-bg: #{$white};
-     --#{$variable-prefix}pagination-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}pagination-focus-color: #{$link-hover-color};
-     --#{$variable-prefix}pagination-focus-bg: #{map-get($grays, "200")};
-     --#{$variable-prefix}pagination-focus-box-shadow: #{$input-btn-focus-box-shadow};
-     --#{$variable-prefix}pagination-hover-color: #{$dark};
-     --#{$variable-prefix}pagination-hover-bg: #{map-get($grays, "200")};
-     --#{$variable-prefix}pagination-hover-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}pagination-disabled-color: #{map-get($grays, "600")};
-     --#{$variable-prefix}pagination-disabled-bg: #{$white};
-     --#{$variable-prefix}pagination-disabled-border-color: #{map-get($grays, "300")};
+    // scss-docs-start pagination-variables
+    --#{$prefix}pagination-color:                               #{$dark};
+    --#{$prefix}pagination-bg:                                  #{$white};
+    --#{$prefix}pagination-border-color:                        #{map-get($grays, "300")};
+    --#{$prefix}pagination-focus-color:                         #{$link-hover-color};
+    --#{$prefix}pagination-focus-bg:                            #{map-get($grays, "200")};
+    --#{$prefix}pagination-focus-box-shadow:                    #{$input-btn-focus-box-shadow};
+    --#{$prefix}pagination-hover-color:                         #{$dark};
+    --#{$prefix}pagination-hover-bg:                            #{map-get($grays, "200")};
+    --#{$prefix}pagination-hover-border-color:                  #{map-get($grays, "300")};
+    --#{$prefix}pagination-disabled-color:                      #{map-get($grays, "600")};
+    --#{$prefix}pagination-disabled-bg:                         #{$white};
+    --#{$prefix}pagination-disabled-border-color:               #{map-get($grays, "300")};
 
-     // scss-docs-start card-variables
-     --#{$variable-prefix}card-border-color: #{map-get($grays, "200")};
-     --#{$variable-prefix}card-box-shadow: #{$box-shadow-sm};
-     --#{$variable-prefix}card-cap-bg: #{lighten(map-get($grays, "300"), 5%)};
-     --#{$variable-prefix}card-bg: #{$white};
+    // scss-docs-start card-variables
+    --#{$prefix}card-border-color:                              #{map-get($grays, "200")};
+    --#{$prefix}card-box-shadow:                                #{$box-shadow-sm};
+    --#{$prefix}card-cap-bg:                                    #{lighten(map-get($grays, "300"), 5%)};
+    --#{$prefix}card-bg:                                        #{$white};
 
-     // scss-docs-start accordion-variables
-     --#{$variable-prefix}accordion-color: #{$body-color};
-     --#{$variable-prefix}accordion-border-color: #{rgba($black, .125)};
-     --#{$variable-prefix}accordion-button-active-bg: #{tint-color($primary, 90%)};
-     --#{$variable-prefix}accordion-button-active-color: #{shade-color($primary, 10%)};
-     --#{$variable-prefix}accordion-button-focus-border-color: #{$input-focus-border-color};
-     --#{$variable-prefix}accordion-button-focus-box-shadow: #{$btn-focus-box-shadow};
+    // scss-docs-start accordion-variables
+    --#{$prefix}accordion-color:                                #{$body-color};
+    --#{$prefix}accordion-border-color:                         #{rgba($black, .125)};
+    --#{$prefix}accordion-button-active-bg:                     #{tint-color($primary, 90%)};
+    --#{$prefix}accordion-button-active-color:                  #{shade-color($primary, 10%)};
+    --#{$prefix}accordion-button-focus-border-color:            #{$input-focus-border-color};
+    --#{$prefix}accordion-button-focus-box-shadow:              #{$btn-focus-box-shadow};
 
-     // scss-docs-start tooltip-variables
-     --#{$variable-prefix}tooltip-color: #{$white};
-     --#{$variable-prefix}tooltip-bg: #{$black};
+    // scss-docs-start tooltip-variables
+    --#{$prefix}tooltip-color:                                  #{$white};
+    --#{$prefix}tooltip-bg:                                     #{$black};
 
-     // scss-docs-start popover-variables
-     --#{$variable-prefix}popover-bg: #{$white};
-     --#{$variable-prefix}popover-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}popover-box-shadow: 0 .25rem .5rem #{rgba($black, .2)};
-     --#{$variable-prefix}popover-header-bg: #{shade-color($white, 6%)};
-     --#{$variable-prefix}popover-header-color: #{$headings-color};
-     --#{$variable-prefix}popover-body-color: #{$body-color};
-     --#{$variable-prefix}popover-arrow-color: #{$white};
-     --#{$variable-prefix}popover-arrow-outer-color: #{fade-in(map-get($grays, "300"), .05)};
+    // scss-docs-start popover-variables
+    --#{$prefix}popover-bg:                                     #{$white};
+    --#{$prefix}popover-border-color:                           #{map-get($grays, "300")};
+    --#{$prefix}popover-box-shadow:                             0 .25rem .5rem #{rgba($black, .2)};
+    --#{$prefix}popover-header-bg:                              #{shade-color($white, 6%)};
+    --#{$prefix}popover-header-color:                           #{$headings-color};
+    --#{$prefix}popover-body-color:                             #{$body-color};
+    --#{$prefix}popover-arrow-color:                            #{$white};
+    --#{$prefix}popover-arrow-outer-color:                      #{fade-in(map-get($grays, "300"), .05)};
 
-     // scss-docs-start toast-variables
-     --#{$variable-prefix}toast-background-color: #{rgba($white, .85)};
-     --#{$variable-prefix}toast-border-color: #{rgba($black, .1)};
-     --#{$variable-prefix}toast-box-shadow: #{$box-shadow};
-     --#{$variable-prefix}toast-header-color: #{map-get($grays, "600")};
-     --#{$variable-prefix}toast-header-background-color: #{rgba($white, .85)};
-     --#{$variable-prefix}toast-header-border-color: #{rgba($black, .05)};
+    // scss-docs-start toast-variables
+    --#{$prefix}toast-background-color:                         #{rgba($white, .85)};
+    --#{$prefix}toast-border-color:                             #{rgba($black, .1)};
+    --#{$prefix}toast-box-shadow:                               #{$box-shadow};
+    --#{$prefix}toast-header-color:                             #{map-get($grays, "600")};
+    --#{$prefix}toast-header-background-color:                  #{rgba($white, .85)};
+    --#{$prefix}toast-header-border-color:                      #{rgba($black, .05)};
 
-     // scss-docs-start badge-variables
-     --#{$variable-prefix}badge-color: #{$white};
+    // scss-docs-start badge-variables
+    --#{$prefix}badge-color:                                    #{$white};
 
-     // scss-docs-start modal-variables
-     --#{$variable-prefix}modal-content-bg: #{$white};
-     --#{$variable-prefix}modal-content-box-shadow-xs: 0 .25rem .5rem #{rgba($black, .5)};
-     --#{$variable-prefix}modal-content-box-shadow-sm-up: 0 .5rem 1rem #{rgba($black, .5)};
-     --#{$variable-prefix}modal-backdrop-bg: #{map-get($grays, "900")};
-     --#{$variable-prefix}modal-header-border-color: #{$border-color};
-     --#{$variable-prefix}modal-footer-border-color: #{$border-color};
+    // scss-docs-start modal-variables
+    --#{$prefix}modal-content-bg:                               #{$white};
+    --#{$prefix}modal-content-box-shadow-xs:                    0 .25rem .5rem #{rgba($black, .5)};
+    --#{$prefix}modal-content-box-shadow-sm-up:                 0 .5rem 1rem #{rgba($black, .5)};
+    --#{$prefix}modal-backdrop-bg:                              #{map-get($grays, "900")};
+    --#{$prefix}modal-header-border-color:                      #{$border-color};
+    --#{$prefix}modal-footer-border-color:                      #{$border-color};
 
-     // scss-docs-start progress-variables
-     --#{$variable-prefix}progress-bg: #{lighten(map-get($grays, "300"), 5.5%)};
-     --#{$variable-prefix}progress-box-shadow: #{$box-shadow-inset};
-     --#{$variable-prefix}progress-bar-color: #{$white};
-     --#{$variable-prefix}progress-bar-bg: #{$primary};
+    // scss-docs-start progress-variables
+    --#{$prefix}progress-bg:                                    #{lighten(map-get($grays, "300"), 5.5%)};
+    --#{$prefix}progress-box-shadow:                            #{$box-shadow-inset};
+    --#{$prefix}progress-bar-color:                             #{$white};
+    --#{$prefix}progress-bar-bg:                                #{$primary};
 
-     // scss-docs-start list-group-variables
-     --#{$variable-prefix}list-group-color: #{null};
-     --#{$variable-prefix}list-group-bg: #{$white};
-     --#{$variable-prefix}list-group-border-color: #{rgba($black, .125)};
-     --#{$variable-prefix}list-group-hover-bg: #{map-get($grays, "100")};
-     --#{$variable-prefix}list-group-disabled-color: #{map-get($grays, "600")};
-     --#{$variable-prefix}list-group-disabled-bg: #{$white};
-     --#{$variable-prefix}list-group-action-color: #{map-get($grays, "700")};
-     --#{$variable-prefix}list-group-action-active-color: #{$body-color};
-     --#{$variable-prefix}list-group-action-active-bg: #{map-get($grays, "200")};
+    // scss-docs-start list-group-variables
+    --#{$prefix}list-group-color:                               #{null};
+    --#{$prefix}list-group-bg:                                  #{$white};
+    --#{$prefix}list-group-border-color:                        #{rgba($black, .125)};
+    --#{$prefix}list-group-hover-bg:                            #{map-get($grays, "100")};
+    --#{$prefix}list-group-disabled-color:                      #{map-get($grays, "600")};
+    --#{$prefix}list-group-disabled-bg:                         #{$white};
+    --#{$prefix}list-group-action-color:                        #{map-get($grays, "700")};
+    --#{$prefix}list-group-action-active-color:                 #{$body-color};
+    --#{$prefix}list-group-action-active-bg:                    #{map-get($grays, "200")};
 
-     // scss-docs-start thumbnail-variables
-     --#{$variable-prefix}thumbnail-bg: #{$body-bg};
-     --#{$variable-prefix}thumbnail-border-color: #{map-get($grays, "300")};
-     --#{$variable-prefix}thumbnail-box-shadow: #{$box-shadow-sm};
+    // scss-docs-start thumbnail-variables
+    --#{$prefix}thumbnail-bg:                                   #{$body-bg};
+    --#{$prefix}thumbnail-border-color:                         #{map-get($grays, "300")};
+    --#{$prefix}thumbnail-box-shadow:                           #{$box-shadow-sm};
 
-     // scss-docs-start figure-variables
-     --#{$variable-prefix}figure-caption-color: #{map-get($grays, "600")};
+    // scss-docs-start figure-variables
+    --#{$prefix}figure-caption-color:                           #{map-get($grays, "600")};
 
-     // scss-docs-start breadcrumb-variables
-     --#{$variable-prefix}breadcrumb-divider-color: #{map-get($grays, "400")};
-     --#{$variable-prefix}breadcrumb-active-color: #{map-get($grays, "500")};
+    // scss-docs-start breadcrumb-variables
+    --#{$prefix}breadcrumb-divider-color:                       #{map-get($grays, "400")};
+    --#{$prefix}breadcrumb-active-color:                        #{map-get($grays, "500")};
 
-     // scss-docs-start carousel-variables
-     --#{$variable-prefix}carousel-control-color: #{$white};
-     --#{$variable-prefix}carousel-indicator-active-bg: #{$white};
-     --#{$variable-prefix}carousel-caption-color: #{$white};
-     --#{$variable-prefix}carousel-dark-indicator-active-bg: #{$black};
-     --#{$variable-prefix}carousel-dark-caption-color: #{$black};
+    // scss-docs-start carousel-variables
+    --#{$prefix}carousel-control-color:                         #{$white};
+    --#{$prefix}carousel-indicator-active-bg:                   #{$white};
+    --#{$prefix}carousel-caption-color:                         #{$white};
+    --#{$prefix}carousel-dark-indicator-active-bg:              #{$black};
+    --#{$prefix}carousel-dark-caption-color:                    #{$black};
 
-     // scss-docs-start close-variables
-     --#{$variable-prefix}btn-close-color: #{$black};
+    // scss-docs-start close-variables
+    --#{$prefix}btn-close-color:                                #{$black};
 
-     // Code
-     --#{$variable-prefix}code-color: #{$pink};
+    // Code
+    --#{$prefix}code-color:                                     #{$pink};
 
-     --#{$variable-prefix}kbd-color: #{$white};
-     --#{$variable-prefix}kbd-bg: #{map-get($grays, "900")};
-     --#{$variable-prefix}pre-color: #{map-get($grays, "900")};
-
+    --#{$prefix}kbd-color:                                      #{$white};
+    --#{$prefix}kbd-bg:                                         #{map-get($grays, "900")};
+    --#{$prefix}pre-color:                                      #{map-get($grays, "900")};
 
 
-     // <=============================================>
-     // Custome variable
-     // <=============================================>
 
-     // left-sidebar
-     --#{$variable-prefix}bg-leftbar: #{$white};
-     --#{$variable-prefix}bg-leftbar-dark: #38414a;
-     --#{$variable-prefix}bg-leftbar-brand: #{$blue};
-     --#{$variable-prefix}bg-leftbar-gradient: #683ba9;
+    // <=============================================>
+    // Custome variable
+    // <=============================================>
 
-     // Compact sidebar
-     --#{$variable-prefix}twocolumn-sidebar-bg: #{$white};
-     --#{$variable-prefix}twocolumn-sidebar-iconview-bg: #{$purple};
+    // left-sidebar
+    --#{$prefix}bg-leftbar:                                      #{$white};
+    --#{$prefix}bg-leftbar-dark:                                 #1e1f27;
+    --#{$prefix}bg-leftbar-brand:                                #{$primary};
+    --#{$prefix}bg-leftbar-gradient:                             #683ba9;
 
-     // Dark leftbar menu color
-     --#{$variable-prefix}menu-item-color-dark: #9097a7;
-     --#{$variable-prefix}menu-item-hover-color-dark: #c8cddc;
-     --#{$variable-prefix}menu-item-active-color-dark: #{$white};
+    // Compact sidebar
+    --#{$prefix}twocolumn-sidebar-bg:                            #{$white};
+    --#{$prefix}twocolumn-sidebar-iconview-bg:                   #{$purple};
 
-     //Menu item
-     --#{$variable-prefix}menu-item: #6e768e;
-     --#{$variable-prefix}menu-item-hover: #00acc1;
-     --#{$variable-prefix}menu-item-active: #00acc1;
-     --#{$variable-prefix}menu-sub-item-active: #00acc1;
+    // Dark leftbar menu color
+    --#{$prefix}menu-item-color-dark:                            #9097a7;
+    --#{$prefix}menu-item-hover-color-dark:                      #c8cddc;
+    --#{$prefix}menu-item-active-color-dark:                     #{$white};
 
-     --#{$variable-prefix}menuitem-active-bg: #{rgba(#00acc1, 0.07)};
+    //Menu item
+    --#{$prefix}menu-item:                                       #6e768e;
+    --#{$prefix}menu-item-hover:                                 #00acc1;
+    --#{$prefix}menu-item-active:                                #00acc1;
+    --#{$prefix}menu-sub-item-active:                            #00acc1;
 
-     // Horizontal Menu Item
-     --#{$variable-prefix}hori-menu-item-color: #6e7488;
+    --#{$prefix}menuitem-active-bg:                              #{rgba(#00acc1, 0.07)};
 
-     // Right-sidebar
-     --#{$variable-prefix}rightbar-bg: #{$white};
+    // Horizontal Menu Item
+    --#{$prefix}hori-menu-item-color:                            #6e7488;
 
-     //Topbar Background
-     --#{$variable-prefix}bg-topbar-light: #{$white};
-     --#{$variable-prefix}bg-topbar-dark: #38414a;
+    // Right-sidebar
+    --#{$prefix}rightbar-bg:                                     #{$white};
 
-     // Leftbar item shadow (Condensed item)
-     --#{$variable-prefix}box-shadow-condensed: 3px 5px 10px 0 #{rgba(154,161,171,.2)};
+    //Topbar Background
+    --#{$prefix}bg-topbar-light:                                 #{$white};
+    --#{$prefix}bg-topbar-dark:                                  #38414a;
 
-     // Footer
-     --#{$variable-prefix}footer-bg: #{darken($body-bg,2.5%)};
+    // Leftbar item shadow (Condensed item)
+    --#{$prefix}box-shadow-condensed:                            3px 5px 10px 0 #{rgba(154,161,171,.2)};
 
-     // User authentication Background
-     --#{$variable-prefix}auth-bg: #{$white};
-     --#{$variable-prefix}auth-bg-alt: #{$purple};
+    // Footer
+    --#{$prefix}footer-bg:                                       #{darken($body-bg,2.5%)};
 
-     // Apex chart
-     --#{$variable-prefix}apex-grid-color: #f9f9fd;
+    // User authentication Background
+    --#{$prefix}auth-bg:                                         #{$white};
+    --#{$prefix}auth-bg-alt:                                     #{$purple};
 
-     // Chat widget
-     --#{$variable-prefix}chat-primary-user-bg: #fef5e4;
-     --#{$variable-prefix}chat-secondary-user-bg: #f1f3fa;
+    // Apex chart
+    --#{$prefix}apex-grid-color:                                 #f9f9fd;
 
-     // Text-color (h1 to h6)
-     --#{$variable-prefix}text-color-h: #343a40;
+    // Chat widget
+    --#{$prefix}chat-primary-user-bg:                            #fef5e4;
+    --#{$prefix}chat-secondary-user-bg:                          #f1f3fa;
 
-     // Card overlay
-     --#{$variable-prefix}card-overlay-color: #3e4852;
-     --#{$variable-prefix}card-overlay-bg: #{rgba($white, 0.8)};
+    // Text-color (h1 to h6)
+    --#{$prefix}text-color-h:                                    #343a40;
 
-     // Input light gray
-     --#{$variable-prefix}input-light-bg: #f3f7f9;
+    // Card overlay
+    --#{$prefix}card-overlay-color:                              #3e4852;
+    --#{$prefix}card-overlay-bg:                                 #{rgba($white, 0.8)};
 
-     // Components Shadows
-     --#{$variable-prefix}components-shadow-sm: none;
-     --#{$variable-prefix}components-shadow: none;
-     --#{$variable-prefix}components-shadow-lg: none;
+    // Input light gray
+    --#{$prefix}input-light-bg:                                  #f3f7f9;
+
+    // Components Shadows
+    --#{$prefix}components-shadow-sm:                              none;
+    --#{$prefix}components-shadow:                                 none;
+    --#{$prefix}components-shadow-lg:                              none;
 
 }

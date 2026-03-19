@@ -51,7 +51,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .spinner {
         border-top: 5px solid #{map-get($dark-grays, "300")};
         border-right: 5px solid #{map-get($dark-grays, "300")};

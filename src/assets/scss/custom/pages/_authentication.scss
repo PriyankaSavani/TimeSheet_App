@@ -110,7 +110,7 @@ body.authentication-bg-pattern {
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .auth-logo {
         .logo-light {
             display: block !important;

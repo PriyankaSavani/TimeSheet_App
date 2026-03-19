@@ -1,4 +1,4 @@
-// 
+//
 // widgets.scss
 //
 
@@ -152,7 +152,7 @@
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .inbox-widget {
         .inbox-item {
             border-bottom: 1px solid #{rgba(map-get($dark-grays, "300"),0.5)};

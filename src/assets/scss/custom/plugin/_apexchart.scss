@@ -1,0 +1,74 @@
+//
+// apexchart.scss
+//
+
+
+.apexcharts-canvas {
+     font-family: $font-family-base !important;
+
+     .apexcharts-svg {
+          .apexcharts-inner {
+               .apexcharts-yaxis {
+                    .apexcharts-yaxis-texts-g{
+                         text {
+                              font-size: $font-size-sm * 0.8 !important;
+                         }
+                    }
+                    .apexcharts-yaxis-title {
+                         text {
+                              font-size: $font-size-sm * 0.8 !important;
+                         }
+                    }
+               }
+               .apexcharts-xaxis {
+                    .apexcharts-xaxis-texts-g {
+                         text {
+                              font-size: $font-size-sm * 0.8 !important;
+                         }
+                    }
+                    .apexcharts-xaxis-title {
+                         text {
+                              font-size: $font-size-sm * 0.8 !important;
+                         }
+                    }
+               }
+          }
+          .apexcharts-yaxis {
+               .apexcharts-yaxis-texts-g{
+                    text {
+                         font-size: $font-size-sm * 0.8 !important;
+                    }
+               }
+               .apexcharts-yaxis-title {
+                    text {
+                         font-size: $font-size-sm * 0.8 !important;
+                    }
+               }
+          }
+     }
+     .apexcharts-legend {
+          .apexcharts-legend-series {
+               margin-bottom: $spacer * 0.5 !important;
+
+               .apexcharts-legend-marker {
+                    margin-right: $spacer * 0.5 !important;
+               }
+
+               .apexcharts-legend-text {
+                    font-size: $font-size-sm !important;
+               }
+          }
+     }
+}
+
+html[data-bs-theme="dark"] {
+     .apexcharts-canvas {
+          .apexcharts-svg {
+               .apexcharts-inner {
+                    line {
+                         stroke: $body-color !important;
+                    }
+               }
+          }
+     }
+}

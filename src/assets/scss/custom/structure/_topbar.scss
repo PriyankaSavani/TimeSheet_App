@@ -76,7 +76,7 @@
 
     .dropdown {
         .nav-link.show {
-            background-color: rgba($white, 0.05);
+            background-color: transparent;
         }
     }
 
@@ -480,7 +480,7 @@ body[data-layout-mode="two-column"] {
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .logo {
         .logo-lg-text-dark {
             color: #{map-get($dark-grays, "900")};

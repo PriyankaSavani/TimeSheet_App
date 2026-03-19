@@ -85,3 +85,9 @@
     margin-bottom: $grid-gutter-width;
     color: $text-muted;
 }
+
+html[data-bs-theme="dark"] {
+    .card {
+        --#{$prefix}card-bg: var(--#{$prefix}bg-leftbar-dark);
+    }
+}

@@ -21,6 +21,12 @@
     i {
         display: inline-block;
     }
+
+    .dropdown-item {
+        &:hover {
+            background-color: $footer-bg;
+        }
+    }
 }
 
 
@@ -136,5 +142,15 @@ html[dir="ltr"] .megamenu-list {
 
     .dropdown-mega-menu-lg {
         width: 26rem;
+    }
+}
+
+html[data-bs-theme="dark"] {
+    .dropdown-menu {
+        .dropdown-item {
+            &:hover {
+                background-color: $bg-topbar-dark;
+            }
+        }
     }
 }

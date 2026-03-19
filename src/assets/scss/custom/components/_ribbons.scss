@@ -1,4 +1,4 @@
-// 
+//
 // ribbons.scss
 //
 
@@ -135,7 +135,7 @@
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .ribbon-box {
         .ribbon {
             box-shadow: 2px 5px 10px #{rgba(map-get($dark-grays, "900"), 0.15)};
@@ -143,7 +143,7 @@ body[data-layout-color="dark"] {
         @each $color, $value in $dark-theme-colors {
             .ribbon-#{$color} {
                 background: ($value);
-    
+
                 &:before {
                     border-color: darken(($value), 10%) transparent transparent;
                 }
@@ -155,7 +155,7 @@ body[data-layout-color="dark"] {
                         border-left: 3px solid darken(($value), 15%);
                         border-top: 3px solid darken(($value), 15%);
                     }
-    
+
                     &:after {
                         border-right: 3px solid darken(($value), 15%);
                         border-top: 3px solid darken(($value), 15%);

@@ -4,10 +4,10 @@
 
 
 //Background left-sidebar
-$bg-leftbar: var(--#{$variable-prefix}bg-leftbar);
-$bg-leftbar-dark: var(--#{$variable-prefix}bg-leftbar-dark);
-$bg-leftbar-brand: var(--#{$variable-prefix}bg-leftbar-brand);
-$bg-leftbar-gradient: var(--#{$variable-prefix}bg-leftbar-gradient);
+$bg-leftbar: var(--#{$prefix}bg-leftbar);
+$bg-leftbar-dark: var(--#{$prefix}bg-leftbar-dark);
+$bg-leftbar-brand: var(--#{$prefix}bg-leftbar-brand);
+$bg-leftbar-gradient: var(--#{$prefix}bg-leftbar-gradient);
 
 // Leftbar width
 $leftbar-width: 240px;
@@ -22,40 +22,40 @@ $boxed-layout-width: 1300px;
 // Compact sidebar
 $twocolumn-sidebar-width: 220px;
 $twocolumn-sidebar-iconview-width: 70px;
-$twocolumn-sidebar-bg: var(--#{$variable-prefix}twocolumn-sidebar-bg);
-$twocolumn-sidebar-iconview-bg: var(--#{$variable-prefix}twocolumn-sidebar-iconview-bg);
+$twocolumn-sidebar-bg: var(--#{$prefix}twocolumn-sidebar-bg);
+$twocolumn-sidebar-iconview-bg: var(--#{$prefix}twocolumn-sidebar-iconview-bg);
 
 // Dark leftbar menu color
-$menu-item-color-dark: var(--#{$variable-prefix}menu-item-color-dark);
-$menu-item-hover-color-dark: var(--#{$variable-prefix}menu-item-hover-color-dark);
-$menu-item-active-color-dark: var(--#{$variable-prefix}menu-item-active-color-dark);
+$menu-item-color-dark: var(--#{$prefix}menu-item-color-dark);
+$menu-item-hover-color-dark: var(--#{$prefix}menu-item-hover-color-dark);
+$menu-item-active-color-dark: var(--#{$prefix}menu-item-active-color-dark);
 
 //Menu item
-$menu-item: var(--#{$variable-prefix}menu-item);
-$menu-item-hover: var(--#{$variable-prefix}menu-item-hover);
-$menu-item-active: var(--#{$variable-prefix}menu-item-active);
-$menu-sub-item-active: var(--#{$variable-prefix}menu-sub-item-active);
+$menu-item: var(--#{$prefix}menu-item);
+$menu-item-hover: var(--#{$prefix}menu-item-hover);
+$menu-item-active: var(--#{$prefix}menu-item-active);
+$menu-sub-item-active: var(--#{$prefix}menu-sub-item-active);
 $menu-item-size: 0.95rem;
 $menu-sub-item-size: 0.875rem;
 
-$menuitem-active-bg: var(--#{$variable-prefix}menuitem-active-bg);
+$menuitem-active-bg: var(--#{$prefix}menuitem-active-bg);
 
 // Horizontal Menu Item
-$hori-menu-item-color: var(--#{$variable-prefix}hori-menu-item-color);
+$hori-menu-item-color: var(--#{$prefix}hori-menu-item-color);
 
 //Rightbar Width
 $rightbar-width: 260px;
-$rightbar-bg: var(--#{$variable-prefix}rightbar-bg);
+$rightbar-bg: var(--#{$prefix}rightbar-bg);
 
 //Topbar Background
-$bg-topbar-light: var(--#{$variable-prefix}bg-topbar-light);
-$bg-topbar-dark: var(--#{$variable-prefix}bg-topbar-dark);
+$bg-topbar-light: var(--#{$prefix}bg-topbar-light);
+$bg-topbar-dark: var(--#{$prefix}bg-topbar-dark);
 
 // Leftbar item shadow (Condensed item)
-$box-shadow-condensed: var(--#{$variable-prefix}box-shadow-condensed);
+$box-shadow-condensed: var(--#{$prefix}box-shadow-condensed);
 
 // Footer
-$footer-bg: var(--#{$variable-prefix}footer-bg);
+$footer-bg: var(--#{$prefix}footer-bg);
 
 // Topnav Height (Horizontal)
 $topnav-height: 55px;
@@ -89,32 +89,32 @@ $logo-auth-dark-display: block;
 $logo-auth-light-display: none;
 
 // User authentication Background
-$auth-bg: var(--#{$variable-prefix}auth-bg);
-$auth-bg-alt: var(--#{$variable-prefix}auth-bg-alt);
+$auth-bg: var(--#{$prefix}auth-bg);
+$auth-bg-alt: var(--#{$prefix}auth-bg-alt);
 $auth-img-bg: url("../../../images/bg-auth.jpg");
 $auth-img-pattern-bg: url("../../../images/bg-pattern.png");
 
 // Apex chart
-$apex-grid-color: var(--#{$variable-prefix}apex-grid-color);
+$apex-grid-color: var(--#{$prefix}apex-grid-color);
 
 // Chat widget
-$chat-primary-user-bg: var(--#{$variable-prefix}chat-primary-user-bg);
-$chat-secondary-user-bg: var(--#{$variable-prefix}chat-secondary-user-bg);
+$chat-primary-user-bg: var(--#{$prefix}chat-primary-user-bg);
+$chat-secondary-user-bg: var(--#{$prefix}chat-secondary-user-bg);
 
 // Text-color (h1 to h6)
-$text-color-h: var(--#{$variable-prefix}text-color-h);
+$text-color-h: var(--#{$prefix}text-color-h);
 
 // Card overlay
-$card-overlay-color: var(--#{$variable-prefix}card-overlay-color);
-$card-overlay-bg: var(--#{$variable-prefix}card-overlay-bg);
+$card-overlay-color: var(--#{$prefix}card-overlay-color);
+$card-overlay-bg: var(--#{$prefix}card-overlay-bg);
 
 // Input light gray
-$input-light-bg: var(--#{$variable-prefix}input-light-bg);
+$input-light-bg: var(--#{$prefix}input-light-bg);
 
 // Components Shadows
-$components-shadow-sm: var(--#{$variable-prefix}components-shadow-sm);
-$components-shadow: var(--#{$variable-prefix}components-shadow);
-$components-shadow-lg: var(--#{$variable-prefix}components-shadow-lg);
+$components-shadow-sm: var(--#{$prefix}components-shadow-sm);
+$components-shadow: var(--#{$prefix}components-shadow);
+$components-shadow-lg: var(--#{$prefix}components-shadow-lg);
 
 // label
 $label-font-weight: 600;

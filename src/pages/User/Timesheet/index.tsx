@@ -313,7 +313,7 @@ const Timesheet = () => {
                          <Table
                               bordered
                               responsive
-                              variant='warning'
+                         // variant='warning'
                          >
                               <thead>
                                    <tr>

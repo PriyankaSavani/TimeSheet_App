@@ -46,19 +46,19 @@
 }
 
 .sp-line-1 {
-    -webkit-line-clamp: 1;
+    line-clamp: 1;
 }
 
 .sp-line-2 {
-    -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 
 .sp-line-3 {
-    -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
 
 .sp-line-4 {
-    -webkit-line-clamp: 4;
+    line-clamp: 4;
 }
 
 // Icons
@@ -117,7 +117,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .icon-dual {
         fill: #{rgba(map-get($dark-grays, "600"), 0.12)};
     }

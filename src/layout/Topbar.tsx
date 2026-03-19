@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ProfileDropdown from '../components/ProfileDropdown';
+import FeatherIcon from 'feather-icons-react';
+import { selectLayoutState } from '../redux/layout/selectors';
+import { selectAuthState } from '../redux/auth/selectors';
+
 
 // logo
 import logo from '../assets/images/logo/LOGO_LIGHT.png';
@@ -9,8 +13,6 @@ import logo from '../assets/images/logo/LOGO_LIGHT.png';
 // images
 import profilePic from '../assets/images/users/user-5.jpg';
 
-// selectors
-import { selectAuthState } from '../redux/auth/selectors';
 
 interface TopbarProps {
      hideLogo?: boolean;
@@ -40,13 +42,33 @@ const ProfileMenus = [
 
 const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: TopbarProps ) => {
 
+     const dispatch = useDispatch();
      const { user } = useSelector( selectAuthState );
+     const { bsTheme } = useSelector( selectLayoutState );
+     const [ isDark, setIsDark ] = useState( false );
+
+     const toggleTheme = ( newTheme: 'light' | 'dark' ) => {
+          console.log( 'Toggle to', newTheme );
+          localStorage.setItem( 'bsTheme', newTheme );
+          document.documentElement.setAttribute( 'data-bs-theme', newTheme );
+          setIsDark( newTheme === 'dark' );
+     };
+
+     useEffect( () => {
+          const saved = ( localStorage.getItem( 'bsTheme' ) as 'light' | 'dark' ) || bsTheme;
+          document.documentElement.setAttribute( 'data-bs-theme', saved );
+          setIsDark( saved === 'dark' );
+          if ( saved !== bsTheme ) {
+               dispatch( { type: '@@layout/CHANGE_BS_THEME', payload: saved } );
+          }
+     }, [ bsTheme, dispatch ] );
 
      const navbarCssClasses: string = navCssClasses || '';
      const containerCssClasses: string = !hideLogo ? 'container-fluid' : '';
 
      const username = user ? user.firstName + ' ' + user.lastName : 'JAYDEEP';
      const userTitle = user ? ( user.role === 'admin' ? 'Admin' : 'User' ) : 'Founder';
+
 
      return (
           <React.Fragment>
@@ -101,6 +123,19 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                               </div>
                          ) }
                          <ul className="list-unstyled topnav-menu float-end mb-0">
+                              <li className="dropdown notification-list">
+                                   <Link
+                                        to="#"
+                                        className='nav-link'
+                                        onClick={ () => toggleTheme( isDark ? 'light' : 'dark' ) }
+                                   >
+                                        <FeatherIcon
+                                             icon={ isDark ? "sun" : "moon" }
+                                             className="icon-xs"
+                                        />
+                                   </Link>
+                                   {/* Dropdown removed - simple toggle button */ }
+                              </li>
                               <li className="dropdown notification-list topbar-dropdown">
                                    <ProfileDropdown
                                         profilePic={ profilePic }
@@ -110,6 +145,7 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                    />
                               </li>
                          </ul>
+
                     </div>
                </div>
           </React.Fragment>

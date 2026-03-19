@@ -14,7 +14,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
   @each $color, $value in $dark-theme-colors {
     .alert-#{$color} {
       color: tint-color($value, 10%);

@@ -62,7 +62,7 @@ table {
             tr {
                 &:hover {
                     > * {
-                        --ct-table-accent-bg: #f3f7f9;
+                        --#{$prefix}-table-accent-bg: #f3f7f9;
                     }
                 }
             }
@@ -72,7 +72,7 @@ table {
     // Table Active
     tr {
         &.table-active {
-            --ct-table-accent-bg: #f3f7f9;
+            --#{$prefix}-table-accent-bg: #f3f7f9;
         }
     }
 
@@ -82,7 +82,7 @@ table {
             tr {
                 &:nth-of-type(odd) {
                     > * {
-                        --ct-table-accent-bg: #f3f7f9;
+                        --#{$prefix}-table-accent-bg: #f3f7f9;
                     }
                 }
 
@@ -91,7 +91,7 @@ table {
 
                         th,
                         td {
-                            --ct-table-accent-bg: transparent;
+                            --#{$prefix}-table-accent-bg: transparent;
                         }
                     }
                 }
@@ -102,7 +102,10 @@ table {
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
+    .table > :not(caption) > * > * {
+        color: $body-color;
+    }
     .action-icon {
         color: #{map-get($dark-grays, "600")};
         font-size: 1.2rem;
@@ -116,13 +119,13 @@ body[data-layout-color="dark"] {
 
     // Table Light - Dark
     .table-light {
-        --ct-table-bg: #3e4954;
+        --#{$prefix}-table-bg: #3e4954;
         color: $white;
         border-color: $table-group-separator-color;
     }
 
     .table-dark {
-        --ct-table-bg: #424e5a;
+        --#{$prefix}-table-bg: #424e5a;
 
         tbody,
         tr {
@@ -138,7 +141,7 @@ body[data-layout-color="dark"] {
                 tr {
                     &:hover {
                         > * {
-                            --ct-table-accent-bg: #3e4954;
+                            --#{$prefix}-table-accent-bg: #3e4954;
                         }
                     }
                 }
@@ -149,7 +152,7 @@ body[data-layout-color="dark"] {
         tr,
         td {
             &.table-active {
-                --ct-table-accent-bg: #{rgba($black, 0.075)};
+                --#{$prefix}-table-accent-bg: #{rgba($black, 0.075)};
             }
         }
 
@@ -159,7 +162,7 @@ body[data-layout-color="dark"] {
                 tr {
                     &:nth-of-type(odd) {
                         > * {
-                            --ct-table-accent-bg: #3b4651;
+                            --#{$prefix}-table-accent-bg: #3b4651;
                         }
                     }
 
@@ -168,7 +171,7 @@ body[data-layout-color="dark"] {
 
                             th,
                             td {
-                                --ct-table-accent-bg: transparent;
+                                --#{$prefix}-table-accent-bg: transparent;
                             }
                         }
                     }

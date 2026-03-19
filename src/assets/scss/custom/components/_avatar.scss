@@ -53,7 +53,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .avatar-group {
         .avatar-group-item {
             border: 2px solid #{map-get($dark-grays, "200")};

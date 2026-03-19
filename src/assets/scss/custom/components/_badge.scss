@@ -35,7 +35,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     @each $color, $value in $dark-theme-colors {
         // Lighten badge (soft)
         .badge-soft-#{$color} {

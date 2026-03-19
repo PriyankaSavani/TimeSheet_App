@@ -1,4 +1,4 @@
-// 
+//
 // nav.scss
 //
 
@@ -14,7 +14,7 @@
 .nav-pills {
     > a {
         color: #{map-get($grays, "700")};
-        font-weight: $label-font-weight;   
+        font-weight: $label-font-weight;
     }
 }
 
@@ -23,8 +23,8 @@
         .nav-link {
             width: auto;
         }
-    }  
-} 
+    }
+}
 
 
 //Navtab custom
@@ -58,11 +58,11 @@ a.active {
 
 .tab-content {
     padding: 20px 0 0 0;
-}  
+}
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .nav-tabs,.nav-pills {
         > li {
             > a {
@@ -70,10 +70,10 @@ body[data-layout-color="dark"] {
             }
         }
     }
-    
+
     .nav-pills {
         > a {
-            color: #{map-get($dark-grays, "700")}; 
+            color: #{map-get($dark-grays, "700")};
         }
     }
     .nav-bordered {

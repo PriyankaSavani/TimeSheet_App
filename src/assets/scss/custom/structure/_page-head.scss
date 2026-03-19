@@ -52,7 +52,7 @@
 }
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .page-title-box {
         .page-title {
             color: #{map-get($dark-grays, "900")};

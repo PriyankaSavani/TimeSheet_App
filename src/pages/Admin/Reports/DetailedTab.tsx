@@ -331,8 +331,8 @@ const DetailedTab = () => {
                                    </th>
                                    <th className={ 'align-items-center' }>
                                         PROJECT
-                                        <Dropdown align="end" className="d-inline float-end">
-                                             <Dropdown.Toggle variant="light" id="dropdown-project-filter" className="btn-sm border-0 p-0 ms-1">
+                                        <Dropdown align="start" className="d-inline float-end">
+                                             <Dropdown.Toggle variant="transparent" id="dropdown-project-filter" className="btn-sm border-0 p-0 ms-1">
                                                   <FeatherIcon icon="filter" size={ 14 } />
                                              </Dropdown.Toggle>
                                              <Dropdown.Menu>

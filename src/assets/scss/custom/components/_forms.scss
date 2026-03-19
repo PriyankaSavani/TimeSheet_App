@@ -84,7 +84,7 @@ input.form-control[type="range"] {
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     .comment-area-box {
         .form-control {
             border-color: #{map-get($dark-grays, "300")};

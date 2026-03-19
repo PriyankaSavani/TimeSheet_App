@@ -150,7 +150,7 @@ const Projects = () => {
                                         bordered
                                         responsive
                                         hover
-                                        variant='warning'
+                                        // variant='warning'
                                         className={ classNames( 'mb-0' ) }
                                    >
                                         <thead>

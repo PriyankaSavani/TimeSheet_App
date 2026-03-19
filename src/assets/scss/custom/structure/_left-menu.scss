@@ -488,10 +488,8 @@ body[data-leftbar-size="compact"]:not([data-leftbar-size="condensed"]) {
 
 
 // Leftbar-dark
-body[data-leftbar-color="dark"]:not([data-layout-mode="detached"]) {
+html[data-bs-theme="dark"]:not([data-layout-mode="detached"]) {
     .logo-box {
-        background-color: $bg-leftbar-dark;
-
         .logo-dark {
             display: none;
         }
@@ -502,7 +500,7 @@ body[data-leftbar-color="dark"]:not([data-layout-mode="detached"]) {
     }
 }
 
-body[data-leftbar-color="dark"] {
+html[data-bs-theme="dark"] {
     .left-side-menu {
         background-color: $bg-leftbar-dark;
         box-shadow: none;
@@ -898,7 +896,7 @@ body[data-leftbar-color="gradient"] {
 
 
 // Dark Mode
-body[data-layout-color="dark"] {
+html[data-bs-theme="dark"] {
     &[data-leftbar-size="condensed"] {
         .left-side-menu {
             #sidebar-menu {

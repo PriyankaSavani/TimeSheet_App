@@ -11,6 +11,7 @@ export interface LayoutActionType<TPayload> {
      | LayoutActionTypes.CHANGE_SIDEBAR_TYPE
      | LayoutActionTypes.TOGGLE_SIDEBAR_USER_INFO
      | LayoutActionTypes.CHANGE_TOPBAR_THEME
+     | LayoutActionTypes.CHANGE_BS_THEME
      | LayoutActionTypes.TOGGLE_TWO_TONE_ICONS
      | LayoutActionTypes.SHOW_RIGHT_SIDEBAR
      | LayoutActionTypes.HIDE_RIGHT_SIDEBAR;
@@ -55,6 +56,11 @@ export const toggleSidebarUserInfo = ( showSidebarUserInfo: boolean ): LayoutAct
 export const changeTopbarTheme = ( topbarTheme: string ): LayoutActionType<string> => ( {
      type: LayoutActionTypes.CHANGE_TOPBAR_THEME,
      payload: topbarTheme,
+} );
+
+export const changeBsTheme = ( bsTheme: 'light' | 'dark' ): LayoutActionType<'light' | 'dark'> => ( {
+     type: LayoutActionTypes.CHANGE_BS_THEME,
+     payload: bsTheme,
 } );
 
 export const toggleTwoToneIcons = ( showTwoToneIcons: boolean ): LayoutActionType<boolean> => ( {
