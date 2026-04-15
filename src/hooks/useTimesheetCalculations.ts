@@ -5,7 +5,7 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      const { days, weekDisplay, currentDay } = useMemo( () => {
           const now = new Date();
           const baseDate = new Date( Date.UTC( now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() ) );
-          const weekStart = startOfWeek( baseDate, { weekStartsOn: 0 } );
+          const weekStart = startOfWeek( baseDate, { weekStartsOn: 1 } );
           const offsetWeekStart = addWeeks( weekStart, weekOffset );
           const endDate = addWeeks( offsetWeekStart, 1 );
           const weekDaysDates = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );

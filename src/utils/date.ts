@@ -8,7 +8,7 @@ import {
 export const getISOWeekKey = ( weekOffset: number ): string => {
      const now = new Date();
      const baseDate = new Date( Date.UTC( now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() ) ); // Normalize to UTC day
-     const weekStart = startOfWeek( baseDate, { weekStartsOn: 0 } ); // Sunday start to match original
+     const weekStart = startOfWeek( baseDate, { weekStartsOn: 1 } ); // Monday start
      const offsetWeekStart = addWeeks( weekStart, weekOffset );
      return format( offsetWeekStart, `yyyy-'W'ww` ); // e.g. 2024-W01
 };
@@ -20,7 +20,7 @@ export const formatDayKey = ( date: Date ): string => {
 export const getWeekDays = ( weekOffset: number ): string[] => {
      const now = new Date();
      const baseDate = new Date( Date.UTC( now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() ) );
-     const weekStart = startOfWeek( baseDate, { weekStartsOn: 0 } );
+     const weekStart = startOfWeek( baseDate, { weekStartsOn: 1 } );
      const offsetWeekStart = addWeeks( weekStart, weekOffset );
      const endDate = addWeeks( offsetWeekStart, 1 );
      const days = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );
