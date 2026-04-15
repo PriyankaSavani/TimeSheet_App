@@ -264,7 +264,7 @@ const Timesheet = () => {
           return () => {
                window.removeEventListener( 'beforeunload', handleBeforeUnload );
           };
-     }, [ rows, userId ] );
+     }, [ rows, userId, weekOffset ] );
 
      const { days, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
