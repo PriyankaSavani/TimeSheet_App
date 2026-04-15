@@ -54,7 +54,7 @@ const Dashboard = () => {
                <PageTitle title={ 'Dashboard' } />
 
                <Row>
-                    <Col lg={ 3 }>
+                    <Col lg={ 5 } xl={ 3 }>
                          <Row>
                               <Col>
                                    <Statistics
@@ -86,7 +86,7 @@ const Dashboard = () => {
                               </Col>
                          </Row>
                     </Col>
-                    <Col lg={ 9 }>
+                    <Col lg={ 7 } xl={ 9 }>
                          <EmployeeList />
                     </Col>
                </Row>

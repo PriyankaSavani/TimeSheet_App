@@ -244,7 +244,7 @@ const Timesheet = () => {
                };
                saveToFirestore();
           }
-     }, [ rows, userId, dataLoaded ] );
+     }, [ rows, userId, dataLoaded, weekOffset ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {
@@ -303,7 +303,7 @@ const Timesheet = () => {
                                    localStorageKey="timesheet_weekOffset"
                                    className='mb-3 mb-xl-0'
                               />
-                              <div className="d-flex">
+                              <div className="d-flex justify-content-end">
                                    <TimesheetAddAction
                                         rows={ rows }
                                         setRows={ setRows }

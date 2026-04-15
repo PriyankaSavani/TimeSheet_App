@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Table } from 'react-bootstrap'
 import classNames from 'classnames'
 import ExportToExcel from 'components/ExportToExcel'
@@ -62,10 +62,10 @@ const DetailedTab = () => {
      }, [] )
 
      // Helper function to get client name from project name
-     const getClientName = ( projectName: string ): string => {
+     const getClientName = useCallback( ( projectName: string ): string => {
           const project = projects.find( p => p.projectName === projectName )
           return project?.clientName || ''
-     }
+     }, [ projects ] )
 
      // Fetch timesheet data for selected month from Firestore (matching timesheet page data)
      useEffect( () => {
@@ -133,7 +133,7 @@ const DetailedTab = () => {
                }
                fetchDetailedData()
           }
-     }, [ userId, username, monthOffset, projects ] )
+     }, [ userId, username, monthOffset, projects, getClientName ] )
 
      const totalHours = detailedData.reduce( ( sum, row ) => {
           const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
@@ -230,7 +230,7 @@ const DetailedTab = () => {
                     />
                     <div className={
                          classNames(
-                              'bg-light border rounded p-2 mb-3 d-flex align-items-center justify-content-between'
+                              'bg-light border rounded p-2 mb-3 d-md-flex align-items-center justify-content-between'
                          )
                     }>
                          <h5><b>Total Hours:</b> { totalHours.toFixed( 2 ) }</h5>

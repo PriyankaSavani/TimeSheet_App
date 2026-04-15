@@ -44,7 +44,7 @@ const ExportToExcel: React.FC<ExportToExcelProps> = ( {
      buttonText = 'Export to Excel',
      buttonVariant = 'primary',
      buttonSize = 'sm',
-     className = 'me-2',
+     className = 'me-2 my-md-0 my-1',
      columnAlignments = [],
      headerStyle = {
           size: 12,

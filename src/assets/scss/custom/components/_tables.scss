@@ -62,7 +62,7 @@ table {
             tr {
                 &:hover {
                     > * {
-                        --#{$prefix}-table-accent-bg: #f3f7f9;
+                        --#{$prefix}-table-accent-bg: $grays-100;
                     }
                 }
             }
@@ -72,7 +72,7 @@ table {
     // Table Active
     tr {
         &.table-active {
-            --#{$prefix}-table-accent-bg: #f3f7f9;
+            --#{$prefix}-table-accent-bg: $grays-100;
         }
     }
 
@@ -82,7 +82,7 @@ table {
             tr {
                 &:nth-of-type(odd) {
                     > * {
-                        --#{$prefix}-table-accent-bg: #f3f7f9;
+                        --#{$prefix}-table-accent-bg: $grays-100;
                     }
                 }
 
@@ -99,7 +99,6 @@ table {
         }
     }
 }
-
 
 // Dark Mode
 html[data-bs-theme="dark"] {

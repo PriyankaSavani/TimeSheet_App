@@ -9,7 +9,7 @@ import PageTitle from '../../../components/PageTitle'
 import UsersAddAction from './UsersAddAction'
 import UsersEditAction from './UsersEditAction'
 import UsersDeleteAction from './UsersDeleteAction'
-
+import classNames from 'classnames'
 
 interface User {
      id: string;
@@ -93,7 +93,10 @@ const Users = () => {
                                         <UsersAddAction addUser={ addUser } />
                                    </div>
 
-                                   <Table responsive bordered>
+                                   <Table
+                                        responsive
+                                        bordered
+                                   >
                                         <thead>
                                              <tr>
                                                   <th>Full Name</th>
@@ -109,8 +112,10 @@ const Users = () => {
                                                        <td>{ user.email }</td>
                                                        <td>{ user.role }</td>
                                                        <td>
-                                                            <UsersEditAction updateUser={ updateUser } user={ user } />
-                                                            <UsersDeleteAction deleteUser={ deleteUser } user={ user } />
+                                                            <div className={ classNames( 'd-flex' ) }>
+                                                                 <UsersEditAction updateUser={ updateUser } user={ user } />
+                                                                 <UsersDeleteAction deleteUser={ deleteUser } user={ user } />
+                                                            </div>
                                                        </td>
                                                   </tr>
                                              ) ) }

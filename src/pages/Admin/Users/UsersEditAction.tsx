@@ -23,7 +23,7 @@ const UsersEditAction: React.FC<UsersEditActionProps> = ( { updateUser, user } )
                <Button
                     variant="success"
                     size="sm"
-                    className="me-1"
+                    className="me-1 no-wrap mb-md-1 mb-0"
                     onClick={ handleToggleRole }
                >
                     Toggle Role

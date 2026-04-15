@@ -247,6 +247,8 @@ const SummaryTab = () => {
           },
 
           legend: {
+               position: 'bottom',
+               offsetY: 40,
                labels: {
                     colors: 'var(--bs-body-color, var(--JK-body-color))'
                }

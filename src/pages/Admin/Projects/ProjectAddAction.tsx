@@ -36,7 +36,7 @@ const AssignEmployeeCheckboxes: React.FC<{ users: User[] }> = ( { users } ) => {
                <label className="form-label">Assign Employee</label>
                <div className="row">
                     { users.map( ( user, index ) => (
-                         <div key={ user.id } className="col-4">
+                         <div key={ user.id } className="col-md-6">
                               <div className="form-check">
                                    <input
                                         className="form-check-input"
@@ -60,11 +60,11 @@ const TaskCheckboxes: React.FC = () => {
      const { register } = useFormContext();
      const tasks = [ 'General', 'Mechanical', 'Electrical', 'Plumbing' ];
      return (
-          <div className={ classNames( 'mb-3' ) }>
+          <div className={ classNames( 'mb-0' ) }>
                <label className="form-label">Task</label>
                <div className="row">
                     { tasks.map( ( task, index ) => (
-                         <div key={ task } className="col-3">
+                         <div key={ task } className="col-md-6">
                               <div className="form-check">
                                    <input
                                         className="form-check-input"

@@ -18,7 +18,7 @@ const SignoutIcon = () => {
                <circle
                     className="path circle"
                     fill="none"
-                    stroke="#4bd396"
+                    stroke="#1abc9c"
                     strokeWidth="6"
                     strokeMiterlimit="10"
                     cx="65.1"
@@ -28,7 +28,7 @@ const SignoutIcon = () => {
                <polyline
                     className="path check"
                     fill="none"
-                    stroke="#4bd396"
+                    stroke="#1abc9c"
                     strokeWidth="6"
                     strokeLinecap="round"
                     strokeMiterlimit="10"

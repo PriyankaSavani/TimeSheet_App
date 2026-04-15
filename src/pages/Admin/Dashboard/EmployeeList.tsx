@@ -6,6 +6,7 @@ import { Card, Table } from 'react-bootstrap'
 import 'simplebar-react/dist/simplebar.min.css'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
+import { Link } from 'react-router-dom'
 
 interface EmployeeListProps {
      id: string
@@ -24,6 +25,12 @@ interface ProjectProps {
 const EmployeeList = () => {
      const [ employees, setEmployees ] = useState<EmployeeListProps[]>( [] )
      const [ loading, setLoading ] = useState( true )
+
+     const truncateEmail = ( email: string ): string => {
+          if ( !email || !email.includes( '@' ) ) return email || 'N/A';
+          const [ localPart ] = email.split( '@' );
+          return `${ localPart }@...`;
+     };
 
      useEffect( () => {
           const fetchData = async () => {
@@ -72,13 +79,16 @@ const EmployeeList = () => {
                               }
                          >
                               Employee List
-                              <FeatherIcon
-                                   icon='more-vertical'
-                                   className={ classNames( 'cursor-pointer' ) }
-                              />
+                              <Link to='/users'>
+                                   More Details <FeatherIcon icon="chevrons-right" size={ 14 } />
+                              </Link>
                          </Card.Title>
                          <SimpleBar style={ { maxHeight: '390px' } } className="px-3 my-3">
-                              <Table className="mb-0">
+                              <Table
+                                   className="mb-0"
+                                   responsive
+                                   size='sm'
+                              >
                                    <thead>
                                         <tr>
                                              <th>Name</th>
@@ -101,7 +111,7 @@ const EmployeeList = () => {
                                                   <tr key={ emp.id }>
                                                        <td>{ emp.fullname || 'N/A' }</td>
                                                        <td>{ emp.role || 'N/A' }</td>
-                                                       <td>{ emp.email || 'N/A' }</td>
+                                                       <td>{ truncateEmail( emp.email ) || 'N/A' }</td>
                                                        <td>{ emp.assignedProject || 'N/A' }</td>
                                                   </tr>
                                              ) )

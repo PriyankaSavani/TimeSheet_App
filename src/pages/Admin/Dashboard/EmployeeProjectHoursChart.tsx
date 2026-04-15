@@ -43,7 +43,7 @@ const EmployeeProjectHoursChart = () => {
           return () => observer.disconnect()
      }, [] )
 
-     // ✅ Fetch data
+     // Fetch data
      useEffect( () => {
           const fetchEmployeeProjectHours = async () => {
                try {
@@ -57,7 +57,8 @@ const EmployeeProjectHoursChart = () => {
 
                     for ( const userDoc of usersSnapshot.docs ) {
                          const fullname = userDoc.data().fullname || 'Unknown'
-                         allEmployees.push( fullname )
+                         const firstName = fullname.split( ' ' )[ 0 ] || fullname
+                         allEmployees.push( firstName )
                          const uid = userDoc.id
 
                          const weeksRef = collection( db, 'timesheets', uid, 'weeks' )
@@ -95,7 +96,7 @@ const EmployeeProjectHoursChart = () => {
                                    ( projectHours[ projectName ] || 0 ) + rowTotalMinutes / 60
                          }
 
-                         employeeProjects[ fullname ] = projectHours
+                         employeeProjects[ firstName ] = projectHours
                          Object.keys( projectHours ).forEach( p => projectsSet.current.add( p ) )
                     }
 
@@ -117,7 +118,7 @@ const EmployeeProjectHoursChart = () => {
           fetchEmployeeProjectHours()
      }, [] )
 
-     // ✅ ApexCharts options with Bootstrap theme wired in
+     // ApexCharts options with Bootstrap theme wired in
      const chartOptions: ApexCharts.ApexOptions = {
 
           chart: {
@@ -180,7 +181,7 @@ const EmployeeProjectHoursChart = () => {
           fill: { opacity: 1 },
 
           legend: {
-               position: 'right',
+               position: 'bottom',
                offsetY: 40,
                labels: {
                     colors: 'var(--bs-body-color, var(--JK-body-color))'
@@ -212,7 +213,7 @@ const EmployeeProjectHoursChart = () => {
           <Card style={ { maxHeight: '600px' } }>
                <Card.Body>
                     <Card.Title className={ classNames( 'd-flex align-items-center justify-content-between' ) }>
-                         Employee Hours by Project (All Time)
+                         Employee Hours by Project
                          <FeatherIcon icon="more-vertical" className="cursor-pointer" />
                     </Card.Title>
 

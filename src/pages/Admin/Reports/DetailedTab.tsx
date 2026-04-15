@@ -63,10 +63,10 @@ const DetailedTab = () => {
      }, [] )
 
      // Helper function to get client name from project name
-     const getClientName = ( projectName: string ): string => {
+     const getClientName = useCallback( ( projectName: string ): string => {
           const project = projects.find( p => p.projectName === projectName )
           return project?.clientName || ''
-     }
+     }, [ projects ] )
 
      // Get unique projects from detailed data
      const uniqueProjects = useMemo( () => {
@@ -176,7 +176,7 @@ const DetailedTab = () => {
                }
           }
           fetchAllDetailedData()
-     }, [ monthOffset, projects ] )
+     }, [ monthOffset, projects, getClientName ] )
 
      // Filter by selected project
      const filteredData = useMemo( () => {
@@ -285,7 +285,7 @@ const DetailedTab = () => {
                     />
                     <div className={
                          classNames(
-                              'bg-light border rounded p-2 mb-3 d-flex align-items-center justify-content-between'
+                              'bg-light border rounded p-2 mb-3 d-md-flex align-items-center justify-content-between'
                          )
                     }>
                          <h5><b>Total Hours:</b> { totalHours.toFixed( 2 ) }</h5>
@@ -331,8 +331,12 @@ const DetailedTab = () => {
                                    </th>
                                    <th className={ 'align-items-center' }>
                                         PROJECT
-                                        <Dropdown align="start" className="d-inline float-end">
-                                             <Dropdown.Toggle variant="transparent" id="dropdown-project-filter" className="btn-sm border-0 p-0 ms-1">
+                                        <Dropdown align="start" className="d-inline">
+                                             <Dropdown.Toggle
+                                                  variant="transparent"
+                                                  id="dropdown-project-filter"
+                                                  className="btn-sm border-0 p-0 ms-1"
+                                             >
                                                   <FeatherIcon icon="filter" size={ 14 } />
                                              </Dropdown.Toggle>
                                              <Dropdown.Menu>

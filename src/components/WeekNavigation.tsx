@@ -30,8 +30,8 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ( {
                     size='sm'
                     onClick={ () => setWeekOffset( prev => prev - 1 ) }
                >
-                    <FeatherIcon icon='arrow-left-circle' className='me-2' />
-                    Previous
+                    <FeatherIcon icon='arrow-left-circle' className='me-sm-2 me-0' />
+                    <span className='d-none d-sm-inline'>Previous</span>
                </Button>
                <div className="border rounded align-self-center mx-3 p-1">
                     { weekDisplay }
@@ -42,8 +42,8 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ( {
                     onClick={ () => setWeekOffset( prev => prev + 1 ) }
                     disabled={ weekOffset === 0 }
                >
-                    Next
-                    <FeatherIcon icon='arrow-right-circle' className='ms-2' />
+                    <span className='d-none d-sm-inline'>Next</span>
+                    <FeatherIcon icon='arrow-right-circle' className='ms-sm-2 ms-0' />
                </Button>
           </div>
      );

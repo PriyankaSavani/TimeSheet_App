@@ -13,11 +13,26 @@ interface VerticalLayoutProps {
 }
 
 const VerticalLayout: React.FC<VerticalLayoutProps> = ( { children } ) => {
+
+     const [ isLeftMenuOpen, setIsLeftMenuOpen ] = React.useState( false );
+
+     const openLeftMenu = () => {
+          setIsLeftMenuOpen( !isLeftMenuOpen );
+
+          if ( document.body ) {
+               if ( isLeftMenuOpen ) {
+                    document.body.classList.remove( 'sidebar-enable' );
+               } else {
+                    document.body.classList.add( 'sidebar-enable' );
+               }
+          }
+     }
+
      return (
           <>
                <div id="wrapper">
                     <Suspense fallback={ loading() }>
-                         <Topbar />
+                         <Topbar openLeftMenuCallBack={ openLeftMenu } hideLogo={ false } />
                     </Suspense>
                     <Suspense fallback={ loading() }>
                          <LeftSidebar isCondensed={ false } />

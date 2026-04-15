@@ -6,7 +6,6 @@ import FeatherIcon from 'feather-icons-react';
 import { selectLayoutState } from '../redux/layout/selectors';
 import { selectAuthState } from '../redux/auth/selectors';
 
-
 // logo
 import logo_dark from '../assets/images/logo/logo-dark.png';
 import logo_light from '../assets/images/logo/logo-light.png';
@@ -14,12 +13,10 @@ import logo_light from '../assets/images/logo/logo-light.png';
 // images
 import profilePic from '../assets/images/users/user-5.jpg';
 
-
 interface TopbarProps {
      hideLogo?: boolean;
      navCssClasses?: string;
      openLeftMenuCallBack?: () => void;
-     topbarDark?: boolean;
 }
 
 // get the profilemenu
@@ -41,12 +38,22 @@ const ProfileMenus = [
      },
 ];
 
-const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: TopbarProps ) => {
+const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack }: TopbarProps ) => {
 
      const dispatch = useDispatch();
+
      const { user } = useSelector( selectAuthState );
      const { bsTheme } = useSelector( selectLayoutState );
      const [ isDark, setIsDark ] = useState( false );
+     const [ isLeftMenuOpen, setIsLeftMenuOpen ] = useState( false );
+
+     // toggle left menu when menu button is clicked
+     const handleLeftMenuToggle = () => {
+          setIsLeftMenuOpen( !isLeftMenuOpen );
+          if ( openLeftMenuCallBack ) {
+               openLeftMenuCallBack();
+          }
+     };
 
      const toggleTheme = ( newTheme: 'light' | 'dark' ) => {
           console.log( 'Toggle to', newTheme );
@@ -111,6 +118,7 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                                    </Link>
                               </div>
                          ) }
+
                          <ul className="list-unstyled topnav-menu float-end mb-0">
                               <li className="dropdown notification-list">
                                    <Link
@@ -135,6 +143,16 @@ const Topbar = ( { hideLogo, navCssClasses, openLeftMenuCallBack, topbarDark }: 
                               </li>
                          </ul>
 
+                         <ul className="list-unstyled topnav-menu-left m-0">
+                              <li>
+                                   <button
+                                        className="button-menu-mobile open-left d-lg-none d-bolck waves-effect waves-light"
+                                        onClick={ handleLeftMenuToggle }
+                                   >
+                                        <FeatherIcon icon="menu" />
+                                   </button>
+                              </li>
+                         </ul>
                     </div>
                </div>
           </React.Fragment>
