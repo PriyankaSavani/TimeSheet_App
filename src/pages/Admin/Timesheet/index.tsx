@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Alert, Spinner } from 'react-bootstrap';
+import { Table, Card } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { getISOWeekKey } from '../../../utils/date';
 
 // component
 import TimesheetTask from './TimesheetTask';
@@ -37,10 +38,6 @@ const Timesheet = () => {
           localStorage.setItem( 'timesheet_weekOffset', weekOffset.toString() );
      }, [ weekOffset ] );
 
-     const [ loading, setLoading ] = useState<boolean>( true );
-
-     const [ error, setError ] = useState<string | null>( null );
-
      const [ dataLoaded, setDataLoaded ] = useState<boolean>( false );
 
      // Listen to auth state changes
@@ -56,17 +53,8 @@ const Timesheet = () => {
           return () => unsubscribe();
      }, [] );
 
-     // Generate week key based on weekOffset using local time to match the displayed days
-     const getWeekKey = ( offset: number ) => {
-          const today = new Date();
-          const startOfWeek = new Date( today );
-          const day = today.getDay();
-          const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + offset * 7;
-          startOfWeek.setDate( diff );
-          const year = startOfWeek.getFullYear();
-          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 );
-          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
-     };
+     // Generate week key using consistent date-fns utils
+     const getWeekKey = ( offset: number ) => getISOWeekKey( offset );
 
      // Clear only the current week's localStorage data to ensure fresh data from Firestore
      useEffect( () => {
@@ -81,13 +69,10 @@ const Timesheet = () => {
      // Set up real-time listener for Firestore data (per-user per-week timesheet)
      useEffect( () => {
           if ( userId === 'anonymous' ) {
-               setLoading( false );
                setDataLoaded( true );
                return;
           }
 
-          setLoading( true );
-          setError( null );
           setDataLoaded( false );
 
           const weekKey = getWeekKey( weekOffset );
@@ -147,11 +132,8 @@ const Timesheet = () => {
                                    localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                               }
                          }
-                         setLoading( false );
                          setDataLoaded( true );
                     }, ( error ) => {
-                         console.error( 'Error listening to timesheet data from Firestore:', error );
-                         setError( 'Failed to load timesheet data. Please check your connection.' );
                          // Fallback to localStorage
                          const localData = localStorage.getItem( localStorageKey );
                          if ( localData ) {
@@ -169,7 +151,6 @@ const Timesheet = () => {
                               setRows( defaultRows );
                               localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                          }
-                         setLoading( false );
                          setDataLoaded( true );
                     } );
 
@@ -193,12 +174,10 @@ const Timesheet = () => {
                          setRows( defaultRows );
                          localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                     }
-                    setLoading( false );
                     setDataLoaded( true );
                }
           } ).catch( ( error ) => {
                console.error( 'Error checking document existence:', error );
-               setError( 'Failed to load timesheet data. Please check your connection.' );
                // Fallback to localStorage
                const localData = localStorage.getItem( localStorageKey );
                if ( localData ) {
@@ -216,8 +195,6 @@ const Timesheet = () => {
                     setRows( defaultRows );
                     localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
                }
-               setLoading( false );
-               setDataLoaded( true );
           } );
      }, [ userId, weekOffset ] );
 
@@ -279,19 +256,6 @@ const Timesheet = () => {
      return (
           <React.Fragment>
                <PageTitle title={ 'Timesheet' } />
-               { loading && (
-                    <div className="text-center my-4">
-                         <Spinner animation="border" role="status">
-                              <span className="visually-hidden">Loading...</span>
-                         </Spinner>
-                         <p>Loading timesheet data...</p>
-                    </div>
-               ) }
-               { error && (
-                    <Alert variant="danger" className="my-3">
-                         { error }
-                    </Alert>
-               ) }
                <Card>
                     <Card.Body>
                          <div className="d-xl-flex justify-content-between mb-3">

@@ -1,36 +1,33 @@
 import { useMemo, useCallback } from 'react';
+import { format, addWeeks, startOfWeek, eachDayOfInterval } from 'date-fns';
 
 export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      const { days, weekDisplay, currentDay } = useMemo( () => {
-          const today = new Date();
-          const startOfWeek = new Date( today );
-          const day = today.getDay();
-          const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7;
-          startOfWeek.setDate( diff );
-          const endOfWeek = new Date( startOfWeek );
-          endOfWeek.setDate( startOfWeek.getDate() + 6 );
-          const weekDays = [];
-          for ( let i = 0; i < 7; i++ ) {
-               const date = new Date( startOfWeek );
-               date.setDate( startOfWeek.getDate() + i );
-               const dayName = date.toLocaleDateString( 'en-US', { weekday: 'short' } );
-               const monthName = date.toLocaleDateString( 'en-US', { month: 'short' } );
-               const dayNum = date.getDate();
-               weekDays.push( `${ dayName }, ${ dayNum } ${ monthName }` );
-          }
-          const startStr = startOfWeek.toLocaleDateString( 'en-US', { day: 'numeric', month: 'short' } );
-          const endStr = endOfWeek.toLocaleDateString( 'en-US', { day: 'numeric', month: 'short' } );
-          const year = startOfWeek.getFullYear();
+          const now = new Date();
+          const baseDate = new Date( Date.UTC( now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() ) );
+          const weekStart = startOfWeek( baseDate, { weekStartsOn: 0 } );
+          const offsetWeekStart = addWeeks( weekStart, weekOffset );
+          const endDate = addWeeks( offsetWeekStart, 1 );
+          const weekDaysDates = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );
+          const days = weekDaysDates.map( date => date.toLocaleDateString( 'en-US', {
+               weekday: 'short',
+               day: 'numeric',
+               month: 'short'
+          } ) );
+          const startStr = format( offsetWeekStart, 'd MMM' );
+          const endStr = format( endDate, 'd MMM' );
+          const year = format( offsetWeekStart, 'yyyy' );
           const prefix = weekOffset === 0 ? 'This week' : 'Week of';
           const weekDisplay = `${ prefix } : ${ startStr } -> ${ endStr } ${ year }`;
 
-          // Calculate current day string
-          const currentDayName = today.toLocaleDateString( 'en-US', { weekday: 'short' } );
-          const currentMonthName = today.toLocaleDateString( 'en-US', { month: 'short' } );
-          const currentDayNum = today.getDate();
-          const currentDay = `${ currentDayName }, ${ currentDayNum } ${ currentMonthName }`;
+          const todayStr = now.toLocaleDateString( 'en-US', {
+               weekday: 'short',
+               day: 'numeric',
+               month: 'short'
+          } );
+          const currentDay = todayStr;
 
-          return { days: weekDays, weekDisplay, currentDay };
+          return { days, weekDisplay, currentDay };
      }, [ weekOffset ] );
 
      // Helper function to normalize time format
