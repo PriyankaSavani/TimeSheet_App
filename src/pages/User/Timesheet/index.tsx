@@ -244,7 +244,7 @@ const Timesheet = () => {
                };
                saveToFirestore();
           }
-     }, [ rows, userId, dataLoaded, weekOffset ] );
+     }, [ rows, userId, dataLoaded ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {
@@ -264,7 +264,7 @@ const Timesheet = () => {
           return () => {
                window.removeEventListener( 'beforeunload', handleBeforeUnload );
           };
-     }, [ rows, userId, weekOffset ] );
+     }, [ rows, userId ] );
 
      const { days, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
