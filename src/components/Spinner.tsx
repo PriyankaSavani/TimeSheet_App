@@ -15,7 +15,6 @@ const Spinner = () => {
           // Simulate loading time or wait for actual data loading
           const timer = setTimeout( () => {
                setIsLoading( false );
-               console.log( 'Loading finished for:', location.pathname );
           }, 300 );
 
           return () => clearTimeout( timer );
