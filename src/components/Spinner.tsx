@@ -9,7 +9,6 @@ const Spinner = () => {
      const location = useLocation();
 
      useEffect( () => {
-          console.log( 'Route changed to:', location.pathname );
           setIsLoading( true );
 
           // Simulate loading time or wait for actual data loading
