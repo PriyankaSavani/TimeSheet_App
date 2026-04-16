@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { format, addWeeks, startOfWeek, eachDayOfInterval } from 'date-fns';
+import { format, addWeeks, addDays, startOfWeek, eachDayOfInterval } from 'date-fns';
 
 export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
      const { days, weekDisplay, currentDay } = useMemo( () => {
@@ -7,7 +7,7 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
           const baseDate = new Date( Date.UTC( now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() ) );
           const weekStart = startOfWeek( baseDate, { weekStartsOn: 1 } );
           const offsetWeekStart = addWeeks( weekStart, weekOffset );
-          const endDate = addWeeks( offsetWeekStart, 1 );
+          const endDate = addDays( offsetWeekStart, 6 );
           const weekDaysDates = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );
           const days = weekDaysDates.map( date => date.toLocaleDateString( 'en-US', {
                weekday: 'short',
