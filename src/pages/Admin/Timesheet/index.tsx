@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Table, Card } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';

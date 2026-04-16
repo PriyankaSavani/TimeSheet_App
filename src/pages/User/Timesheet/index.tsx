@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Table, Card } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -29,6 +29,8 @@ const Timesheet = () => {
 
      const [ rows, setRows ] = useState<Row[]>( [] );
 
+     const prevRowsRef = useRef<Row[]>( [] );
+
      const [ weekOffset, setWeekOffset ] = useState<number>( 0 ); // Always start with current week
 
 
@@ -51,15 +53,8 @@ const Timesheet = () => {
      // Generate week key using consistent date-fns utils
      const getWeekKey = ( offset: number ) => getISOWeekKey( offset );
 
-     // Clear only the current week's localStorage data to ensure fresh data from Firestore
-     useEffect( () => {
-          if ( userId && userId !== 'anonymous' && weekOffset !== undefined ) {
-               const currentWeekKey = getWeekKey( weekOffset );
-               const localStorageKey = `timesheet_${ userId }_${ currentWeekKey }`;
-               // Only clear the current week's data, not all weeks
-               localStorage.removeItem( localStorageKey );
-          }
-     }, [ userId, weekOffset ] );
+     // NO localStorage clearing - keep for offline persistence
+     useEffect( () => { }, [] );
 
      // Set up real-time listener for Firestore data (per-user per-week timesheet)
      useEffect( () => {
@@ -192,9 +187,12 @@ const Timesheet = () => {
           } );
      }, [ userId, weekOffset ] );
 
-     // Save rows only if meaningful data (prevent default row saves)
+     // Save only if rows changed from loaded data
      useEffect( () => {
           if ( userId !== 'anonymous' && dataLoaded ) {
+               if ( JSON.stringify( rows ) === JSON.stringify( prevRowsRef.current ) ) return;
+               prevRowsRef.current = rows;
+
                const hasMeaningfulData = rows.some( row => row.project !== 'Select Project' || row.task || Object.values( row.times ).some( t => t.time && t.time !== '00:00' ) );
                if ( !hasMeaningfulData ) return;
 
@@ -203,11 +201,8 @@ const Timesheet = () => {
 
                localStorage.setItem( localStorageKey, JSON.stringify( rows ) );
 
-               const saveToFirestore = async () => {
-                    const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-                    await setDoc( timesheetDocRef, { rows }, { merge: true } );
-               };
-               saveToFirestore().catch( console.error );
+               const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+               setDoc( timesheetDocRef, { rows }, { merge: true } ).catch( console.error );
           }
      }, [ rows, userId, dataLoaded, weekOffset ] );
 
