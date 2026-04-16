@@ -29,15 +29,9 @@ const Timesheet = () => {
 
      const [ rows, setRows ] = useState<Row[]>( [] );
 
-     const [ weekOffset, setWeekOffset ] = useState( () => {
-          const saved = localStorage.getItem( 'timesheet_weekOffset' );
-          return saved ? parseInt( saved, 10 ) : 0;
-     } ); // New state for week navigation
+     const [ weekOffset, setWeekOffset ] = useState<number>( 0 ); // Always start with current week
 
-     // Save weekOffset to localStorage whenever it changes
-     useEffect( () => {
-          localStorage.setItem( 'timesheet_weekOffset', weekOffset.toString() );
-     }, [ weekOffset ] );
+
 
      const [ dataLoaded, setDataLoaded ] = useState<boolean>( false );
 
@@ -263,7 +257,6 @@ const Timesheet = () => {
                               <WeekNavigation
                                    weekOffset={ weekOffset }
                                    setWeekOffset={ setWeekOffset }
-                                   localStorageKey="timesheet_weekOffset"
                                    className='mb-3 mb-xl-0'
                               />
                               <div className="d-flex justify-content-end">

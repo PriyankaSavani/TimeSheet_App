@@ -6,20 +6,14 @@ import { useTimesheetCalculations } from '../hooks/useTimesheetCalculations';
 interface WeekNavigationProps {
      weekOffset: number;
      setWeekOffset: ( offset: number | ( ( prev: number ) => number ) ) => void;
-     localStorageKey: string;
      className?: string;
 }
 
 const WeekNavigation: React.FC<WeekNavigationProps> = ( {
      weekOffset,
      setWeekOffset,
-     localStorageKey,
      className = ''
 } ) => {
-     // Save weekOffset to localStorage whenever it changes
-     useEffect( () => {
-          localStorage.setItem( localStorageKey, weekOffset.toString() );
-     }, [ weekOffset, localStorageKey ] );
 
      const { weekDisplay } = useTimesheetCalculations( weekOffset, [] );
 
