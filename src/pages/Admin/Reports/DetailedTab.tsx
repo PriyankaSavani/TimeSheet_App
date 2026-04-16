@@ -44,158 +44,18 @@ const DetailedTab = () => {
      } );
      const [ projects, setProjects ] = useState<Project[]>( [] )
 
-     // Fetch projects from Firebase
-     useEffect( () => {
-          const fetchProjects = async () => {
-               try {
-                    const projectsSnapshot = await getDocs( collection( db, 'projects' ) )
-                    const projectsList: Project[] = projectsSnapshot.docs.map( doc => ( {
-                         id: doc.id,
-                         projectName: doc.data().projectName || '',
-                         clientName: doc.data().clientName || ''
-                    } ) )
-                    setProjects( projectsList )
-               } catch ( error ) {
-                    console.error( 'Error fetching projects:', error )
-               }
-          }
-          fetchProjects()
-     }, [] )
-
-     // Helper function to get client name from project name
+     // ALL hooks at top
      const getClientName = useCallback( ( projectName: string ): string => {
           const project = projects.find( p => p.projectName === projectName )
           return project?.clientName || ''
      }, [ projects ] )
 
-     // Get unique projects from detailed data
      const uniqueProjects = useMemo( () => {
           const projects = detailedData.map( row => row.project )
           return [ 'All', ...Array.from( new Set( projects ) ) ].sort()
      }, [ detailedData ] )
 
-     // Function to get week key for a specific date using UTC
-     const getWeekKeyForDate = ( date: Date ) => {
-          const startOfWeek = new Date( Date.UTC( date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() ) );
-          const day = date.getUTCDay();
-          const diff = date.getUTCDate() - day + ( day === 0 ? -6 : 1 );
-          startOfWeek.setUTCDate( diff );
-          const year = startOfWeek.getUTCFullYear();
-          const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 );
-          return `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`;
-     };
-
-     // Fetch timesheet data for selected month from Firestore for all users
-     useEffect( () => {
-          const fetchAllDetailedData = async () => {
-               const today = new Date()
-               const selectedDate = new Date( today.getFullYear(), today.getMonth() + monthOffset, 1 )
-               const year = selectedDate.getFullYear()
-               const month = selectedDate.getMonth()
-               const startOfMonthUTC = new Date( Date.UTC( year, month, 1 ) )
-               const endOfMonthUTC = new Date( Date.UTC( year, month + 1, 0 ) )
-
-               const detailedRows: DetailedRow[] = []
-               const seen = new Set<string>()
-
-               // Function to parse day string to UTC Date
-               const parseDayToUTCDate = ( dayStr: string ) => {
-                    const parts = dayStr.split( ', ' );
-                    if ( parts.length < 2 ) return null;
-                    const dayPart = parts[ 1 ];
-                    const [ dayNumStr, monthName ] = dayPart.split( ' ' );
-                    const monthNames = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
-                    const monthIndex = monthNames.indexOf( monthName );
-                    if ( monthIndex === -1 ) return null;
-                    const dayNum = parseInt( dayNumStr, 10 );
-                    return new Date( Date.UTC( year, monthIndex, dayNum ) );
-               };
-
-               try {
-                    // Fetch all users
-                    const usersSnapshot = await getDocs( collection( db, 'users' ) )
-                    const usersList: User[] = usersSnapshot.docs.map( doc => ( {
-                         id: doc.id,
-                         ...doc.data()
-                    } ) as User )
-
-                    // Get unique week keys for the month
-                    const weekKeys = new Set<string>()
-                    let currentDateUTC = new Date( startOfMonthUTC )
-                    while ( currentDateUTC <= endOfMonthUTC ) {
-                         const weekKey = getWeekKeyForDate( currentDateUTC )
-                         weekKeys.add( weekKey )
-                         currentDateUTC.setUTCDate( currentDateUTC.getUTCDate() + 1 )
-                    }
-
-                    // Fetch timesheet data for each user for each week in the month
-                    for ( const weekKey of Array.from( weekKeys ) ) {
-                         for ( const user of usersList ) {
-                              try {
-                                   const timesheetDocRef = doc( db, 'timesheets', user.id, 'weeks', weekKey )
-                                   const docSnap = await getDoc( timesheetDocRef )
-                                   if ( docSnap.exists() ) {
-                                        const data = docSnap.data()
-                                        const rows = data.rows || []
-                                        rows.forEach( ( row: any ) => {
-                                             Object.keys( row.times || {} ).forEach( day => {
-                                                  const timeData = row.times[ day ]
-                                                  const time = timeData?.time || '00:00'
-                                                  const description = timeData?.description || ''
-                                                  if ( time !== '00:00' ) {
-                                                       // Parse the day string to UTC Date and check if it's within the selected month
-                                                       const dayDateUTC = parseDayToUTCDate( day )
-                                                       if ( dayDateUTC && dayDateUTC >= startOfMonthUTC && dayDateUTC <= endOfMonthUTC ) {
-                                                            const key = `${ day }-${ row.project || 'No Project' }-${ row.task || 'No Task' }-${ description }-${ time }-${ user.fullname }`
-                                                            if ( !seen.has( key ) ) {
-                                                                 seen.add( key )
-                                                                 detailedRows.push( {
-                                                                      date: day,
-                                                                      project: row.project || 'No Project',
-                                                                      client: getClientName( row.project || 'No Project' ),
-                                                                      task: row.task || 'No Task',
-                                                                      description,
-                                                                      hours: time,
-                                                                      member: user.fullname,
-                                                                 } )
-                                                            }
-                                                       }
-                                                  }
-                                             } )
-                                        } )
-                                   }
-                              } catch ( error ) {
-                                   console.error( `Error fetching timesheet data for user ${ user.id }:`, error )
-                              }
-                         }
-                    }
-
-                    setDetailedData( detailedRows )
-               } catch ( error ) {
-                    console.error( 'Error fetching users:', error )
-               }
-          }
-          fetchAllDetailedData()
-     }, [ monthOffset, projects, getClientName ] )
-
-     // Filter by selected project
-     const filteredData = useMemo( () => {
-          if ( selectedProject === 'All' ) {
-               return detailedData
-          }
-          return detailedData.filter( row => row.project === selectedProject )
-     }, [ detailedData, selectedProject ] )
-
-     // Calculate total hours from filtered data
-     const totalHours = useMemo( () => {
-          return filteredData.reduce( ( sum, row ) => {
-               const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
-               return sum + hours + minutes / 60
-          }, 0 )
-     }, [ filteredData ] )
-
-     // Calculate month start and end dates
-     const getMonthDates = () => {
+     const { start: monthStart, end: monthEnd, startOfMonth } = useMemo( () => {
           const today = new Date()
           const targetDate = new Date( today.getFullYear(), today.getMonth() + monthOffset, 1 )
           const year = targetDate.getFullYear()
@@ -213,18 +73,45 @@ const DetailedTab = () => {
                end: formatDate( endOfMonth ),
                startOfMonth
           }
-     }
+     }, [ monthOffset ] )
 
-     const { start: monthStart, end: monthEnd, startOfMonth } = getMonthDates()
-     const selectedYear = startOfMonth.getFullYear()
+     const selectedYear = useMemo( () => startOfMonth.getFullYear(), [ startOfMonth ] )
 
-     // Function to parse date string like "Mon, 5 Jan" to mm/dd/yyyy
-     const parseDateToMMDDYYYY = useCallback( ( dateStr: string ) => {
-          const date = new Date( dateStr + ' ' + selectedYear )
-          return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getFullYear() }`
-     }, [ selectedYear ] )
+     // Parses date strings like "1st Jan" to "01/01/YYYY" using the selected year
+     const parseDateToMMDDYYYY = useCallback( ( dateStr: string ): string => {
+          if ( !dateStr ) return "";
 
-     // Sort data by date
+          // ✅ Remove st / nd / rd / th
+          const cleaned = dateStr.replace( /(\d+)(st|nd|rd|th)/, "$1" );
+
+          // ✅ Append selected year
+          const date = new Date( `${ cleaned } ${ selectedYear }` );
+
+          if ( isNaN( date.getTime() ) ) {
+               return dateStr; // fallback (prevents NaN display)
+          }
+
+          const mm = String( date.getMonth() + 1 ).padStart( 2, "0" );
+          const dd = String( date.getDate() ).padStart( 2, "0" );
+          const yyyy = date.getFullYear();
+
+          return `${ mm }/${ dd }/${ yyyy }`;
+     }, [ selectedYear ] );
+
+     const filteredData = useMemo( () => {
+          if ( selectedProject === 'All' ) {
+               return detailedData
+          }
+          return detailedData.filter( row => row.project === selectedProject )
+     }, [ detailedData, selectedProject ] )
+
+     const totalHours = useMemo( () => {
+          return filteredData.reduce( ( sum, row ) => {
+               const [ hours, minutes ] = row.hours.split( ':' ).map( Number )
+               return sum + hours + minutes / 60
+          }, 0 )
+     }, [ filteredData ] )
+
      const sortedData = useMemo( () => {
           return [ ...filteredData ].sort( ( a, b ) => {
                const dateA = new Date( parseDateToMMDDYYYY( a.date ) )
@@ -233,13 +120,113 @@ const DetailedTab = () => {
           } )
      }, [ filteredData, sortOrder, parseDateToMMDDYYYY ] )
 
-     // Handle sort toggle
+     // Fetch projects from Firebase
+     useEffect( () => {
+          const fetchProjects = async () => {
+               try {
+                    const projectsSnapshot = await getDocs( collection( db, 'projects' ) )
+                    const projectsList: Project[] = projectsSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         projectName: doc.data().projectName || '',
+                         clientName: doc.data().clientName || ''
+                    } ) )
+                    setProjects( projectsList )
+               } catch ( error ) {
+                    console.error( 'Error fetching projects:', error as Error )
+               }
+          }
+          fetchProjects()
+     }, [] )
+
+     // Fetch timesheet data for selected month from Firestore for all users
+     useEffect( () => {
+          const fetchAllDetailedData = async () => {
+
+               const year = new Date().getFullYear()
+               const month = new Date().getMonth() + monthOffset
+               const startOfMonth = new Date( year, month, 1 )
+               const endOfMonth = new Date( year, month + 1, 0 )
+
+               const detailedRows: DetailedRow[] = []
+               const seen = new Set<string>()
+               let stats = { users: 0, weeks: 0, docsFound: 0, entriesAdded: 0, entriesSkipped: 0 }
+
+               // Generate week keys for month (like User tab)
+               const weekKeys: string[] = []
+               let currentWeekStart = new Date( startOfMonth )
+               while ( currentWeekStart <= endOfMonth ) {
+                    const weekNum = Math.ceil( ( ( currentWeekStart.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
+                    const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
+                    weekKeys.push( weekKey )
+                    currentWeekStart.setDate( currentWeekStart.getDate() + 7 )
+               }
+
+               stats.weeks = weekKeys.length
+
+               try {
+                    // Fetch all users
+                    const usersSnapshot = await getDocs( collection( db, 'users' ) )
+                    const usersList: User[] = usersSnapshot.docs.map( doc => ( {
+                         id: doc.id,
+                         ...doc.data()
+                    } ) as User )
+
+                    stats.users = usersList.length
+
+                    // Fetch timesheet data for each user/week
+                    for ( const weekKey of weekKeys ) {
+                         for ( const user of usersList ) {
+                              try {
+                                   const timesheetDocRef = doc( db, 'timesheets', user.id, 'weeks', weekKey )
+                                   const docSnap = await getDoc( timesheetDocRef )
+                                   if ( docSnap.exists() ) {
+                                        stats.docsFound++
+                                        const data = docSnap.data()
+                                        const rows = data.rows || []
+                                        rows.forEach( ( row: any ) => {
+                                             Object.keys( row.times || {} ).forEach( day => {
+                                                  const timeData = row.times[ day ]
+                                                  const time = timeData?.time || '00:00'
+                                                  const description = timeData?.description || ''
+                                                  // Include ALL entries, even 00:00
+                                                  const key = `${ day }-${ row.project || 'No Project' }-${ row.task || 'No Task' }-${ description }-${ time }-${ user.fullname }`
+                                                  if ( !seen.has( key ) ) {
+                                                       seen.add( key )
+                                                       detailedRows.push( {
+                                                            date: day,
+                                                            project: row.project || 'No Project',
+                                                            client: getClientName( row.project || 'No Project' ),
+                                                            task: row.task || 'No Task',
+                                                            description,
+                                                            hours: time,
+                                                            member: user.fullname,
+                                                       } )
+                                                       stats.entriesAdded++
+                                                  } else {
+                                                       stats.entriesSkipped++
+                                                  }
+                                             } )
+                                        } )
+                                   }
+                              } catch ( error ) {
+                                   console.error( `Error fetching timesheet data for user ${ user.id }:`, error as Error )
+                              }
+                         }
+                    }
+                    setDetailedData( detailedRows )
+               } catch ( error ) {
+                    console.error( 'Error fetching users:', error as Error )
+               }
+          }
+          fetchAllDetailedData()
+     }, [ monthOffset, projects, getClientName ] )
+
      const handleSort = () => {
           setSortOrder( prev => prev === 'asc' ? 'desc' : 'asc' )
      }
 
      // Prepare data for export to excel
-     const prepareExportToExcelData: any[][] = [
+     const prepareExportToExcelData = [
           [ 'DATE', 'PROJECT', 'CLIENT', 'TASK', 'DESCRIPTION', 'HOURS', 'MEMBER' ],
           ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
@@ -261,7 +248,7 @@ const DetailedTab = () => {
      const monthName = getMonthName( targetDate );
 
      // Prepare data for export to pdf
-     const prepareExportToPdfData: any[][] = [
+     const prepareExportToPdfData = [
           [ 'DATE', 'PROJECT', 'CLIENT', 'TASK', 'DESCRIPTION', 'HOURS', 'USER NAME' ],
           ...sortedData.map( ( row: DetailedRow ) => [
                parseDateToMMDDYYYY( row.date ),
@@ -283,6 +270,7 @@ const DetailedTab = () => {
                          localStorageKey="detailedTabMonthOffset"
                          className="my-3"
                     />
+
                     <div className={
                          classNames(
                               'bg-light border rounded p-2 mb-3 d-md-flex align-items-center justify-content-between'
@@ -295,7 +283,6 @@ const DetailedTab = () => {
                                    filename={ `DetailedReport_${ monthName.replace( ' ', '_' ) }.xlsx` }
                                    sheetName="Detailed Report"
                                    buttonText="Export to Excel"
-                                   // addBlankRowAfterHeader // <-- remove this prop; not used in the new layout
                                    columnAlignments={ [ 'center', 'center', 'center', 'center', 'left', 'center', 'center' ] }
                                    weekEnd={ monthEnd }
                               />
@@ -390,3 +377,4 @@ const DetailedTab = () => {
 }
 
 export default DetailedTab
+
