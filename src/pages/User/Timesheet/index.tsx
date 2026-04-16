@@ -14,6 +14,7 @@ import TimesheetDeleteAction from './TimesheetDeleteAction';
 import TimesheetAddAction from './TimesheetAddAction';
 import PageTitle from 'components/PageTitle';
 import { WeekNavigation } from '../../../components';
+import classNames from 'classnames';
 
 export interface Row {
      id: string;
@@ -283,7 +284,15 @@ const Timesheet = () => {
                                         <th>PROJECT</th>
                                         <th>TASK</th>
                                         { days.map( ( day: string ) => (
-                                             <th key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
+                                             <th
+                                                  key={ day }
+                                                  className={
+                                                       classNames(
+                                                            'no-wrap',
+                                                            { 'bg-warning': day === currentDay }
+                                                       )
+                                                  }
+                                             >
                                                   { day }
                                              </th>
                                         ) ) }

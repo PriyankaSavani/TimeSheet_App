@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Form } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap'
 import { APICore } from '../../../helpers/api/apiCore'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
@@ -63,15 +63,51 @@ const TimesheetTask: React.FC<TimesheetTaskProps> = ( { rowId, value, isEditing,
           }
      }, [ selectedProject, projects ] )
 
-     const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement> ) => {
-          if ( e.key === 'Enter' || e.key === 'Tab' ) {
-               // Logic can be added here if needed for saving on key press
-          }
-     }
+     // const handleKeyDown = ( e: React.KeyboardEvent<HTMLInputElement> ) => {
+     //      if ( e.key === 'Enter' || e.key === 'Tab' ) {
+     //           // Logic can be added here if needed for saving on key press
+     //      }
+     // }
 
      return (
           <React.Fragment>
                { availableTasks.length > 0 ? (
+                    value ? (
+                         <span onClick={ () => updateTask( rowId, '' ) }>
+                              { value }
+                         </span>
+                    ) : (
+                         <Dropdown>
+                              <Dropdown.Toggle
+                                   variant="outline-secondary"
+                                   id={ `task-${ rowId }` }
+                                   className="w-100"
+                                   size="sm"
+                              >
+                                   Select Task
+                              </Dropdown.Toggle>
+                              <Dropdown.Menu>
+                                   { availableTasks.map( task => (
+                                        <Dropdown.Item
+                                             key={ task }
+                                             onClick={ () => updateTask( rowId, task ) }
+                                        >
+                                             { task }
+                                        </Dropdown.Item>
+                                   ) ) }
+                              </Dropdown.Menu>
+                         </Dropdown>
+                    )
+               ) : (
+                    value ? (
+                         <span onClick={ () => updateTask( rowId, '' ) }>
+                              { value }
+                         </span>
+                    ) : (
+                         <span>Select Task</span>
+                    )
+               ) }
+               {/* { availableTasks.length > 0 ? (
                     value ? (
                          <span onClick={ () => updateTask( rowId, '' ) }>
                               { value }
@@ -109,7 +145,7 @@ const TimesheetTask: React.FC<TimesheetTaskProps> = ( { rowId, value, isEditing,
                               onKeyDown={ handleKeyDown }
                          />
                     )
-               ) }
+               ) } */}
           </React.Fragment>
      )
 }
