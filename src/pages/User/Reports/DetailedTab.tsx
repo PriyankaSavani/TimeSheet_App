@@ -100,22 +100,18 @@ const DetailedTab = () => {
                                              const time = timeData?.time || '00:00'
                                              const description = timeData?.description || ''
                                              if ( time !== '00:00' ) {
-                                                  // Parse the day string to check if it's within the selected month
-                                                  const dayDate = new Date( day + ' ' + new Date().getFullYear() )
-                                                  if ( dayDate >= startOfMonth && dayDate <= endOfMonth ) {
-                                                       const key = `${ day }-${ row.project || 'No Project' }-${ row.task || 'No Task' }-${ description }-${ time }-${ username }`
-                                                       if ( !seen.has( key ) ) {
-                                                            seen.add( key )
-                                                            detailedRows.push( {
-                                                                 date: day,
-                                                                 project: row.project || 'No Project',
-                                                                 client: getClientName( row.project || 'No Project' ),
-                                                                 task: row.task || 'No Task',
-                                                                 description,
-                                                                 hours: time,
-                                                                 member: username,
-                                                            } )
-                                                       }
+                                                  const key = `${ day }-${ row.project || 'No Project' }-${ row.task || 'No Task' }-${ description }-${ time }-${ username }`
+                                                  if ( !seen.has( key ) ) {
+                                                       seen.add( key )
+                                                       detailedRows.push( {
+                                                            date: day,
+                                                            project: row.project || 'No Project',
+                                                            client: getClientName( row.project || 'No Project' ),
+                                                            task: row.task || 'No Task',
+                                                            description,
+                                                            hours: time,
+                                                            member: username
+                                                       } )
                                                   }
                                              }
                                         } )
@@ -128,7 +124,6 @@ const DetailedTab = () => {
                          // Move to next week
                          currentWeekStart.setDate( currentWeekStart.getDate() + 7 )
                     }
-
                     setDetailedData( detailedRows )
                }
                fetchDetailedData()
@@ -163,20 +158,44 @@ const DetailedTab = () => {
 
      const { start: monthStart, end: monthEnd } = getMonthDates()
 
-     // Function to parse date string like "Mon, 5 Jan" to mm/dd/yyyy
-     const parseDateToMMDDYYYY = ( dateStr: string ) => {
-          const date = new Date( dateStr + ' ' + new Date().getFullYear() )
-          return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getFullYear() }`
-     }
+     // date parsing helper to convert "1st", "2nd", "3rd", "4th" etc. to "MM/DD/YYYY" format for sorting and display
+     const parseDateToMMDDYYYY = useCallback( ( dateStr: string ): string => {
+          if ( !dateStr ) return "";
 
-     // Sort data by date
+          // Remove st / nd / rd / th
+          const cleaned = dateStr.replace( /(\d+)(st|nd|rd|th)/, "$1" );
+
+          // Get year & month from selected monthOffset to build a complete date for parsing
+          const today = new Date();
+          const targetDate = new Date(
+               today.getFullYear(),
+               today.getMonth() + monthOffset,
+               1
+          );
+          const year = targetDate.getFullYear();
+
+          // Build a real Date object
+          const parsedDate = new Date( `${ cleaned } ${ year }` );
+
+          if ( isNaN( parsedDate.getTime() ) ) {
+               return dateStr; // fallback safety
+          }
+
+          const mm = String( parsedDate.getMonth() + 1 ).padStart( 2, "0" );
+          const dd = String( parsedDate.getDate() ).padStart( 2, "0" );
+          const yyyy = parsedDate.getFullYear();
+
+          return `${ mm }/${ dd }/${ yyyy }`;
+     }, [ monthOffset ] )
+
+     // Sort data by date using useMemo to avoid unnecessary recalculations when data or sort order changes
      const sortedData = useMemo( () => {
           return [ ...detailedData ].sort( ( a, b ) => {
                const dateA = new Date( parseDateToMMDDYYYY( a.date ) )
                const dateB = new Date( parseDateToMMDDYYYY( b.date ) )
                return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime()
           } )
-     }, [ detailedData, sortOrder ] )
+     }, [ detailedData, sortOrder, parseDateToMMDDYYYY ] )
 
      // Handle sort toggle
      const handleSort = () => {
@@ -236,11 +255,10 @@ const DetailedTab = () => {
                          <h5><b>Total Hours:</b> { totalHours.toFixed( 2 ) }</h5>
                          <div>
                               <ExportToExcel
-                                   data={ prepareExportToExcelData } // 2D array: [headerRow, ...rows]
+                                   data={ prepareExportToExcelData }
                                    filename={ `DetailedReport_${ monthName.replace( ' ', '_' ) }.xlsx` }
                                    sheetName="Detailed Report"
                                    buttonText="Export to Excel"
-                                   // addBlankRowAfterHeader // <-- remove this prop; not used in the new layout
                                    columnAlignments={ [ 'center', 'center', 'center', 'center', 'left', 'center', 'center' ] }
                                    weekEnd={ monthEnd }
                               />
@@ -297,7 +315,7 @@ const DetailedTab = () => {
                               { sortedData.length === 0 && (
                                    <tr>
                                         <td colSpan={ 7 } className="text-center">
-                                             No data available for this month
+                                             No timesheet entries found for this month. Check Timesheet tab to add entries or try different month.
                                         </td>
                                    </tr>
                               ) }
