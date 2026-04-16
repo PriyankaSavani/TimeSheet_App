@@ -24,14 +24,7 @@ export const getWeekDays = ( weekOffset: number ): string[] => {
      const offsetWeekStart = addWeeks( weekStart, weekOffset );
      const endDate = addWeeks( offsetWeekStart, 1 );
      const days = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );
-     return days.map( date => {
-          // Display friendly local format
-          return date.toLocaleDateString( 'en-US', {
-               weekday: 'short',
-               day: 'numeric',
-               month: 'short'
-          } );
-     } );
+     return days.map( date => format( date, 'EEE, MMM do' ) );
 };
 
 export const parseDayKeyToDate = ( dayKey: string, weekOffset: number ): Date => {

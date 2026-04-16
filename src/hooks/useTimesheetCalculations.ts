@@ -9,23 +9,14 @@ export const useTimesheetCalculations = ( weekOffset: number, rows: any[] ) => {
           const offsetWeekStart = addWeeks( weekStart, weekOffset );
           const endDate = addDays( offsetWeekStart, 6 );
           const weekDaysDates = eachDayOfInterval( { start: offsetWeekStart, end: endDate } );
-          const days = weekDaysDates.map( date => date.toLocaleDateString( 'en-US', {
-               weekday: 'short',
-               day: 'numeric',
-               month: 'short'
-          } ) );
+          const days = weekDaysDates.map( date => format( date, 'EEE, MMM do' ) );
           const startStr = format( offsetWeekStart, 'd MMM' );
           const endStr = format( endDate, 'd MMM' );
           const year = format( offsetWeekStart, 'yyyy' );
           const prefix = weekOffset === 0 ? 'This week' : 'Week of';
           const weekDisplay = `${ prefix } : ${ startStr } -> ${ endStr } ${ year }`;
 
-          const todayStr = now.toLocaleDateString( 'en-US', {
-               weekday: 'short',
-               day: 'numeric',
-               month: 'short'
-          } );
-          const currentDay = todayStr;
+          const currentDay = format( now, 'EEE, MMM do' );
 
           return { days, weekDisplay, currentDay };
      }, [ weekOffset ] );

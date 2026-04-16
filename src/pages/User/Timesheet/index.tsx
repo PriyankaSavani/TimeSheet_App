@@ -192,30 +192,24 @@ const Timesheet = () => {
           } );
      }, [ userId, weekOffset ] );
 
-     // Save rows to localStorage and Firestore whenever rows change (per-user per-week timesheet)
-     // Note: Only save when rows change, NOT when weekOffset changes - this prevents saving to wrong weeks
+     // Save rows only if meaningful data (prevent default row saves)
      useEffect( () => {
           if ( userId !== 'anonymous' && dataLoaded ) {
+               const hasMeaningfulData = rows.some( row => row.project !== 'Select Project' || row.task || Object.values( row.times ).some( t => t.time && t.time !== '00:00' ) );
+               if ( !hasMeaningfulData ) return;
+
                const weekKey = getWeekKey( weekOffset );
                const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
-               // Save to localStorage immediately
                localStorage.setItem( localStorageKey, JSON.stringify( rows ) );
 
-               // Save to Firestore asynchronously
                const saveToFirestore = async () => {
-                    if ( rows.length > 0 ) {
-                         try {
-                              const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-                              await setDoc( timesheetDocRef, { rows }, { merge: true } );
-                         } catch ( error ) {
-                              console.error( 'Error saving timesheet data to Firestore:', error );
-                         }
-                    }
+                    const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+                    await setDoc( timesheetDocRef, { rows }, { merge: true } );
                };
-               saveToFirestore();
+               saveToFirestore().catch( console.error );
           }
-     }, [ rows, userId, dataLoaded ] );
+     }, [ rows, userId, dataLoaded, weekOffset ] );
 
      // Save data on page unload to prevent data loss
      useEffect( () => {
