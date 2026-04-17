@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ReactApexChart from 'react-apexcharts'
 import { doc, getDoc } from 'firebase/firestore'
+import { getISOWeekKey } from '../../../utils/date'
 import { db, auth } from '../../../config/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import classNames from 'classnames'
@@ -71,25 +72,69 @@ const SummaryTab = () => {
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
                const fetchTimesheetData = async () => {
-                    const today = new Date()
-                    const startOfWeek = new Date( Date.UTC( today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() ) )
-                    const day = today.getUTCDay()
-                    const diff = today.getUTCDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
-                    startOfWeek.setUTCDate( diff )
-                    const endOfWeek = new Date( startOfWeek )
-                    endOfWeek.setUTCDate( startOfWeek.getUTCDate() + 6 )
-                    const year = startOfWeek.getUTCFullYear()
-                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( Date.UTC( year, 0, 1 ) ).getTime() ) / 86400000 + 1 ) / 7 )
-                    const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
-                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`
-
-                    let rows: any[] = []
+                    const weekKey = getISOWeekKey( weekOffset );
+                    const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
                     // First, load from localStorage
                     const localData = localStorage.getItem( localStorageKey )
                     if ( localData ) {
                          try {
-                              rows = JSON.parse( localData )
+                              const rows = JSON.parse( localData )
+
+                              // Calculate hours per task per day per project
+                              const taskDayProjectHours: Record<string, Record<string, Record<string, number>>> = {}
+
+                              rows.forEach( ( row: any ) => {
+                                   const taskName = row.task || 'Unknown Task'
+                                   const projectName = row.project || 'Unknown Project'
+                                   if ( !taskDayProjectHours[ taskName ] ) {
+                                        taskDayProjectHours[ taskName ] = {}
+                                   }
+                                   if ( !taskDayProjectHours[ taskName ][ projectName ] ) {
+                                        taskDayProjectHours[ taskName ][ projectName ] = {}
+                                        days.forEach( day => {
+                                             taskDayProjectHours[ taskName ][ projectName ][ day ] = 0
+                                        } )
+                                   }
+                                   days.forEach( day => {
+                                        const timeData = row.times[ day ]
+                                        const timeValue = timeData?.time
+                                        let hours = 0
+                                        if ( timeData == null || timeValue == null || timeValue === '' ) {
+                                             hours = -1 // No entry
+                                        } else if ( typeof timeValue === 'number' ) {
+                                             hours = timeValue
+                                        } else if ( typeof timeValue === 'string' ) {
+                                             if ( timeValue.includes( ':' ) ) {
+                                                  const [ h, m ] = timeValue.split( ':' ).map( Number )
+                                                  if ( !isNaN( h ) && !isNaN( m ) ) {
+                                                       hours = h + m / 60
+                                                  } else {
+                                                       hours = -1
+                                                  }
+                                             } else {
+                                                  hours = parseFloat( timeValue ) || -1
+                                             }
+                                        } else {
+                                             hours = -1
+                                        }
+                                        taskDayProjectHours[ taskName ][ projectName ][ day ] += hours
+                                   } )
+                              } )
+
+                              // Create series for each task-project combination
+                              const series: { name: string, data: number[] }[] = []
+                              Object.keys( taskDayProjectHours ).forEach( taskName => {
+                                   Object.keys( taskDayProjectHours[ taskName ] ).forEach( projectName => {
+                                        const data = days.map( day => taskDayProjectHours[ taskName ][ projectName ][ day ] || 0 )
+                                        series.push( {
+                                             name: `${ taskName } (${ projectName })`,
+                                             data
+                                        } )
+                                   } )
+                              } )
+
+                              setChartData( { categories: days, series } )
                          } catch ( error ) {
                               console.error( 'Error parsing localStorage data:', error )
                          }
@@ -101,66 +146,69 @@ const SummaryTab = () => {
                          const docSnap = await getDoc( timesheetDocRef )
                          if ( docSnap.exists() ) {
                               const data = docSnap.data()
-                              rows = data.rows || []
+                              const firestoreRows = data.rows || []
+
+                              // Calculate hours per task per day per project from Firestore
+                              const taskDayProjectHours: Record<string, Record<string, Record<string, number>>> = {}
+
+                              firestoreRows.forEach( ( row: any ) => {
+                                   const taskName = row.task || 'Unknown Task'
+                                   const projectName = row.project || 'Unknown Project'
+                                   if ( !taskDayProjectHours[ taskName ] ) {
+                                        taskDayProjectHours[ taskName ] = {}
+                                   }
+                                   if ( !taskDayProjectHours[ taskName ][ projectName ] ) {
+                                        taskDayProjectHours[ taskName ][ projectName ] = {}
+                                        days.forEach( day => {
+                                             taskDayProjectHours[ taskName ][ projectName ][ day ] = 0
+                                        } )
+                                   }
+                                   days.forEach( day => {
+                                        const timeData = row.times[ day ]
+                                        const timeValue = timeData?.time
+                                        let hours = 0
+                                        if ( timeData == null || timeValue == null || timeValue === '' ) {
+                                             hours = -1 // No entry
+                                        } else if ( typeof timeValue === 'number' ) {
+                                             hours = timeValue
+                                        } else if ( typeof timeValue === 'string' ) {
+                                             if ( timeValue.includes( ':' ) ) {
+                                                  const [ h, m ] = timeValue.split( ':' ).map( Number )
+                                                  if ( !isNaN( h ) && !isNaN( m ) ) {
+                                                       hours = h + m / 60
+                                                  } else {
+                                                       hours = -1
+                                                  }
+                                             } else {
+                                                  hours = parseFloat( timeValue ) || -1
+                                             }
+                                        } else {
+                                             hours = -1
+                                        }
+                                        taskDayProjectHours[ taskName ][ projectName ][ day ] += hours
+                                   } )
+                              } )
+
+                              // Create series for each task-project combination
+                              const series: { name: string, data: number[] }[] = []
+                              Object.keys( taskDayProjectHours ).forEach( taskName => {
+                                   Object.keys( taskDayProjectHours[ taskName ] ).forEach( projectName => {
+                                        const data = days.map( day => taskDayProjectHours[ taskName ][ projectName ][ day ] || 0 )
+                                        series.push( {
+                                             name: `${ taskName } (${ projectName })`,
+                                             data
+                                        } )
+                                   } )
+                              } )
+
+                              setChartData( { categories: days, series } )
+                         } else if ( !localData ) {
+                              // No data in localStorage or Firestore, set empty
+                              setChartData( { categories: days, series: [] } )
                          }
                     } catch ( error ) {
                          console.error( 'Error fetching timesheet data:', error )
                     }
-
-                    // Calculate hours per task per day per project
-                    const taskDayProjectHours: Record<string, Record<string, Record<string, number>>> = {}
-
-                    rows.forEach( ( row: any ) => {
-                         const taskName = row.task || 'Unknown Task'
-                         const projectName = row.project || 'Unknown Project'
-                         if ( !taskDayProjectHours[ taskName ] ) {
-                              taskDayProjectHours[ taskName ] = {}
-                         }
-                         if ( !taskDayProjectHours[ taskName ][ projectName ] ) {
-                              taskDayProjectHours[ taskName ][ projectName ] = {}
-                              days.forEach( day => {
-                                   taskDayProjectHours[ taskName ][ projectName ][ day ] = 0
-                              } )
-                         }
-                         days.forEach( day => {
-                              const timeData = row.times[ day ]
-                              const timeValue = timeData?.time
-                              let hours = 0
-                              if ( timeData == null || timeValue == null || timeValue === '' ) {
-                                   hours = -1 // No entry
-                              } else if ( typeof timeValue === 'number' ) {
-                                   hours = timeValue
-                              } else if ( typeof timeValue === 'string' ) {
-                                   if ( timeValue.includes( ':' ) ) {
-                                        const [ h, m ] = timeValue.split( ':' ).map( Number )
-                                        if ( !isNaN( h ) && !isNaN( m ) ) {
-                                             hours = h + m / 60
-                                        } else {
-                                             hours = -1
-                                        }
-                                   } else {
-                                        hours = parseFloat( timeValue ) || -1
-                                   }
-                              } else {
-                                   hours = -1
-                              }
-                              taskDayProjectHours[ taskName ][ projectName ][ day ] += hours
-                         } )
-                    } )
-
-                    // Create series for each task-project combination
-                    const series: { name: string, data: number[] }[] = []
-                    Object.keys( taskDayProjectHours ).forEach( taskName => {
-                         Object.keys( taskDayProjectHours[ taskName ] ).forEach( projectName => {
-                              const data = days.map( day => taskDayProjectHours[ taskName ][ projectName ][ day ] || 0 )
-                              series.push( {
-                                   name: `${ taskName } (${ projectName })`,
-                                   data
-                              } )
-                         } )
-                    } )
-
-                    setChartData( { categories: days, series } )
                }
                fetchTimesheetData()
           }
@@ -174,7 +222,9 @@ const SummaryTab = () => {
           COLORS.WARNING,
           COLORS.DANGER,
           COLORS.LIGHT,
-          COLORS.DARK
+          COLORS.DARK,
+          COLORS.PINK,
+          COLORS.BLUE
      ]
 
      const seriesForChart = chartData.series.map( ( task, index ) => {
@@ -275,7 +325,6 @@ const SummaryTab = () => {
                     <WeekNavigation
                          weekOffset={ weekOffset }
                          setWeekOffset={ setWeekOffset }
-                         localStorageKey="reports_weekOffset"
                          className='mb-3 mb-xl-0'
                     />
                </div>

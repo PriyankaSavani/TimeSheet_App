@@ -7,6 +7,8 @@ export const COLORS = {
      DANGER: '#f1556c',
      LIGHT: '#f3f7f9',
      DARK: '#323a46',
+     PINK: '#f672a7',
+     BLUE: '#4a81d4',
      $WHITE: "#ffffff",
      $GRAY100: '#f3f7f9',
      $GRAY200: '#f7f7f7',

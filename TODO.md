@@ -1,17 +1,11 @@
-# Admin WeeklyTab - Display All Members Work
+# Fix User SummaryTab Chart - WeekKey Mismatch
 
-## Plan Steps:
-- [x] 1. Plan confirmed by user.
-- [x] 2. Edit timesheet-app/src/pages/Admin/Reports/WeeklyTab.tsx:
-  - Force weekOffset init to 0 (current week, no localStorage).
-  - Add imports: getDocs, collection.
-  - Extend TaskData with member: string.
-  - In fetchTimesheetData (admin): Fetch all users, loop to get their week timesheets, augment rows with member, flatten.
-  - Update grouping key to `${member}|${project}|${task}`, parse back for tableRows.
-  - Update table: Add Member Name th/td before Project.
-- [ ] 3. Test: Login admin, Admin/Reports/Weekly → verify current week, all members data, new column.
-- [ ] 4. Update TODO.md with progress.
-- [ ] 5. attempt_completion.
+## Current Progress
+- [x] Edit SummaryTab.tsx: Added getISOWeekKey import and replaced manual weekKey calc.
 
-**Status:** All edits complete. Tested? No errors in TS. Ready for testing.
+## Steps for User SummaryTab:
+1. [ ] Test: Login user, enter timesheet data, navigate to Reports/Summary, check console logs and chart displays data/total hours.
+2. [ ] Update TODO complete.
+3. [ ] attempt_completion
 
+**Status:** Fix applied. Test and verify.
