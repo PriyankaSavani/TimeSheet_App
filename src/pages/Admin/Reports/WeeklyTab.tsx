@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { Table } from 'react-bootstrap'
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
+import { getISOWeekKey } from '../../../utils/date'
 import { db, auth } from '../../../config/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import classNames from 'classnames'
 import WeekNavigation from 'components/WeekNavigation'
 
 interface TaskData {
+     member: string
      project: string
      task: string
      [ key: string ]: string | number // For day columns and total
@@ -17,10 +19,7 @@ const WeeklyTab = () => {
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
      const [ userRole, setUserRole ] = useState<string | null>( null )
      const [ tableData, setTableData ] = useState<TaskData[]>( [] )
-     const [ weekOffset, setWeekOffset ] = useState<number>( () => {
-          const saved = localStorage.getItem( 'weeklyReportWeekOffset' )
-          return saved ? parseInt( saved, 10 ) : 0
-     } )
+     const [ weekOffset, setWeekOffset ] = useState<number>( 0 )
 
      // Get days for current week
      const { days } = useTimesheetCalculations( weekOffset, [] )
@@ -66,38 +65,38 @@ const WeeklyTab = () => {
      useEffect( () => {
           if ( userId !== 'anonymous' && userRole === 'admin' ) {
                const fetchTimesheetData = async () => {
-                    const today = new Date()
-                    const startOfWeek = new Date( today )
-                    const day = today.getDay()
-                    const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
-                    startOfWeek.setDate( diff )
-                    const endOfWeek = new Date( startOfWeek )
-                    endOfWeek.setDate( startOfWeek.getDate() + 6 )
-                    const year = startOfWeek.getFullYear()
-                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
-                    const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
+                    const weekKey = getISOWeekKey( weekOffset )
 
-                    let rows: any[] = []
+                    const usersSnapshot = await getDocs( collection( db, 'users' ) )
+                    const usersList = usersSnapshot.docs.map( ( doc ) => ( {
+                         id: doc.id,
+                         fullname: doc.data().fullname || doc.data().firstName + ' ' + ( doc.data().lastName || '' ) || 'Unknown Member'
+                    } ) )
 
-                    // For admin users, only load from Firestore to ensure data integrity
-                    try {
-                         const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey )
+                    let allRows: any[] = []
+
+                    for ( const user of usersList ) {
+                         const timesheetDocRef = doc( db, 'timesheets', user.id, 'weeks', weekKey )
                          const docSnap = await getDoc( timesheetDocRef )
                          if ( docSnap.exists() ) {
                               const data = docSnap.data()
-                              rows = data.rows || []
+                              const rows = data.rows || []
+                              rows.forEach( ( row: any ) => {
+                                   row.member = user.fullname
+                                   allRows.push( row )
+                              } )
                          }
-                    } catch ( error ) {
-                         console.error( 'Error fetching timesheet data:', error )
                     }
+                    const rows = allRows
 
                     // Process data: group by project and task
                     const projectTaskMap: Record<string, Record<string, number>> = {}
 
                     rows.forEach( ( row: any ) => {
+                         const member = row.member || 'Unknown Member'
                          const project = row.project || 'No Project'
                          const task = row.task || 'No Task'
-                         const key = `${ project }|${ task }`
+                         const key = `${ member }|${ project }|${ task }`
 
                          if ( !projectTaskMap[ key ] ) {
                               projectTaskMap[ key ] = {}
@@ -109,7 +108,9 @@ const WeeklyTab = () => {
                          days.forEach( day => {
                               const timeData = row.times[ day ]
                               const time = timeData?.time || '00:00'
-                              const [ hours, minutes ] = time.split( ':' ).map( Number )
+                              const [ hoursStr, minutesStr ] = time.split( ':' )
+                              const hours = parseFloat( hoursStr ) || 0
+                              const minutes = parseFloat( minutesStr ) || 0
                               const totalHours = hours + minutes / 60
                               projectTaskMap[ key ][ day ] += totalHours
                          } )
@@ -117,8 +118,8 @@ const WeeklyTab = () => {
 
                     // Convert to table data
                     const tableRows: TaskData[] = Object.keys( projectTaskMap ).map( key => {
-                         const [ project, task ] = key.split( '|' )
-                         const row: TaskData = { project, task }
+                         const [ member, project, task ] = key.split( '|' )
+                         const row: TaskData = { member: member || 'Unknown', project, task }
                          let total = 0
                          days.forEach( day => {
                               const hours = projectTaskMap[ key ][ day ]
@@ -145,7 +146,6 @@ const WeeklyTab = () => {
                     <WeekNavigation
                          weekOffset={ weekOffset }
                          setWeekOffset={ setWeekOffset }
-                         localStorageKey="weeklyReportWeekOffset"
                          className="mb-3"
                     />
                     <div className={
@@ -156,8 +156,9 @@ const WeeklyTab = () => {
                          <div>Total Hours: { totalHours.toFixed( 2 ) }</div>
                     </div>
                     <Table bordered responsive>
-                         <thead>
+                         <thead className='no-wrap'>
                               <tr>
+                                   <th>Member Name</th>
                                    <th>Project Name</th>
                                    <th>Task Name</th>
                                    { days.map( day => (
@@ -169,17 +170,20 @@ const WeeklyTab = () => {
                          <tbody>
                               { tableData.map( ( row, index ) => (
                                    <tr key={ index }>
+                                        <td>{ row.member }</td>
                                         <td>{ row.project }</td>
                                         <td>{ row.task }</td>
                                         { days.map( day => (
-                                             <td key={ day }>{ row[ day ] === "0.00" || !row[ day ] ? "-" : row[ day ] }</td>
+                                             <td key={ day } className='text-center'>
+                                                  { Number( row[ day ] ) > 0 ? row[ day ] : '—' }
+                                             </td>
                                         ) ) }
-                                        <td><strong>{ row.total }</strong></td>
+                                        <td className='text-center'><strong>{ row.total }</strong></td>
                                    </tr>
                               ) ) }
                               { tableData.length === 0 && (
                                    <tr>
-                                        <td colSpan={ days.length + 3 } className="text-center">
+                                        <td colSpan={ days.length + 4 } className="text-center">
                                              No data available for this week
                                         </td>
                                    </tr>
