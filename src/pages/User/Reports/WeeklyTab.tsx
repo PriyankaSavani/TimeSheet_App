@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Table } from 'react-bootstrap'
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations'
+import { getISOWeekKey } from '../../../utils/date'
 import { doc, getDoc } from 'firebase/firestore'
 import { db, auth } from '../../../config/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -16,10 +17,7 @@ interface TaskData {
 const WeeklyTab = () => {
      const [ userId, setUserId ] = useState<string>( 'anonymous' )
      const [ tableData, setTableData ] = useState<TaskData[]>( [] )
-     const [ weekOffset, setWeekOffset ] = useState<number>( () => {
-          const saved = localStorage.getItem( 'weeklyReportWeekOffset' )
-          return saved ? parseInt( saved, 10 ) : 0
-     } )
+     const [ weekOffset, setWeekOffset ] = useState<number>( 0 )
 
      // Get days for current week
      const { days } = useTimesheetCalculations( weekOffset, [] )
@@ -37,20 +35,19 @@ const WeeklyTab = () => {
           return () => unsubscribe()
      }, [] )
 
+     // Force current week offset 0
+     useEffect( () => {
+          localStorage.setItem( 'weeklyReportWeekOffset', '0' );
+          if ( weekOffset !== 0 ) setWeekOffset( 0 );
+     }, [ weekOffset ] )
+
      // Fetch timesheet data for current week
      useEffect( () => {
           if ( userId !== 'anonymous' ) {
                const fetchTimesheetData = async () => {
-                    const today = new Date()
-                    const startOfWeek = new Date( today )
-                    const day = today.getDay()
-                    const diff = today.getDate() - day + ( day === 0 ? -6 : 1 ) + weekOffset * 7
-                    startOfWeek.setDate( diff )
-                    const endOfWeek = new Date( startOfWeek )
-                    endOfWeek.setDate( startOfWeek.getDate() + 6 )
-                    const year = startOfWeek.getFullYear()
-                    const weekNum = Math.ceil( ( ( startOfWeek.getTime() - new Date( year, 0, 1 ).getTime() ) / 86400000 + 1 ) / 7 )
-                    const weekKey = `${ year }-W${ weekNum.toString().padStart( 2, '0' ) }`
+
+                    const weekKey = getISOWeekKey( weekOffset );
+
                     const localStorageKey = `timesheet_${ userId }_${ weekKey }`
 
                     let rows: any[] = []
@@ -81,6 +78,7 @@ const WeeklyTab = () => {
                     const projectTaskMap: Record<string, Record<string, number>> = {}
 
                     rows.forEach( ( row: any ) => {
+
                          const project = row.project || 'No Project'
                          const task = row.task || 'No Task'
                          const key = `${ project }|${ task }`
@@ -95,7 +93,9 @@ const WeeklyTab = () => {
                          days.forEach( day => {
                               const timeData = row.times[ day ]
                               const time = timeData?.time || '00:00'
-                              const [ hours, minutes ] = time.split( ':' ).map( Number )
+                              const [ hoursStr, minutesStr ] = time.split( ':' )
+                              const hours = parseFloat( hoursStr ) || 0
+                              const minutes = parseFloat( minutesStr ) || 0
                               const totalHours = hours + minutes / 60
                               projectTaskMap[ key ][ day ] += totalHours
                          } )
@@ -129,7 +129,6 @@ const WeeklyTab = () => {
                     <WeekNavigation
                          weekOffset={ weekOffset }
                          setWeekOffset={ setWeekOffset }
-                         localStorageKey="weeklyReportWeekOffset"
                          className="mb-3"
                     />
                     <div className={
@@ -140,7 +139,7 @@ const WeeklyTab = () => {
                          <div>Total Hours: { totalHours.toFixed( 2 ) }</div>
                     </div>
                     <Table bordered responsive>
-                         <thead>
+                         <thead className='no-wrap'>
                               <tr>
                                    <th>Project Name</th>
                                    <th>Task Name</th>
@@ -156,9 +155,15 @@ const WeeklyTab = () => {
                                         <td>{ row.project }</td>
                                         <td>{ row.task }</td>
                                         { days.map( day => (
-                                             <td key={ day }>{ row[ day ] === "0.00" || !row[ day ] ? "-" : row[ day ] }</td>
+                                             <td key={ day } className='text-center'>
+                                                  { Number( row[ day ] ) > 0 ? row[ day ] : '—' }
+                                             </td>
                                         ) ) }
-                                        <td><strong>{ row.total }</strong></td>
+                                        <td className='text-center'>
+                                             <strong>
+                                                  { row.total }
+                                             </strong>
+                                        </td>
                                    </tr>
                               ) ) }
                               { tableData.length === 0 && (

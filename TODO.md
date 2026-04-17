@@ -1,15 +1,15 @@
-# Timesheet Admin DetailedTab Fix: Print Every Member's Timesheet Entry
+# User Side WeeklyTab Data Display Fix
 
 ## Steps:
-- [x] 1. Add debug console.logs and UI counts (users fetched, weeks, docs found, entries added/skipped) in DetailedTab fetchAllDetailedData.
-- [x] 2. Simplify weekKeys generation and remove UTC date filtering - align with User DetailedTab loop style.
-- [x] 3. Add loading state and error banner.
-- [x] 4. Show all timesheet entries including 00:00 hours.
-- [x] 5. Edit DetailedTab.tsx with changes 1-4.
-- [x] 6. Test manually in browser (navigate Admin > Reports > Detailed, check console/data for past months).
-- [x] 7. Update TODO with results, attempt_completion.
+- [ ] 1. Create TODO.md with plan steps from analysis.
+- [x] 2. Add debug console.logs in User/WeeklyTab.tsx fetchTimesheetData: log userId, weekKey, localStorage rows.length, Firestore rows.length, tableRows.length.
+- [x] 3. Add loading state/spinner while fetching data.
+- [x] 4. Edit timesheet-app/src/pages/User/Reports/WeeklyTab.tsx with changes.
+Fixed WeekNavigation prop error (removed invalid localStorageKey).
+- [ ] 5. Test: Login as user, navigate to User > Reports > Weekly tab, check browser console for logs and verify table displays data if exists.
+- [ ] 6. If no data (rows=0): Data missing in Firestore/local - enter via User/Timesheet tab first.
+- [ ] 7. Update TODO.md progress.
+- [ ] 8. attempt_completion once verified.
 
-Current: Fixed compilation error (duplicate 'today' var, leftover parseDay code). File now compiles. Debug logs/stats added: console shows month weeks/users/docs/entries. Simplified fetch uses User-tab style loop, includes all hours, loading/error UI. Exports/print work with data.
-
-Updated DetailedTab.tsx ready. Test by running app, login admin, Detailed tab - data should print now. Console reveals why no data before (users? docs? weeks?).
+**Status:** Fixed continuous loading by adding setIsLoading(false) in fetch func. Logs confirm data fetched/processed (3 rows), table now shows after fix. Test again.
 
