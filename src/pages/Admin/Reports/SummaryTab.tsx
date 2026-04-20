@@ -7,6 +7,7 @@ import { db } from '../../../config/firebase'
 import classNames from 'classnames'
 import { WeekNavigation } from '../../../components'
 import { COLORS } from '../../../constants/colors'
+import FeatherIcon from 'feather-icons-react'
 
 const SummaryTab = () => {
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // Always start with current week
@@ -263,18 +264,8 @@ const SummaryTab = () => {
                </div>
                { chartData.categories.length === 0 || chartData.series.length === 0 ? (
                     <div className="text-center p-5">
-                         <svg
-                              className="icon text-muted mb-3"
-                              width="48"
-                              height="48"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                         >
-                              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <polyline points="22,4 12,14.01 9,11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                         </svg>
-                         <h5 className="text-muted">No timesheet data available</h5>
+                         <FeatherIcon icon="bar-chart-2" size={ 48 } className="text-muted mb-3" />
+                         <h5 className="text-muted">No data available</h5>
                          <p className="text-muted mb-0">No members have logged hours for { weekDisplay || 'the selected week' }</p>
                     </div>
                ) : (

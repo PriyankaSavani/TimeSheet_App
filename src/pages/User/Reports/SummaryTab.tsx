@@ -8,6 +8,7 @@ import classNames from 'classnames'
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations'
 import { WeekNavigation } from '../../../components'
 import { COLORS } from '../../../constants/colors'
+import FeatherIcon from 'feather-icons-react'
 
 const SummaryTab = () => {
      const [ weekOffset, setWeekOffset ] = useState( 0 ); // Always start with current week
@@ -66,7 +67,7 @@ const SummaryTab = () => {
      }, [] )
 
      // Get days for selected week
-     const { days } = useTimesheetCalculations( weekOffset, [] )
+     const { days, weekDisplay } = useTimesheetCalculations( weekOffset, [] )
 
      // Fetch timesheet data for selected week
      useEffect( () => {
@@ -127,10 +128,13 @@ const SummaryTab = () => {
                               Object.keys( taskDayProjectHours ).forEach( taskName => {
                                    Object.keys( taskDayProjectHours[ taskName ] ).forEach( projectName => {
                                         const data = days.map( day => taskDayProjectHours[ taskName ][ projectName ][ day ] || 0 )
-                                        series.push( {
-                                             name: `${ taskName } (${ projectName })`,
-                                             data
-                                        } )
+                                        const totalHoursForSeries = data.reduce( ( sum, h ) => sum + ( h > 0 ? h : 0 ), 0 );
+                                        if ( totalHoursForSeries > 0 && !taskName.includes( 'Unknown' ) && !projectName.includes( 'Unknown' ) ) {
+                                             series.push( {
+                                                  name: `${ taskName } (${ projectName })`,
+                                                  data
+                                             } );
+                                        }
                                    } )
                               } )
 
@@ -194,10 +198,13 @@ const SummaryTab = () => {
                               Object.keys( taskDayProjectHours ).forEach( taskName => {
                                    Object.keys( taskDayProjectHours[ taskName ] ).forEach( projectName => {
                                         const data = days.map( day => taskDayProjectHours[ taskName ][ projectName ][ day ] || 0 )
-                                        series.push( {
-                                             name: `${ taskName } (${ projectName })`,
-                                             data
-                                        } )
+                                        const totalHoursForSeries = data.reduce( ( sum, h ) => sum + ( h > 0 ? h : 0 ), 0 );
+                                        if ( totalHoursForSeries > 0 && !taskName.includes( 'Unknown' ) && !projectName.includes( 'Unknown' ) ) {
+                                             series.push( {
+                                                  name: `${ taskName } (${ projectName })`,
+                                                  data
+                                             } );
+                                        }
                                    } )
                               } )
 
@@ -317,6 +324,8 @@ const SummaryTab = () => {
           },
      }
 
+     const isEmptyChart = !chartData.series.length || chartData.series.every( series => series.data.every( val => val <= 0 ) );
+
      const totalHours = chartData.series.reduce( ( sum, task ) => sum + task.data.filter( h => h !== -1 ).reduce( ( s, h ) => s + h, 0 ), 0 )
 
      return (
@@ -337,12 +346,20 @@ const SummaryTab = () => {
                          Total Hours: { totalHours.toFixed( 2 ) }
                     </div>
                </div>
-               <ReactApexChart
-                    options={ chartOptions }
-                    series={ seriesForChart }
-                    type="bar"
-                    height={ 450 }
-               />
+               { isEmptyChart ? (
+                    <div className="text-center p-5">
+                         <FeatherIcon icon="bar-chart-2" size={ 48 } className="text-muted mb-3" />
+                         <h5 className="text-muted">No data available</h5>
+                         <p className="text-muted mb-0">No members have logged hours for { weekDisplay || 'the selected week' }</p>
+                    </div>
+               ) : (
+                    <ReactApexChart
+                         options={ chartOptions }
+                         series={ seriesForChart }
+                         type="bar"
+                         height={ 450 }
+                    />
+               ) }
           </div>
      )
 }

@@ -315,7 +315,7 @@ const DetailedTab = () => {
                               { sortedData.length === 0 && (
                                    <tr>
                                         <td colSpan={ 7 } className="text-center">
-                                             No timesheet entries found for this month. Check Timesheet tab to add entries or try different month.
+                                             No data available for this month
                                         </td>
                                    </tr>
                               ) }

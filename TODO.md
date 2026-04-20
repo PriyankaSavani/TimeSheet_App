@@ -1,34 +1,20 @@
-# Admin SummaryTab Stacked Member Chart Implementation
+# TODO: Fix User SummaryTab No Data Message
 
-## Steps:
-- [x] Step 1: Update data fetching logic to aggregate across all users for selected week ✅
+## Plan Steps:
+- [ ] Step 1: Read and confirm current SummaryTab.tsx content (done)
+- [x] Step 2: Implement improved empty state detection logic
+- [x] Step 3: Filter out zero-hour and unknown series in data processing
+- [x] Step 4: Update render condition and message text consistency
+- [ ] Step 5: Add debug logging for rows/series
+- [ ] Step 6: Test and verify no-data state shows "No data available"
+- [ ] Step 7: Update TODO progress
 
-- [x] Step 2: Modify chart configuration for horizontal stacked bars ✅
-  - Added stacked: true, horizontal: true, barHeight: '70%'
-  - Updated xaxis: categories=members, title='Total Hours', formatter `${v}h`
-  - yaxis: title='Members'
-  - Added stroke, fill, legend position bottom
-  - Simplified tooltip
+SummaryTab fixed.
 
-- [x] Step 3: Update totalHours calculation to grand total across all ✅
-  - Now sums all project data without -1 filter
+WeeklyTab no data issue:
+- [ ] Add logging
+- [ ] Filter zero-hour rows
+- [ ] Test
 
-## Steps:
-- [x] Step 1: Update data fetching logic to aggregate across all users for selected week ✅
-
-- [x] Step 2: Modify chart configuration for horizontal stacked bars ✅
-
-- [x] Step 3: Update totalHours calculation to grand total across all ✅
-
-- [x] Step 4: Add empty state handling ✅
-  - Conditional chart/no-data UI with icon/message
-
-**Complete**:
-- [x] Step 5: Verified implementation ✅
-
-**All steps complete!** Navigate to Admin > Reports > Summary tab to see stacked bar chart: one horizontal bar per member, colored segments by project hours for the selected week. Week navigation works. Empty state shown if no data.
-
-
-
-**Note**: No terminal commands will be run as per user instruction.
+Current progress: SummaryTab complete, fixing WeeklyTab.
 

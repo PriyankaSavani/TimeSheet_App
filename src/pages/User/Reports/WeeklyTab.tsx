@@ -112,8 +112,12 @@ const WeeklyTab = () => {
                               total += hours
                          } )
                          row.total = total.toFixed( 2 )
-                         return row
-                    } )
+                         // Filter out zero total or default rows
+                         if ( total > 0 && project !== 'No Project' && project !== 'Select Project' && task !== 'No Task' ) {
+                              return row
+                         }
+                         return null
+                    } ).filter( Boolean ) as TaskData[];
 
                     setTableData( tableRows )
                }

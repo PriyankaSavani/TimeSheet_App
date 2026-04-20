@@ -217,10 +217,15 @@ const EmployeeProjectHoursChart = () => {
                          <FeatherIcon icon="more-vertical" className="cursor-pointer" />
                     </Card.Title>
 
-                    { chartData.categories.length === 0 ? (
+                    { chartData.categories.length === 0 || chartData.series.length === 0 ? (
                          <div className="text-center p-5">
-                              <FeatherIcon icon="bar-chart-2" className="me-2" />
-                              No employees found
+                              <FeatherIcon icon="bar-chart-2" size={ 48 } className="text-muted mb-3" />
+                              <h5 className="text-muted">
+                                   No data available for the selected month.
+                              </h5>
+                              <h5 className="text-muted">
+                                   Please ensure employees have logged their hours against projects.
+                              </h5>
                          </div>
                     ) : (
                          <ReactApexChart
