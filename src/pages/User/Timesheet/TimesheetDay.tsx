@@ -6,7 +6,7 @@ import FormInput from '../../../components/FormInput';
 
 interface TimesheetDayProps {
      row: Row;
-     setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+     updateRows?: ( newRows: Row[] ) => Promise<void>;
      day: string;
      isEditing: boolean;
      editingInputs: Record<string, Record<string, string>>;
@@ -14,9 +14,10 @@ interface TimesheetDayProps {
      formatTimeInput: ( input: string ) => string;
      calculateRowTotal: ( times: Record<string, { time: string, description: string }>, days: string[] ) => string;
      days: string[];
+     rows: Row[];
 }
 
-const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal, days } ) => {
+const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, updateRows, day, isEditing, editingInputs, setEditingInputs, formatTimeInput, calculateRowTotal, days, rows } ) => {
      const timeData = row.times[ day ];
      const time = timeData?.time || '';
      const [ showModal, setShowModal ] = useState( false )
@@ -25,50 +26,60 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
      const [ rawDigits, setRawDigits ] = useState( '' )
      const inputRef = React.useRef<HTMLInputElement>( null );
 
-
-     // Function to format input as user types
      const formatInputAsTyped = ( digits: string ) => {
           if ( digits.length === 0 ) return '00:00';
           if ( digits.length === 1 ) return `00:0${ digits }`;
           if ( digits.length === 2 ) return `00:${ digits }`;
           if ( digits.length === 3 ) return `0${ digits[ 0 ] }:${ digits.slice( 1 ) }`;
           if ( digits.length === 4 ) return `${ digits.slice( 0, 2 ) }:${ digits.slice( 2 ) }`;
-          return `${ digits.slice( 0, 2 ) }:${ digits.slice( 2, 4 ) }`; // limit to 4 digits
+          return `${ digits.slice( 0, 2 ) }:${ digits.slice( 2, 4 ) }`;
      };
 
      const inputValue = formatInputAsTyped( rawDigits )
 
-     // Helper function to normalize time format
      const normalizeTime = ( time: string ) => {
-          time = time.replace( /[^0-9]/g, '' ); // remove non-digits
+          time = time.replace( /[^0-9]/g, '' );
           if ( time.length === 1 ) return `0${ time }:00`;
           if ( time.length === 2 ) return `${ time }:00`;
           if ( time.length === 3 ) return `0${ time[ 0 ] }:${ time.slice( 1 ) }`;
           if ( time.length === 4 ) return `${ time.slice( 0, 2 ) }:${ time.slice( 2 ) }`;
-          return '00:00'; // default for empty or invalid
+          return '00:00';
      };
 
      const hasTime = time && time !== '00:00' && time !== ''
 
-     const handleSaveNotes = () => {
-          // Update the time in the table
+     const updateRowTimes = async ( newTimes: Record<string, { time: string, description: string }>, newTotal: string ) => {
+          const newRows = rows.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r );
+          if ( updateRows ) {
+               await updateRows( newRows );
+          }
+     };
+
+     const handleSaveNotes = async () => {
           const newTimes = { ...row.times, [ day ]: { time: modalTime, description: notes } };
           const newTotal = calculateRowTotal( newTimes, days );
-          setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
+          await updateRowTimes( newTimes, newTotal );
           setShowModal( false );
      }
+
+     const handleInputEnter = async () => {
+          const formatted = formatTimeInput( inputValue );
+          const newTimes = { ...row.times, [ day ]: { time: formatted, description: '' } };
+          const newTotal = calculateRowTotal( newTimes, days );
+          await updateRowTimes( newTimes, newTotal );
+     };
+
+     const handleClearTime = async () => {
+          const newTimes = { ...row.times, [ day ]: { time: '', description: '' } };
+          const newTotal = calculateRowTotal( newTimes, days );
+          await updateRowTimes( newTimes, newTotal );
+     };
 
      return (
           <React.Fragment>
                { hasTime ? (
                     <div className="d-flex align-items-center justify-content-between">
-                         <span onClick={ () => {
-                              const digits = time.replace( /[^0-9]/g, '' );
-                              setRawDigits( digits );
-                              // Switch to input mode by clearing the time
-                              const newTimes = { ...row.times, [ day ]: { time: '', description: '' } };
-                              setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: calculateRowTotal( newTimes, days ) } : r ) );
-                         } }>
+                         <span onClick={ handleClearTime }>
                               { normalizeTime( time ) }
                          </span>
                          <button
@@ -87,7 +98,7 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
                          type="text"
                          name={ `time-${ day.replace( /[^a-zA-Z0-9]/g, '-' ) }` }
                          value={ inputValue }
-                         onChange={ () => { } } // Prevent direct changes, handle via keydown
+                         onChange={ () => { } }
                          onKeyDown={ ( e ) => {
                               if ( e.key >= '0' && e.key <= '9' ) {
                                    e.preventDefault();
@@ -98,10 +109,7 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
                                    e.preventDefault();
                                    setRawDigits( prev => prev.slice( 0, -1 ) );
                               } else if ( e.key === 'Enter' || e.key === 'Tab' ) {
-                                   const formatted = formatTimeInput( inputValue );
-                                   const newTimes = { ...row.times, [ day ]: { time: formatted, description: '' } };
-                                   const newTotal = calculateRowTotal( newTimes, days );
-                                   setRows( prev => prev.map( r => r.id === row.id ? { ...r, times: newTimes, total: newTotal } : r ) );
+                                   handleInputEnter();
                               }
                          } }
                          placeholder="00:00"
@@ -170,3 +178,4 @@ const TimesheetDay: React.FC<TimesheetDayProps> = ( { row, setRows, day, isEditi
 }
 
 export default TimesheetDay
+

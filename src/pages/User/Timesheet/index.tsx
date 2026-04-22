@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Card } from 'react-bootstrap';
 import { useTimesheetCalculations } from '../../../hooks/useTimesheetCalculations';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getISOWeekKey } from '../../../utils/date';
 
-// component
 import TimesheetTask from './TimesheetTask';
 import TimesheetProject from './TimesheetProject';
 import TimesheetDay from './TimesheetDay';
@@ -26,16 +25,9 @@ export interface Row {
 
 const Timesheet = () => {
      const [ userId, setUserId ] = useState<string>( 'anonymous' );
-
      const [ rows, setRows ] = useState<Row[]>( [] );
-
-     const prevRowsRef = useRef<Row[]>( [] );
-
-     const [ weekOffset, setWeekOffset ] = useState<number>( 0 ); // Always start with current week
-
-
-
-     const [ dataLoaded, setDataLoaded ] = useState<boolean>( false );
+     const [ weekOffset, setWeekOffset ] = useState<number>( 0 );
+     const unsubscribeRef = useRef<( () => void ) | null>( null );
 
      // Listen to auth state changes
      useEffect( () => {
@@ -46,116 +38,72 @@ const Timesheet = () => {
                     setUserId( 'anonymous' );
                }
           } );
-
-          return () => unsubscribe();
+          return unsubscribe;
      }, [] );
 
-     // Generate week key using consistent date-fns utils
      const getWeekKey = ( offset: number ) => getISOWeekKey( offset );
 
-     // NO localStorage clearing - keep for offline persistence
-     useEffect( () => { }, [] );
-
-     // Load localStorage IMMEDIATELY for instant persistence, then sync Firestore
+     // Realtime listener: SET rows from Firestore (single source of truth)
      useEffect( () => {
-          if ( userId === 'anonymous' ) {
-               setDataLoaded( true );
-               return;
-          }
+          if ( userId === 'anonymous' ) return;
 
           const weekKey = getWeekKey( weekOffset );
-          const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
+          const docRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
 
-          // 1. IMMEDIATE localStorage load (user edits preserved)
-          const localData = localStorage.getItem( localStorageKey );
-          if ( localData ) {
-               try {
-                    const parsed = JSON.parse( localData );
-                    setRows( parsed );
-               } catch ( parseError ) {
-                    console.error( 'Error parsing localStorage:', parseError );
-               }
-          }
-
-          setDataLoaded( true );
-
-          // 2. Background Firestore sync (merge/push updates)
-          const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-          const unsubscribe = onSnapshot( timesheetDocRef, ( docSnap ) => {
-               if ( docSnap.exists() ) {
-                    const data = docSnap.data();
-                    const firestoreRows = data.rows || [];
-                    const correctedRows = firestoreRows.map( ( row: any ) => ( {
-                         ...row,
-                         times: Object.keys( row.times || {} ).reduce( ( acc: Record<string, { time: string, description: string }>, day ) => {
-                              const timeData = row.times[ day ];
-                              if ( typeof timeData === 'string' ) {
-                                   acc[ day ] = { time: timeData, description: '' };
-                              } else {
-                                   acc[ day ] = timeData;
-                              }
+          const unsubscribe = onSnapshot( docRef, ( snap ) => {
+               if ( snap.exists() ) {
+                    const data = snap.data();
+                    const fsRows = ( data.rows || [] ) as Row[];
+                    // Normalize times if needed
+                    const normalizedRows = fsRows.map( r => ( {
+                         ...r,
+                         times: Object.keys( r.times || {} ).reduce( ( acc, day ) => {
+                              const td = r.times[ day ];
+                              acc[ day as keyof Row[ 'times' ] ] = typeof td === 'string' ? { time: td, description: '' } : td;
                               return acc;
-                         }, {} )
+                         }, {} as Record<string, { time: string; description: string }> ),
                     } ) );
-
-                    // Save Firestore to localStorage for next load
-                    localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
+                    setRows( normalizedRows.length > 0 ? normalizedRows : [ { id: 'default', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
+               } else {
+                    // No doc: empty/default
+                    setRows( [ { id: 'default', project: 'Select Project', task: '', times: {}, total: '00:00' } ] );
                }
-          } );
+          }, ( err ) => console.error( 'Firestore listener error:', err ) );
 
-          return unsubscribe;
-     }, [ userId, weekOffset ] );
-
-     // Save only if rows changed from loaded data
-     useEffect( () => {
-          if ( userId !== 'anonymous' && dataLoaded ) {
-               if ( JSON.stringify( rows ) === JSON.stringify( prevRowsRef.current ) ) return;
-               prevRowsRef.current = rows;
-
-               const hasMeaningfulData = rows.some( row => row.project !== 'Select Project' || row.task || Object.values( row.times ).some( t => t.time && t.time !== '00:00' ) );
-               if ( !hasMeaningfulData ) return;
-
-               const weekKey = getWeekKey( weekOffset );
-               const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
-
-               localStorage.setItem( localStorageKey, JSON.stringify( rows ) );
-
-               const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-               setDoc( timesheetDocRef, { rows }, { merge: true } ).catch( console.error );
-          }
-     }, [ rows, userId, dataLoaded, weekOffset ] );
-
-     // Save data on page unload to prevent data loss
-     useEffect( () => {
-          const handleBeforeUnload = ( event: BeforeUnloadEvent ) => {
-               if ( userId !== 'anonymous' && rows.length > 0 ) {
-                    const weekKey = getWeekKey( weekOffset );
-                    const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-                    // Attempt to save synchronously (though setDoc is async, this ensures it's triggered)
-                    setDoc( timesheetDocRef, { rows }, { merge: true } ).catch( ( error ) => {
-                         console.error( 'Error saving on unload:', error );
-                    } );
-               }
-          };
-
-          window.addEventListener( 'beforeunload', handleBeforeUnload );
+          unsubscribeRef.current = unsubscribe;
 
           return () => {
-               window.removeEventListener( 'beforeunload', handleBeforeUnload );
+               unsubscribeRef.current && unsubscribeRef.current();
           };
-     }, [ rows, userId, weekOffset ] );
+     }, [ userId, weekOffset ] );
+
+     // updateRows: Optimistic UI + Firestore sync
+     const updateRows = async ( newRows: Row[] ) => {
+          setRows( newRows );
+          if ( userId === 'anonymous' ) return;
+
+          const weekKey = getWeekKey( weekOffset );
+          const docRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
+          try {
+               await setDoc( docRef, { rows: newRows }, { merge: true } );
+          } catch ( error ) {
+               console.error( 'Firestore save error:', error );
+               // Revert on error
+               setRows( rows );
+          }
+     };
 
      const { days, currentDay, formatTimeInput, calculateRowTotal, dailyTotals, grandTotal } = useTimesheetCalculations( weekOffset, rows );
 
-     const updateProject = ( id: string, project: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r ) );
+     const updateProject = async ( id: string, project: string ) => {
+          const newRows = rows.map( r => r.id === id ? { ...r, project, total: calculateRowTotal( r.times, days ) } : r );
+          await updateRows( newRows );
      };
 
-     const updateTask = ( id: string, task: string ) => {
-          setRows( prev => prev.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times, days ) } : r ) );
+     const updateTask = async ( id: string, task: string ) => {
+          const newRows = rows.map( r => r.id === id ? { ...r, task, total: calculateRowTotal( r.times, days ) } : r );
+          await updateRows( newRows );
      };
-
-
 
      return (
           <React.Fragment>
@@ -169,31 +117,16 @@ const Timesheet = () => {
                                    className='mb-3 mb-xl-0'
                               />
                               <div className="d-flex justify-content-end">
-                                   <TimesheetAddAction
-                                        rows={ rows }
-                                        setRows={ setRows }
-                                   />
+                                   <TimesheetAddAction rows={ rows } updateRows={ updateRows } />
                               </div>
                          </div>
-                         <Table
-                              bordered
-                              responsive
-                         // variant='warning'
-                         >
+                         <Table bordered responsive>
                               <thead>
                                    <tr>
                                         <th>PROJECT</th>
                                         <th>TASK</th>
                                         { days.map( ( day: string ) => (
-                                             <th
-                                                  key={ day }
-                                                  className={
-                                                       classNames(
-                                                            'no-wrap',
-                                                            { 'bg-warning': day === currentDay }
-                                                       )
-                                                  }
-                                             >
+                                             <th key={ day } className={ classNames( 'no-wrap', { 'bg-warning': day === currentDay } ) }>
                                                   { day }
                                              </th>
                                         ) ) }
@@ -229,7 +162,7 @@ const Timesheet = () => {
                                                   <td key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
                                                        <TimesheetDay
                                                             row={ row }
-                                                            setRows={ setRows }
+                                                            updateRows={ updateRows }
                                                             day={ day }
                                                             isEditing={ false }
                                                             editingInputs={ {} }
@@ -237,19 +170,17 @@ const Timesheet = () => {
                                                             formatTimeInput={ formatTimeInput }
                                                             calculateRowTotal={ calculateRowTotal }
                                                             days={ days }
+                                                            rows={ rows }
                                                        />
                                                   </td>
                                              ) ) }
-                                             <td>
-                                                  { calculateRowTotal( row.times, days ) }
-                                             </td>
+                                             <td>{ calculateRowTotal( row.times, days ) }</td>
                                              <td>
                                                   <div className="d-flex">
                                                        <TimesheetDeleteAction
                                                             rowId={ row.id }
-                                                            onDelete={ () => { } }
+                                                            updateRows={ updateRows }
                                                             rows={ rows }
-                                                            setRows={ setRows }
                                                        />
                                                   </div>
                                              </td>
@@ -261,22 +192,19 @@ const Timesheet = () => {
                                         </td>
                                         { days.map( ( day: string ) => (
                                              <td key={ day } className={ day === currentDay ? 'bg-warning' : '' }>
-                                                  <strong>
-                                                       { dailyTotals[ day ] }
-                                                  </strong>
+                                                  <strong>{ dailyTotals[ day ] }</strong>
                                              </td>
                                         ) ) }
-                                        <td>
-                                             <strong>{ grandTotal }</strong>
-                                        </td>
+                                        <td><strong>{ grandTotal }</strong></td>
                                         <td></td>
                                    </tr>
                               </tbody>
-                         </Table >
+                         </Table>
                     </Card.Body>
                </Card>
-          </React.Fragment >
+          </React.Fragment>
      )
 }
 
 export default Timesheet
+

@@ -4,23 +4,18 @@ import { Row } from './index'
 
 interface TimesheetDeleteActionProps {
      rowId: string;
-     onDelete: ( id: string, rows: Row[], setRows: React.Dispatch<React.SetStateAction<Row[]>> ) => void;
+     updateRows?: ( newRows: Row[] ) => Promise<void>;
      rows: Row[];
-     setRows: React.Dispatch<React.SetStateAction<Row[]>>;
-     saveToFirestore?: () => void;
 }
 
-const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, onDelete, rows, setRows, saveToFirestore } ) => {
+const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, updateRows, rows } ) => {
      const [ showModal, setShowModal ] = useState( false );
 
-     const handleDelete = () => {
+     const handleDelete = async () => {
           const newRows = rows.filter( r => r.id !== rowId );
-          if ( newRows.length === 0 ) {
-               newRows.push( { id: Date.now().toString(), project: 'Select Project', task: '', times: {}, total: '00:00' } );
-          }
-          setRows( newRows );
-          if ( saveToFirestore ) {
-               saveToFirestore();
+          const finalRows = newRows.length === 0 ? [ { id: Date.now().toString(), project: 'Select Project', task: '', times: {}, total: '00:00' } ] : newRows;
+          if ( updateRows ) {
+               await updateRows( finalRows );
           }
           setShowModal( false );
      };
@@ -55,3 +50,4 @@ const TimesheetDeleteAction: React.FC<TimesheetDeleteActionProps> = ( { rowId, o
 }
 
 export default TimesheetDeleteAction
+

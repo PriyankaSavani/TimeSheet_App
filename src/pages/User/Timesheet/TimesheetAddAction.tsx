@@ -6,13 +6,16 @@ import FeatherIcon from 'feather-icons-react';
 
 interface TimesheetAddActionProps {
      rows: Row[];
-     setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+     updateRows?: ( newRows: Row[] ) => Promise<void>;
 }
 
-const TimesheetAddAction: React.FC<TimesheetAddActionProps> = ( { rows, setRows } ) => {
-     const handleAdd = () => {
+const TimesheetAddAction: React.FC<TimesheetAddActionProps> = ( { rows, updateRows } ) => {
+     const handleAdd = async () => {
           const newRow: Row = { id: Date.now().toString(), project: 'Select Project', task: '', times: {}, total: '00:00' };
-          setRows( prev => [ ...prev, newRow ] );
+          const newRows = [ ...rows, newRow ];
+          if ( updateRows ) {
+               await updateRows( newRows );
+          }
      };
 
      return (
@@ -32,3 +35,4 @@ const TimesheetAddAction: React.FC<TimesheetAddActionProps> = ( { rows, setRows 
 };
 
 export default TimesheetAddAction;
+
