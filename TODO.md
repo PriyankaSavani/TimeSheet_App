@@ -1,20 +1,12 @@
-# TODO: Fix User SummaryTab No Data Message
+# Timesheet Data Persistence Fix - TODO
 
 ## Plan Steps:
-- [ ] Step 1: Read and confirm current SummaryTab.tsx content (done)
-- [x] Step 2: Implement improved empty state detection logic
-- [x] Step 3: Filter out zero-hour and unknown series in data processing
-- [x] Step 4: Update render condition and message text consistency
-- [ ] Step 5: Add debug logging for rows/series
-- [ ] Step 6: Test and verify no-data state shows "No data available"
-- [ ] Step 7: Update TODO progress
+- [ ] Step 1: Remove localStorage.removeItem() calls from User/Timesheet/index.tsx useEffect
+- [ ] Step 2: Update load logic to prioritize localStorage first, then merge Firestore
+- [ ] Step 3: Apply same changes to Admin/Timesheet/index.tsx
+- [ ] Step 4: Test week navigation (enter data → nav away → back → verify persistence)
+- [ ] Step 5: Verify Firestore sync (manual check or console logs)
+- [ ] Complete: attempt_completion
 
-SummaryTab fixed.
-
-WeeklyTab no data issue:
-- [ ] Add logging
-- [ ] Filter zero-hour rows
-- [ ] Test
-
-Current progress: SummaryTab complete, fixing WeeklyTab.
+**Progress:** Starting Step 1...
 

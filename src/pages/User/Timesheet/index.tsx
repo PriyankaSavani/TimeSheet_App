@@ -56,135 +56,54 @@ const Timesheet = () => {
      // NO localStorage clearing - keep for offline persistence
      useEffect( () => { }, [] );
 
-     // Set up real-time listener for Firestore data (per-user per-week timesheet)
+     // Load localStorage IMMEDIATELY for instant persistence, then sync Firestore
      useEffect( () => {
           if ( userId === 'anonymous' ) {
                setDataLoaded( true );
                return;
           }
 
-          setDataLoaded( false );
-
           const weekKey = getWeekKey( weekOffset );
           const localStorageKey = `timesheet_${ userId }_${ weekKey }`;
 
-          // Clear localStorage for this week to ensure we get fresh data from Firestore
-          localStorage.removeItem( localStorageKey );
+          // 1. IMMEDIATE localStorage load (user edits preserved)
+          const localData = localStorage.getItem( localStorageKey );
+          if ( localData ) {
+               try {
+                    const parsed = JSON.parse( localData );
+                    setRows( parsed );
+               } catch ( parseError ) {
+                    console.error( 'Error parsing localStorage:', parseError );
+               }
+          }
 
-          // Fetch from Firestore using local week key
+          setDataLoaded( true );
+
+          // 2. Background Firestore sync (merge/push updates)
           const timesheetDocRef = doc( db, 'timesheets', userId, 'weeks', weekKey );
-
-          const checkDocExists = async () => {
-               const docSnap = await getDoc( timesheetDocRef );
-               return docSnap.exists();
-          };
-
-          checkDocExists().then( ( exists ) => {
-               if ( exists ) {
-                    // Set up real-time listener
-                    const unsubscribe = onSnapshot( timesheetDocRef, ( docSnap ) => {
-                         if ( docSnap.exists() ) {
-                              const data = docSnap.data();
-                              const firestoreRows = data.rows || [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                              // Ensure times structure is correct
-                              const correctedRows = firestoreRows.map( ( row: any ) => ( {
-                                   ...row,
-                                   times: Object.keys( row.times || {} ).reduce( ( acc: Record<string, { time: string, description: string }>, day ) => {
-                                        const timeData = row.times[ day ];
-                                        if ( typeof timeData === 'string' ) {
-                                             acc[ day ] = { time: timeData, description: '' };
-                                        } else {
-                                             acc[ day ] = timeData;
-                                        }
-                                        return acc;
-                                   }, {} )
-                              } ) );
-                              setRows( correctedRows );
-                              // Update localStorage with Firestore data
-                              localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
-                         } else {
-                              // If no Firestore data, check localStorage
-                              const localData = localStorage.getItem( localStorageKey );
-                              if ( localData ) {
-                                   try {
-                                        const parsed = JSON.parse( localData );
-                                        setRows( parsed );
-                                   } catch ( parseError ) {
-                                        console.error( 'Error parsing localStorage data:', parseError );
-                                        const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                                        setRows( defaultRows );
-                                        localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                                   }
+          const unsubscribe = onSnapshot( timesheetDocRef, ( docSnap ) => {
+               if ( docSnap.exists() ) {
+                    const data = docSnap.data();
+                    const firestoreRows = data.rows || [];
+                    const correctedRows = firestoreRows.map( ( row: any ) => ( {
+                         ...row,
+                         times: Object.keys( row.times || {} ).reduce( ( acc: Record<string, { time: string, description: string }>, day ) => {
+                              const timeData = row.times[ day ];
+                              if ( typeof timeData === 'string' ) {
+                                   acc[ day ] = { time: timeData, description: '' };
                               } else {
-                                   // Use default and save to localStorage
-                                   const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                                   setRows( defaultRows );
-                                   localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
+                                   acc[ day ] = timeData;
                               }
-                         }
-                         setDataLoaded( true );
-                    }, ( error ) => {
-                         // Fallback to localStorage
-                         const localData = localStorage.getItem( localStorageKey );
-                         if ( localData ) {
-                              try {
-                                   const parsed = JSON.parse( localData );
-                                   setRows( parsed );
-                              } catch ( parseError ) {
-                                   console.error( 'Error parsing localStorage data:', parseError );
-                                   const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                                   setRows( defaultRows );
-                                   localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                              }
-                         } else {
-                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                              setRows( defaultRows );
-                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                         }
-                         setDataLoaded( true );
-                    } );
+                              return acc;
+                         }, {} )
+                    } ) );
 
-                    return unsubscribe;
-               } else {
-                    // No Firestore data, use localStorage
-                    const localData = localStorage.getItem( localStorageKey );
-                    if ( localData ) {
-                         try {
-                              const parsed = JSON.parse( localData );
-                              setRows( parsed );
-                         } catch ( parseError ) {
-                              console.error( 'Error parsing localStorage data:', parseError );
-                              const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                              setRows( defaultRows );
-                              localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                         }
-                    } else {
-                         // Use default and save to localStorage
-                         const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                         setRows( defaultRows );
-                         localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                    }
+                    // Save Firestore to localStorage for next load
+                    localStorage.setItem( localStorageKey, JSON.stringify( correctedRows ) );
                }
-          } ).catch( ( error ) => {
-               // Fallback to localStorage
-               const localData = localStorage.getItem( localStorageKey );
-               if ( localData ) {
-                    try {
-                         const parsed = JSON.parse( localData );
-                         setRows( parsed );
-                    } catch ( parseError ) {
-                         console.error( 'Error parsing localStorage data:', parseError );
-                         const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                         setRows( defaultRows );
-                         localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-                    }
-               } else {
-                    const defaultRows = [ { id: '1', project: 'Select Project', task: '', times: {}, total: '00:00' } ];
-                    setRows( defaultRows );
-                    localStorage.setItem( localStorageKey, JSON.stringify( defaultRows ) );
-               }
-               setDataLoaded( true );
           } );
+
+          return unsubscribe;
      }, [ userId, weekOffset ] );
 
      // Save only if rows changed from loaded data
